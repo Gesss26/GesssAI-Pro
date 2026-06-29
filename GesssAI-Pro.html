@@ -45,6 +45,7 @@
         .btn-secondary { background: #2d2d5e; border: 1px solid var(--primary-color); }
         .btn-danger { background: linear-gradient(135deg, #dc3545, #a71d2a); }
         .btn-success { background: linear-gradient(135deg, #28a745, #1e7e34); }
+        .btn-import { background: linear-gradient(135deg, #9c27b0, #6a1b9a); }
         .toggle-container { display: flex; align-items: center; gap: 10px; margin-left: auto; }
         .toggle-switch { position: relative; display: inline-block; width: 60px; height: 30px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
@@ -382,11 +383,11 @@
                             <option value="PD">La Liga</option>
                             <option value="SD">Segunda Division</option>
                         </optgroup>
-                        <optgroup label="🇩🇪 Germania">
+                        <optgroup label="🇩 Germania">
                             <option value="BL1">Bundesliga</option>
                             <option value="BL2">2. Bundesliga</option>
                         </optgroup>
-                        <optgroup label="🇮🇹 Italia">
+                        <optgroup label="🇮 Italia">
                             <option value="SA">Serie A</option>
                             <option value="SB">Serie B</option>
                             <option value="CI">Coppa Italia</option>
@@ -395,7 +396,7 @@
                             <option value="FL1">Ligue 1</option>
                             <option value="FL2">Ligue 2</option>
                         </optgroup>
-                        <optgroup label="🇳🇱 Olanda">
+                        <optgroup label="🇳 Olanda">
                             <option value="DED">Eredivisie</option>
                         </optgroup>
                         <optgroup label="🇵🇹 Portogallo">
@@ -475,8 +476,14 @@
             <h3>🗄️ Gestione Dati</h3>
             <div class="settings-row">
                 <button class="btn btn-secondary" onclick="exportAllData()">📤 Esporta</button>
+                <button class="btn btn-import" onclick="document.getElementById('importFileInput').click()">📥 Importa</button>
+                <input type="file" id="importFileInput" accept=".json" onchange="importData(event)" style="display:none;">
                 <button class="btn btn-danger" onclick="clearAllData()">🗑️ Cancella</button>
             </div>
+            <p style="color:#87ceeb;font-size:0.85em;margin-top:10px;">
+                💡 <strong>Esporta</strong>: Salva tutti i dati in un file JSON per trasferirli su un altro dispositivo<br>
+                💡 <strong>Importa</strong>: Carica un file JSON precedentemente esportato per ripristinare i dati
+            </p>
         </div>
     </div>
 
@@ -1411,7 +1418,6 @@
                 return;
             }
             
-            // DC Calculation
             let dc1xPoints = 0, dc12Points = 0, dcX2Points = 0;
             let homeDraws = 0, awayDraws = 0;
             
@@ -1457,7 +1463,6 @@
             setStat('dc-12', dc12 + '%', [dc1x, dc12, dcX2]);
             setStat('dc-x2', dcX2 + '%', [dc1x, dc12, dcX2]);
             
-            // Under/Over - basato sul totale gol di ogni partita
             const allMatchesCombined = [...homeTeamMatches, ...awayTeamMatches];
             let over15 = 0, over25 = 0, under35 = 0, under45 = 0;
             
@@ -1479,7 +1484,6 @@
             setStat('u-35', u35 + '%', [o15, o25, u35, u45]);
             setStat('u-45', u45 + '%', [o15, o25, u35, u45]);
             
-            // Multigol Casa - gol fatti dalla squadra casa
             const homeGoalsScored = homeTeamMatches.map(m => {
                 const isHome = m.homeTeam === homeTeam;
                 return isHome ? m.homeGoals : m.awayGoals;
@@ -1500,7 +1504,6 @@
             setStat('mh-13', mh13P + '%', [mh01P, mh13P, mh24P]);
             setStat('mh-24', mh24P + '%', [mh01P, mh13P, mh24P]);
             
-            // Multigol Ospite - gol fatti dalla squadra ospite
             const awayGoalsScored = awayTeamMatches.map(m => {
                 const isHome = m.homeTeam === awayTeam;
                 return isHome ? m.homeGoals : m.awayGoals;
@@ -1521,7 +1524,6 @@
             setStat('ma-13', ma13P + '%', [ma01P, ma13P, ma24P]);
             setStat('ma-24', ma24P + '%', [ma01P, ma13P, ma24P]);
             
-            // Multigol Totale - totale gol (fatti+subiti) di ogni partita
             let mt14 = 0, mt25 = 0, oh15 = 0, oa15 = 0;
             allMatchesCombined.forEach(m => {
                 const totalGoals = m.homeGoals + m.awayGoals;
@@ -1669,12 +1671,54 @@
             const data = { matches: allMatches, leagues: savedLeagues, leagueOrder: leagueOrder, leagueColors: leagueColors, aiAnalyses: aiAnalyses, teamLogos: teamLogos, schedina: schedinaBets, bettingHistory: bettingHistory, exportDate: new Date().toISOString() };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'gessai_backup_' + new Date().toISOString().split('T')[0] + '.json'; link.click();
+            showNotification('📤 Dati esportati con successo! Trasferisci il file JSON sull\'altro dispositivo.', 'success');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!confirm('⚠️ L\'importazione sostituirà tutti i dati attuali. Continuare?')) {
+                event.target.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.matches) allMatches = data.matches;
+                    if (data.leagues) savedLeagues = data.leagues;
+                    if (data.leagueOrder) leagueOrder = data.leagueOrder;
+                    if (data.leagueColors) leagueColors = data.leagueColors;
+                    if (data.aiAnalyses) aiAnalyses = data.aiAnalyses;
+                    if (data.teamLogos) teamLogos = data.teamLogos;
+                    if (data.schedina) schedinaBets = data.schedina;
+                    if (data.bettingHistory) bettingHistory = data.bettingHistory;
+                    
+                    saveToStorage();
+                    updateLeagueSelectors();
+                    renderSavedLeagues();
+                    renderLeagueOrder();
+                    renderAll();
+                    renderSchedina();
+                    loadAllSettings();
+                    
+                    showNotification('✅ Dati importati con successo! ' + allMatches.length + ' partite caricate.', 'success');
+                } catch (err) {
+                    showNotification('❌ Errore nell\'importazione: ' + err.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
         }
 
         function clearAllData() {
             if (confirm('Cancellare TUTTI i dati?')) {
                 allMatches = []; savedLeagues = []; leagueOrder = []; leagueColors = {}; aiAnalyses = {}; teamLogos = {}; schedinaBets = []; bettingHistory = [];
                 saveToStorage(); updateLeagueSelectors(); renderSavedLeagues(); renderLeagueOrder(); renderAll(); renderSchedina();
+                showNotification('🗑️ Tutti i dati sono stati cancellati.', 'success');
             }
         }
 
