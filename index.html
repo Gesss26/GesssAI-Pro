@@ -3,12 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GesssAI-Pro</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <!-- PWA Manifest & Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e90ff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="GesssAI">
-    <title>GesssAI-Pro</title>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -186,6 +194,24 @@
         .key-status { display: inline-block; padding: 3px 8px; border-radius: 10px; font-size: calc(var(--font-size-base) * 0.75); margin-left: 10px; }
         .key-status.saved { background: rgba(40, 167, 69, 0.2); color: #28a745; }
         .key-status.not-saved { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+        
+        /* Stili per il pannello login/sync */
+        .sync-panel { 
+            background: #111128; border: 1px solid #1e3a5f; border-radius: 10px; 
+            padding: 20px; margin-bottom: 20px; text-align: center; 
+        }
+        .sync-status { 
+            display: inline-block; padding: 4px 12px; border-radius: 15px; 
+            font-size: 0.8em; font-weight: bold; margin-left: 10px; 
+        }
+        .sync-online { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+        .sync-offline { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+        .auth-input { 
+            width: 100%; max-width: 300px; padding: 10px; margin: 5px; 
+            background: #1a1a3e; border: 1px solid var(--primary-color); 
+            color: white; border-radius: 5px; font-size: inherit; 
+        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -379,7 +405,7 @@
                             <option value="EC">European Championship</option>
                             <option value="WC">FIFA World Cup 2026</option>
                         </optgroup>
-                        <optgroup label="🏴󠁮󠁿 Inghilterra">
+                        <optgroup label="🏴󠁥󠁮󠁧󠁿 Inghilterra">
                             <option value="PL">Premier League</option>
                             <option value="ELC">Championship</option>
                             <option value="FAC">FA Cup</option>
@@ -388,20 +414,20 @@
                             <option value="PD">La Liga</option>
                             <option value="SD">Segunda Division</option>
                         </optgroup>
-                        <optgroup label="🇩 Germania">
+                        <optgroup label="🇩🇪 Germania">
                             <option value="BL1">Bundesliga</option>
                             <option value="BL2">2. Bundesliga</option>
                         </optgroup>
-                        <optgroup label="🇮 Italia">
+                        <optgroup label="🇮🇹 Italia">
                             <option value="SA">Serie A</option>
                             <option value="SB">Serie B</option>
                             <option value="CI">Coppa Italia</option>
                         </optgroup>
-                        <optgroup label="🇫 Francia">
+                        <optgroup label="🇫🇷 Francia">
                             <option value="FL1">Ligue 1</option>
                             <option value="FL2">Ligue 2</option>
                         </optgroup>
-                        <optgroup label="🇳 Olanda">
+                        <optgroup label="🇳🇱 Olanda">
                             <option value="DED">Eredivisie</option>
                         </optgroup>
                         <optgroup label="🇵🇹 Portogallo">
@@ -474,6 +500,33 @@
                 <div class="theme-option" style="background:linear-gradient(135deg, #dc3545, #a71d2a);" onclick="changeTheme('red', this)"></div>
                 <div class="theme-option" style="background:linear-gradient(135deg, #9c27b0, #6a1b9a);" onclick="changeTheme('purple', this)"></div>
                 <div class="theme-option" style="background:linear-gradient(135deg, #ff6b35, #cc4400);" onclick="changeTheme('orange', this)"></div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3>☁️ Sincronizzazione Multi-Device</h3>
+            
+            <!-- Pannello Login -->
+            <div id="authPanel" class="sync-panel">
+              <p style="color:#87ceeb;margin-bottom:15px;">Accedi per sincronizzare i dati tra tutti i tuoi dispositivi</p>
+              <input type="email" id="authEmail" class="auth-input" placeholder="Email">
+              <input type="password" id="authPassword" class="auth-input" placeholder="Password">
+              <br>
+              <button class="btn" onclick="signIn()">🔑 Accedi</button>
+              <button class="btn btn-secondary" onclick="signUp()">📝 Registrati</button>
+              <div id="authError" style="color:#dc3545;margin-top:10px;font-size:0.9em;"></div>
+            </div>
+
+            <!-- Pannello Utente Loggato -->
+            <div id="userPanel" class="sync-panel hidden">
+              <p style="color:#28a745;font-weight:bold;">✅ Connesso come: <span id="userEmail"></span></p>
+              <div style="margin:15px 0;">
+                Stato Sync: <span id="syncStatus" class="sync-status sync-offline">⏳ In attesa...</span>
+              </div>
+              <button class="btn" onclick="uploadToCloud()">⬆️ Carica dati sul Cloud</button>
+              <button class="btn btn-secondary" onclick="downloadFromCloud()">⬇️ Scarica dati dal Cloud</button>
+              <button class="btn btn-danger" onclick="signOut()">🚪 Esci</button>
+              <div id="syncMessage" style="margin-top:10px;font-size:0.9em;color:#87ceeb;"></div>
             </div>
         </div>
 
@@ -1765,13 +1818,218 @@
             document.body.appendChild(n);
             setTimeout(() => n.remove(), 4000);
         }
-    </script>
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('Service Worker registrato', reg))
-      .catch(err => console.log('Errore SW:', err));
-  }
+
+     <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyAbdZjsG5JVPN9LDhtpY3NAci6hpSa-aVo",
+    authDomain: "gesssai-pro.firebaseapp.com",
+    databaseURL: "https://gesssai-pro-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "gesssai-pro",
+    storageBucket: "gesssai-pro.firebasestorage.app",
+    messagingSenderId: "362826177657",
+    appId: "1:362826177657:web:1a16c811df702fdb1548a8",
+    measurementId: "G-GVGT6882VF"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
 </script>
+
+        // Inizializza Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+        let currentUser = null;
+        let syncListener = null;
+
+        // === AUTENTICAZIONE ===
+        function signUp() {
+          const email = document.getElementById('authEmail').value.trim();
+          const password = document.getElementById('authPassword').value;
+          if (!email || !password) { showAuthError('Inserisci email e password'); return; }
+          
+          auth.createUserWithEmailAndPassword(email, password)
+            .then(() => showAuthError(''))
+            .catch(err => showAuthError(err.message.replace('Firebase: ', '')));
+        }
+
+        function signIn() {
+          const email = document.getElementById('authEmail').value.trim();
+          const password = document.getElementById('authPassword').value;
+          if (!email || !password) { showAuthError('Inserisci email e password'); return; }
+          
+          auth.signInWithEmailAndPassword(email, password)
+            .then(() => showAuthError(''))
+            .catch(err => showAuthError(err.message.replace('Firebase: ', '')));
+        }
+
+        function signOut() {
+          auth.signOut().then(() => {
+            if (syncListener) syncListener.off();
+            updateUI(null);
+          });
+        }
+
+        function showAuthError(msg) {
+          document.getElementById('authError').textContent = msg;
+        }
+
+        // === GESTIONE UI ===
+        auth.onAuthStateChanged(user => {
+          currentUser = user;
+          updateUI(user);
+          if (user) startRealtimeSync(user.uid);
+        });
+
+        function updateUI(user) {
+          const authPanel = document.getElementById('authPanel');
+          const userPanel = document.getElementById('userPanel');
+          
+          if (user) {
+            authPanel.classList.add('hidden');
+            userPanel.classList.remove('hidden');
+            document.getElementById('userEmail').textContent = user.email;
+          } else {
+            authPanel.classList.remove('hidden');
+            userPanel.classList.add('hidden');
+          }
+        }
+
+        // === SINCRONIZZAZIONE ===
+        function uploadToCloud() {
+          if (!currentUser) return;
+          setStatus('⬆️ Caricamento...', 'sync-offline');
+          
+          const data = {
+            matches: allMatches, leagues: savedLeagues, leagueOrder, leagueColors,
+            aiAnalyses, teamLogos, schedina: schedinaBets, bettingHistory,
+            settings: {
+              fontSize: localStorage.getItem('gessai_fontSize'),
+              theme: localStorage.getItem('gessai_theme'),
+              footballDataApiKey: localStorage.getItem('footballDataApiKey'),
+              groqApiKey: localStorage.getItem('groqApiKey'),
+              groqModel: localStorage.getItem('groqModel'),
+              thesportsdbApiKey: localStorage.getItem('thesportsdbApiKey'),
+              apifootballApiKey: localStorage.getItem('apifootballApiKey')
+            },
+            lastUpdated: Date.now()
+          };
+          
+          db.ref('users/' + currentUser.uid).set(data)
+            .then(() => {
+              setStatus('✅ Dati caricati!', 'sync-online');
+              setTimeout(() => setStatus('🟢 Online', 'sync-online'), 2000);
+            })
+            .catch(err => setStatus('❌ Errore: ' + err.message, 'sync-offline'));
+        }
+
+        function downloadFromCloud() {
+          if (!currentUser) return;
+          setStatus('⬇️ Download...', 'sync-offline');
+          
+          db.ref('users/' + currentUser.uid).once('value')
+            .then(snapshot => {
+              const data = snapshot.val();
+              if (!data) { setStatus('⚠️ Nessun dato trovato nel cloud', 'sync-offline'); return; }
+              
+              // Ripristina dati
+              allMatches = data.matches || [];
+              savedLeagues = data.leagues || [];
+              leagueOrder = data.leagueOrder || [];
+              leagueColors = data.leagueColors || {};
+              aiAnalyses = data.aiAnalyses || {};
+              teamLogos = data.teamLogos || {};
+              schedinaBets = data.schedina || [];
+              bettingHistory = data.bettingHistory || [];
+              
+              // Ripristina impostazioni
+              if (data.settings) {
+                Object.entries(data.settings).forEach(([key, val]) => {
+                  if (val !== null && val !== undefined) localStorage.setItem(key, val);
+                });
+              }
+              
+              saveToStorage();
+              loadAllSettings();
+              updateLeagueSelectors();
+              renderSavedLeagues();
+              renderLeagueOrder();
+              renderAll();
+              renderSchedina();
+              
+              setStatus('✅ Dati scaricati!', 'sync-online');
+              setTimeout(() => setStatus('🟢 Online', 'sync-online'), 2000);
+            })
+            .catch(err => setStatus('❌ Errore: ' + err.message, 'sync-offline'));
+        }
+
+        function startRealtimeSync(uid) {
+          if (syncListener) syncListener.off();
+          setStatus('🔄 Connessione...', 'sync-offline');
+          
+          syncListener = db.ref('users/' + uid);
+          syncListener.on('value', snapshot => {
+            const data = snapshot.val();
+            if (!data || !data.lastUpdated) return;
+            
+            // Evita loop infiniti: non aggiornare se i dati sono identici
+            const localHash = JSON.stringify({matches: allMatches, schedina: schedinaBets});
+            const cloudHash = JSON.stringify({matches: data.matches, schedina: data.schedina});
+            if (localHash === cloudHash) return;
+            
+            // Aggiorna solo se il cloud è più recente
+            if (data.lastUpdated > (localStorage.getItem('lastCloudUpdate') || 0)) {
+              allMatches = data.matches || [];
+              savedLeagues = data.leagues || [];
+              leagueOrder = data.leagueOrder || [];
+              leagueColors = data.leagueColors || {};
+              aiAnalyses = data.aiAnalyses || {};
+              teamLogos = data.teamLogos || {};
+              schedinaBets = data.schedina || [];
+              bettingHistory = data.bettingHistory || [];
+              
+              saveToStorage();
+              updateLeagueSelectors();
+              renderSavedLeagues();
+              renderLeagueOrder();
+              renderAll();
+              renderSchedina();
+              
+              localStorage.setItem('lastCloudUpdate', Date.now());
+              setStatus('🔄 Sync automatica...', 'sync-online');
+              setTimeout(() => setStatus('🟢 Online', 'sync-online'), 1500);
+            }
+          });
+          
+          // Upload automatico ogni 30 secondi se ci sono modifiche
+          setInterval(() => {
+            if (currentUser && document.hidden === false) {
+              uploadToCloud();
+            }
+          }, 30000);
+        }
+
+        function setStatus(text, className) {
+          const el = document.getElementById('syncStatus');
+          el.textContent = text;
+          el.className = 'sync-status ' + className;
+        }
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+              .then(reg => console.log('Service Worker registrato', reg))
+              .catch(err => console.log('Errore SW:', err));
+        }
+    </script>
 </body>
 </html>
