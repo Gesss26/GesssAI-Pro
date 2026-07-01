@@ -1,19 +1,19 @@
 {
-  "name": "GesssAI-Pro",
-  "short_name": "GesssAI",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#0a0a1a",
-  "theme_color": "#1e90ff",
+  "name": "Nome Completo della Mia WebApp",
+  "short_name": "MiaApp",
+  "start_url": "/",
+  "display": "standalone", 
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "icona-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon-512.png",
+      "src": "icona-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
