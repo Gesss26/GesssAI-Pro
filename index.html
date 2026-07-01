@@ -164,7 +164,6 @@ select, input[type="password"], input[type="number"], input[type="text"] { backg
 .bet-type-btn:hover { border-color: var(--primary-color); color: white; }
 .bet-type-btn.selected { background: #FFD700; color: #000; border-color: #FFD700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
 .bet-category-label { font-size: 0.7em; color: #87ceeb; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-/* FLAG Styles - ACCORCIATE per 3 per riga */
 .match-flags-container { display: flex; flex-direction: column; gap: 8px; justify-content: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); align-items: center; }
 .match-flags-row { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; width: 100%; }
 .flag-badge { padding: 5px 8px; border-radius: 6px; font-size: 0.7em; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 4px; min-width: 90px; max-width: 110px; flex: 1; text-align: center; white-space: nowrap; }
@@ -206,7 +205,7 @@ select, input[type="password"], input[type="number"], input[type="text"] { backg
 <input type="date" id="filterDate" onchange="applyDateFilter()">
 <button class="btn btn-secondary" onclick="clearDateFilter()">🗑️ Pulisci</button>
 </div>
-<button class="btn btn-secondary" onclick="exportToCSV()">📄 Esporta CSV</button>
+<button class="btn btn-secondary" onclick="exportToCSV()"> Esporta CSV</button>
 <div class="toggle-container">
 <label style="color:#87ceeb;">Ordina per:</label>
 <label class="toggle-switch">
@@ -287,7 +286,7 @@ select, input[type="password"], input[type="number"], input[type="text"] { backg
 <div id="tab-impostazioni" class="tab-content">
 <div class="api-section thesportsdb">
 <div class="api-section-header">
-<div class="api-section-title">🏆 TheSportsDB <span id="tsdbKeyStatus" class="key-status not-saved">Non salvata</span></div>
+<div class="api-section-title"> TheSportsDB <span id="tsdbKeyStatus" class="key-status not-saved">Non salvata</span></div>
 <div class="api-badge">GRATUITA</div>
 </div>
 <p style="color:#87ceeb;margin-bottom:15px;font-size:calc(var(--font-size-base) * 0.9);">Database gratuito. Chiave gratuita: <strong>"123"</strong>. <a href="https://www.thesportsdb.com/api.php" target="_blank" style="color:#28a745;">www.thesportsdb.com</a></p>
@@ -299,7 +298,7 @@ select, input[type="password"], input[type="number"], input[type="text"] { backg
 <button class="btn btn-secondary" onclick="testTheSportsDBKey()">🧪 Test</button>
 </div>
 <div class="settings-row">
-<label>🔍 Cerca campionato:</label>
+<label> Cerca campionato:</label>
 <input type="text" id="tsdbSearchInput" placeholder="Es: Iceland, Besta deild..." style="flex:1;">
 <button class="btn" onclick="searchTheSportsDBLeague()">🔍 Cerca</button>
 </div>
@@ -312,21 +311,21 @@ select, input[type="password"], input[type="number"], input[type="text"] { backg
 </div>
 <div class="api-section apifootball">
 <div class="api-section-header">
-<div class="api-section-title">⚡ API-Football <span id="apifootballKeyStatus" class="key-status not-saved">Non salvata</span></div>
+<div class="api-section-title"> API-Football <span id="apifootballKeyStatus" class="key-status not-saved">Non salvata</span></div>
 <div class="api-badge">900+ CAMPIONATI</div>
 </div>
 <p style="color:#87ceeb;margin-bottom:15px;font-size:calc(var(--font-size-base) * 0.9);">API completa. <a href="https://www.api-football.com/" target="_blank" style="color:#ff6b35;">www.api-football.com</a></p>
 <div class="league-search-container">
 <div class="settings-row">
-<label>🔑 API Key:</label>
+<label> API Key:</label>
 <input type="password" id="apifootballApiKey" placeholder="API Key RapidAPI" style="flex:1;">
-<button class="btn" onclick="saveApiFootballKey()">💾 Salva</button>
+<button class="btn" onclick="saveApiFootballKey()"> Salva</button>
 <button class="btn btn-secondary" onclick="testApiFootballKey()">🧪 Test</button>
 </div>
 <div class="settings-row">
 <label>🔍 Cerca campionato:</label>
 <input type="text" id="apifootballSearchInput" placeholder="Es: Besta deild karla..." style="flex:1;">
-<button class="btn" onclick="searchApiFootballLeague()">🔍 Cerca</button>
+<button class="btn" onclick="searchApiFootballLeague()"> Cerca</button>
 </div>
 <div class="settings-row">
 <label>📅 Stagione:</label>
@@ -353,7 +352,7 @@ select, input[type="password"], input[type="number"], input[type="text"] { backg
 <option value="EC">European Championship</option>
 <option value="WC">FIFA World Cup 2026</option>
 </optgroup>
-<optgroup label="🏴󠁿 Inghilterra">
+<optgroup label="🏴󠁢󠁥󠁮󠁧󠁿 Inghilterra">
 <option value="PL">Premier League</option>
 <option value="ELC">Championship</option>
 <option value="FAC">FA Cup</option>
@@ -434,7 +433,7 @@ select, input[type="password"], input[type="number"], input[type="text"] { backg
 <div class="settings-section">
 <h3>🗄️ Gestione Dati</h3>
 <div class="settings-row">
-<button class="btn btn-secondary" onclick="exportAllData()">📤 Esporta</button>
+<button class="btn btn-secondary" onclick="exportAllData()"> Esporta</button>
 <button class="btn btn-import" onclick="document.getElementById('importFileInput').click()">📥 Importa</button>
 <input type="file" id="importFileInput" accept=".json" onchange="importData(event)" style="display:none;">
 <button class="btn btn-danger" onclick="clearAllData()">🗑️ Cancella</button>
@@ -442,7 +441,7 @@ select, input[type="password"], input[type="number"], input[type="text"] { backg
 <p style="color:#87ceeb;font-size:0.85em;margin-top:10px;">💡 <strong>Esporta</strong>: Salva tutti i dati in JSON<br>💡 <strong>Importa</strong>: Carica un file JSON</p>
 </div>
 <div class="settings-section">
-<h3>🔧 Debug</h3>
+<h3> Debug</h3>
 <button class="btn btn-secondary" onclick="debugReload()">🔄 Ricarica Dati</button>
 <button class="btn btn-danger" onclick="debugClearCache()">🗑️ Pulisci Cache</button>
 </div>
@@ -501,8 +500,10 @@ if (s) schedinaBets = JSON.parse(s);
 const fontSize = localStorage.getItem('gessai_fontSize');
 if (fontSize) {
 document.documentElement.style.setProperty('--font-size-base', fontSize + 'px');
-document.getElementById('fontSizeSlider').value = fontSize;
-document.getElementById('fontSizeValue').textContent = fontSize + 'px';
+const slider = document.getElementById('fontSizeSlider');
+const valueLabel = document.getElementById('fontSizeValue');
+if (slider) slider.value = fontSize;
+if (valueLabel) valueLabel.textContent = fontSize + 'px';
 }
 console.log('✅ Dati caricati:', { partite: allMatches.length, campionati: savedLeagues.length });
 } catch (e) {
@@ -549,8 +550,10 @@ document.addEventListener('DOMContentLoaded', () => {
 console.log('🚀 App avviata');
 try {
 const now = new Date();
-document.getElementById('currentDate').value = now.toISOString().split('T')[0];
-document.getElementById('currentTime').value = now.toTimeString().slice(0, 5);
+const dateEl = document.getElementById('currentDate');
+const timeEl = document.getElementById('currentTime');
+if (dateEl) dateEl.value = now.toISOString().split('T')[0];
+if (timeEl) timeEl.value = now.toTimeString().slice(0, 5);
 console.log('📥 Caricamento dati...');
 loadFromStorage();
 console.log('🎨 Rendering UI...');
@@ -561,7 +564,7 @@ renderBetTypesGrid();
 renderLeagueFilterSidebar();
 console.log('✅ App pronta');
 } catch (error) {
-console.error('❌ Errore inizializzazione:', error);
+console.error(' Errore inizializzazione:', error);
 alert('Errore durante il caricamento dell\'app. Controlla la console.');
 }
 });
@@ -581,69 +584,74 @@ localStorage.setItem('gessai_bettingHistory', JSON.stringify(bettingHistory));
 
 function loadAllSettings() {
 const fk = localStorage.getItem('footballDataApiKey');
-if (fk) document.getElementById('footballDataApiKey').value = fk;
+if (fk) { const el = document.getElementById('footballDataApiKey'); if (el) el.value = fk; }
 const gk = localStorage.getItem('groqApiKey');
-if (gk) document.getElementById('groqApiKey').value = gk;
+if (gk) { const el = document.getElementById('groqApiKey'); if (el) el.value = gk; }
 const gm = localStorage.getItem('groqModel');
-if (gm) document.getElementById('groqModel').value = gm;
+if (gm) { const el = document.getElementById('groqModel'); if (el) el.value = gm; }
 const tsdb = localStorage.getItem('thesportsdbApiKey');
 if (tsdb) {
-document.getElementById('thesportsdbApiKey').value = tsdb;
-document.getElementById('tsdbKeyStatus').textContent = '✅ Salvata';
-document.getElementById('tsdbKeyStatus').className = 'key-status saved';
+const el = document.getElementById('thesportsdbApiKey');
+const status = document.getElementById('tsdbKeyStatus');
+if (el) el.value = tsdb;
+if (status) { status.textContent = '✅ Salvata'; status.className = 'key-status saved'; }
 }
 const af = localStorage.getItem('apifootballApiKey');
 if (af) {
-document.getElementById('apifootballApiKey').value = af;
-document.getElementById('apifootballKeyStatus').textContent = '✅ Salvata';
-document.getElementById('apifootballKeyStatus').className = 'key-status saved';
+const el = document.getElementById('apifootballApiKey');
+const status = document.getElementById('apifootballKeyStatus');
+if (el) el.value = af;
+if (status) { status.textContent = '✅ Salvata'; status.className = 'key-status saved'; }
 }
 }
 
 function saveTheSportsDBKey() {
-const key = document.getElementById('thesportsdbApiKey').value.trim();
+const el = document.getElementById('thesportsdbApiKey');
+const key = el ? el.value.trim() : '';
 if (!key) { showNotification('Inserisci una API Key valida!', 'error'); return; }
 localStorage.setItem('thesportsdbApiKey', key);
-document.getElementById('tsdbKeyStatus').textContent = '✅ Salvata';
-document.getElementById('tsdbKeyStatus').className = 'key-status saved';
+const status = document.getElementById('tsdbKeyStatus');
+if (status) { status.textContent = '✅ Salvata'; status.className = 'key-status saved'; }
 showNotification('🔑 API Key TheSportsDB salvata!', 'success');
 }
 
 function saveApiFootballKey() {
-const key = document.getElementById('apifootballApiKey').value.trim();
+const el = document.getElementById('apifootballApiKey');
+const key = el ? el.value.trim() : '';
 if (!key) { showNotification('Inserisci una API Key valida!', 'error'); return; }
 localStorage.setItem('apifootballApiKey', key);
-document.getElementById('apifootballKeyStatus').textContent = '✅ Salvata';
-document.getElementById('apifootballKeyStatus').className = 'key-status saved';
+const status = document.getElementById('apifootballKeyStatus');
+if (status) { status.textContent = '✅ Salvata'; status.className = 'key-status saved'; }
 showNotification('🔑 API Key API-Football salvata!', 'success');
 }
 
 async function testTheSportsDBKey() {
-const apiKey = document.getElementById('thesportsdbApiKey').value.trim();
+const el = document.getElementById('thesportsdbApiKey');
+const apiKey = el ? el.value.trim() : '';
 if (!apiKey) { showNotification('Inserisci una API Key!', 'error'); return; }
 showNotification('🧪 Test TheSportsDB in corso...', 'success');
 try {
 const url = 'https://www.thesportsdb.com/api/v1/json/' + apiKey + '/search_all_leagues.php?s=Soccer&l=Premier+League';
 const response = await fetch(url);
 const data = await response.json();
+const status = document.getElementById('tsdbKeyStatus');
 if (data.countries && data.countries.length > 0) {
 showNotification('✅ Chiave valida! Trovati ' + data.countries.length + ' risultati', 'success');
-document.getElementById('tsdbKeyStatus').textContent = '✅ Valida';
-document.getElementById('tsdbKeyStatus').className = 'key-status saved';
+if (status) { status.textContent = '✅ Valida'; status.className = 'key-status saved'; }
 } else {
 showNotification('❌ Chiave non valida', 'error');
-document.getElementById('tsdbKeyStatus').textContent = '❌ Non valida';
-document.getElementById('tsdbKeyStatus').className = 'key-status not-saved';
+if (status) { status.textContent = '❌ Non valida'; status.className = 'key-status not-saved'; }
 }
 } catch (error) {
 showNotification('Errore: ' + error.message, 'error');
-document.getElementById('tsdbKeyStatus').textContent = '❌ Errore';
-document.getElementById('tsdbKeyStatus').className = 'key-status not-saved';
+const status = document.getElementById('tsdbKeyStatus');
+if (status) { status.textContent = '❌ Errore'; status.className = 'key-status not-saved'; }
 }
 }
 
 async function testApiFootballKey() {
-const apiKey = document.getElementById('apifootballApiKey').value.trim();
+const el = document.getElementById('apifootballApiKey');
+const apiKey = el ? el.value.trim() : '';
 if (!apiKey) { showNotification('Inserisci una API Key!', 'error'); return; }
 showNotification('🧪 Test API-Football in corso...', 'success');
 try {
@@ -651,38 +659,43 @@ const url = 'https://v3.football.api-sports.io/leagues?search=Premier+League';
 const response = await fetch(url, { headers: { 'x-apisports-key': apiKey, 'x-rapidapi-host': 'v3.football.api-sports.io' } });
 if (!response.ok) { throw new Error('HTTP ' + response.status); }
 const data = await response.json();
+const status = document.getElementById('apifootballKeyStatus');
 if (data.response && data.response.length > 0) {
 showNotification('✅ Chiave valida! Trovati ' + data.response.length + ' risultati', 'success');
-document.getElementById('apifootballKeyStatus').textContent = '✅ Valida';
-document.getElementById('apifootballKeyStatus').className = 'key-status saved';
+if (status) { status.textContent = '✅ Valida'; status.className = 'key-status saved'; }
 } else {
 showNotification('❌ Chiave non valida', 'error');
-document.getElementById('apifootballKeyStatus').textContent = '❌ Non valida';
-document.getElementById('apifootballKeyStatus').className = 'key-status not-saved';
+if (status) { status.textContent = ' Non valida'; status.className = 'key-status not-saved'; }
 }
 } catch (error) {
 showNotification('Errore: ' + error.message, 'error');
-document.getElementById('apifootballKeyStatus').textContent = '❌ Errore';
-document.getElementById('apifootballKeyStatus').className = 'key-status not-saved';
+const status = document.getElementById('apifootballKeyStatus');
+if (status) { status.textContent = '❌ Errore'; status.className = 'key-status not-saved'; }
 }
 }
 
 function saveAllSettings() {
-localStorage.setItem('footballDataApiKey', document.getElementById('footballDataApiKey').value);
-localStorage.setItem('groqApiKey', document.getElementById('groqApiKey').value);
-localStorage.setItem('groqModel', document.getElementById('groqModel').value);
-showNotification('💾 Tutte le impostazioni salvate!', 'success');
+const fd = document.getElementById('footballDataApiKey');
+const gk = document.getElementById('groqApiKey');
+const gm = document.getElementById('groqModel');
+if (fd) localStorage.setItem('footballDataApiKey', fd.value);
+if (gk) localStorage.setItem('groqApiKey', gk.value);
+if (gm) localStorage.setItem('groqModel', gm.value);
+showNotification(' Tutte le impostazioni salvate!', 'success');
 }
 
 function changeFontSize(size) {
 document.documentElement.style.setProperty('--font-size-base', size + 'px');
-document.getElementById('fontSizeValue').textContent = size + 'px';
+const el = document.getElementById('fontSizeValue');
+if (el) el.textContent = size + 'px';
 localStorage.setItem('gessai_fontSize', size);
 }
 
 function toggleSortOrder() {
-sortByDate = !document.getElementById('sortToggle').checked;
-document.getElementById('sortLabel').textContent = sortByDate ? 'Data' : 'Campionato';
+const el = document.getElementById('sortToggle');
+sortByDate = !el.checked;
+const label = document.getElementById('sortLabel');
+if (label) label.textContent = sortByDate ? 'Data' : 'Campionato';
 renderPalinsesto();
 }
 
@@ -881,7 +894,75 @@ xgDisplay = '<div class="xg-display">' + match.homeTeam + ' - xG: ' + stats.home
 flagsDetailHtml = createFlagsHTML_Dettaglio(match.id);
 }
 
-document.getElementById('matchDetailContent').innerHTML = '<div class="match-header-detail" style="--league-color: ' + lc + ';"><div class="match-header-top"><div class="match-header-title" style="color: ' + lc + ';">' + match.league + ' - Giornata: ' + rn + '</div><div class="match-header-time">⏰ ' + (match.time || 'N/D') + '</div></div><div style="text-align:center;color:#87ceeb;margin-bottom:10px;">📅 ' + match.date + '</div><div class="match-teams-display"><div class="team-display"><div class="team-goals-detail">⚽ Gol: ' + hg.fatti + ' F / ' + hg.subiti + ' S</div><div class="team-logo-container">' + hLogo + '</div><div class="team-name">' + match.homeTeam + '</div><div class="team-form-detail">' + createFormHTML(match.homeForm) + '</div><div style="margin-top:5px;font-size:0.85em;">' + createFormResults(match.homeTeam) + '</div><div style="margin-top:10px;">' + resultHtml + '</div></div><div class="vs-separator" style="color: ' + lc + '; display:flex; flex-direction:column; align-items:center; gap:10px;"><span>VS</span>' + xgDisplay + flagsDetailHtml + '</div><div class="team-display"><div class="team-goals-detail">⚽ Gol: ' + ag.fatti + ' F / ' + ag.subiti + ' S</div><div class="team-logo-container">' + aLogo + '</div><div class="team-name">' + match.awayTeam + '</div><div class="team-form-detail">' + createFormHTML(match.awayForm) + '</div><div style="margin-top:5px;font-size:0.85em;">' + createFormResults(match.awayTeam) + '</div><div style="margin-top:10px;">' + resultHtml + '</div></div></div></div><div class="stats-grid-detail"><div class="stats-panel" style="--league-color: ' + lc + ';"><div id="clickInfo" class="click-info" style="display:none;">1° click: <span id="firstClickInfo"></span> - clicca 2° per combo</div><div id="comboError" class="combo-error" style="display:none;">❌ Combo non valida!</div><div class="stats-section"><div class="stats-section-title" style="color: ' + lc + ';">Doppia Chance</div><div class="stats-row"><div class="stat-item" id="dc-1x" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'1X\',\'' + match.date + '\',\'dc-1x\',\'DC\')"><span class="label">1X</span><span class="value">-</span></div><div class="stat-item" id="dc-12" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'12\',\'' + match.date + '\',\'dc-12\',\'DC\')"><span class="label">12</span><span class="value">-</span></div><div class="stat-item" id="dc-x2" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'X2\',\'' + match.date + '\',\'dc-x2\',\'DC\')"><span class="label">X2</span><span class="value">-</span></div></div></div><div class="stats-section"><div class="stats-section-title" style="color: ' + lc + ';">Under - Over</div><div class="stats-row"><div class="stat-item" id="o-15" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'Over 1,5\',\'' + match.date + '\',\'o-15\',\'UNDER_OVER\')"><span class="label">Over 1,5</span><span class="value">-</span></div><div class="stat-item" id="o-25" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'Over 2,5\',\'' + match.date + '\',\'o-25\',\'UNDER_OVER\')"><span class="label">Over 2,5</span><span class="value">-</span></div><div class="stat-item" id="u-35" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'Under 3,5\',\'' + match.date + '\',\'u-35\',\'UNDER_OVER\')"><span class="label">Under 3,5</span><span class="value">-</span></div><div class="stat-item" id="u-45" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'Under 4,5\',\'' + match.date + '\',\'u-45\',\'UNDER_OVER\')"><span class="label">Under 4,5</span><span class="value">-</span></div></div></div><div class="stats-section"><div class="stats-section-title" style="color: ' + lc + ';">Multigol Casa - Ospite</div><div class="stats-row-6"><div class="stat-item" id="mh-01" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG Casa 0-1\',\'' + match.date + '\',\'mh-01\',\'MULTIGOL_CASA\')"><span class="label">Casa 0-1</span><span class="value">-</span></div><div class="stat-item" id="mh-13" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG Casa 1-3\',\'' + match.date + '\',\'mh-13\',\'MULTIGOL_CASA\')"><span class="label">Casa 1-3</span><span class="value">-</span></div><div class="stat-item" id="mh-24" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG Casa 2-4\',\'' + match.date + '\',\'mh-24\',\'MULTIGOL_CASA\')"><span class="label">Casa 2-4</span><span class="value">-</span></div><div class="stat-item" id="ma-01" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG Ospite 0-1\',\'' + match.date + '\',\'ma-01\',\'MULTIGOL_OSPITE\')"><span class="label">Ospite 0-1</span><span class="value">-</span></div><div class="stat-item" id="ma-13" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG Ospite 1-3\',\'' + match.date + '\',\'ma-13\',\'MULTIGOL_OSPITE\')"><span class="label">Ospite 1-3</span><span class="value">-</span></div><div class="stat-item" id="ma-24" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG Ospite 2-4\',\'' + match.date + '\',\'ma-24\',\'MULTIGOL_OSPITE\')"><span class="label">Ospite 2-4</span><span class="value">-</span></div></div></div><div class="stats-section"><div class="stats-section-title" style="color: ' + lc + ';">Multigol Totali</div><div class="stats-row"><div class="stat-item" id="mt-14" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG 1-4\',\'' + match.date + '\',\'mt-14\',\'MULTIGOL_TOTALE\')"><span class="label">1-4</span><span class="value">-</span></div><div class="stat-item" id="mt-25" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG 2-5\',\'' + match.date + '\',\'mt-25\',\'MULTIGOL_TOTALE\')"><span class="label">2-5</span><span class="value">-</span></div><div class="stat-item" id="oh-15" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'Over 1,5 Casa\',\'' + match.date + '\',\'oh-15\',\'MULTIGOL_TOTALE\')"><span class="label">O 1,5 Casa</span><span class="value">-</span></div><div class="stat-item" id="oa-15" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'Over 1,5 Ospite\',\'' + match.date + '\',\'oa-15\',\'MULTIGOL_TOTALE\')"><span class="label">O 1,5 Ospite</span><span class="value">-</span></div></div></div></div><div class="stats-panel"><div class="stats-section-title" style="color:' + lc + ';">📊 Classifica</div><div id="standingsContent" style="margin-top:15px;"></div></div></div><div class="h2h-section"><div class="stats-section-title" style="color:' + lc + ';">⚔️ Head-to-Head (Ultimi Incontri)</div><div id="h2hContent"></div></div><div class="h2h-section"><div class="stats-section-title" style="color:' + lc + ';">🏥 Infortuni e Squalifiche</div><div id="injuriesContent"></div></div><div class="ai-panel" style="--league-color: ' + lc + ';"><div class="stats-section-title" style="color:' + lc + ';">🤖 ANALISI AI (GROQ)</div><div class="ai-content" id="matchAiContent"><div style="text-align:center;color:#87ceeb;"><div style="font-size:32px;margin-bottom:10px;">⏳</div>Generazione...</div></div><div class="export-buttons"><button class="btn btn-success" onclick="exportMatchAIAsPNG()">📷 PNG</button><button class="btn" onclick="exportMatchAIAsText()">📝 Testo</button><button class="btn btn-secondary" onclick="shareMatchAITelegram()">✈️ Telegram</button><button class="btn btn-secondary" onclick="shareMatchAIWhatsApp()">💬 WhatsApp</button><button class="btn btn-secondary" onclick="shareMatchAIEmail()">📧 Email</button></div></div>';
+// PRIMA inserisco l'HTML nel DOM
+document.getElementById('matchDetailContent').innerHTML = '<div class="match-header-detail" style="--league-color: ' + lc + ';"><div class="match-header-top"><div class="match-header-title" style="color: ' + lc + ';">' + match.league + ' - Giornata: ' + rn + '</div><div class="match-header-time">⏰ ' + (match.time || 'N/D') + '</div></div><div style="text-align:center;color:#87ceeb;margin-bottom:10px;">📅 ' + match.date + '</div><div class="match-teams-display"><div class="team-display"><div class="team-goals-detail">⚽ Gol: ' + hg.fatti + ' F / ' + hg.subiti + ' S</div><div class="team-logo-container">' + hLogo + '</div><div class="team-name">' + match.homeTeam + '</div><div class="team-form-detail">' + createFormHTML(match.homeForm) + '</div><div style="margin-top:5px;font-size:0.85em;">' + createFormResults(match.homeTeam) + '</div><div style="margin-top:10px;">' + resultHtml + '</div></div><div class="vs-separator" style="color: ' + lc + '; display:flex; flex-direction:column; align-items:center; gap:10px;"><span>VS</span>' + xgDisplay + flagsDetailHtml + '</div><div class="team-display"><div class="team-goals-detail">⚽ Gol: ' + ag.fatti + ' F / ' + ag.subiti + ' S</div><div class="team-logo-container">' + aLogo + '</div><div class="team-name">' + match.awayTeam + '</div><div class="team-form-detail">' + createFormHTML(match.awayForm) + '</div><div style="margin-top:5px;font-size:0.85em;">' + createFormResults(match.awayTeam) + '</div><div style="margin-top:10px;">' + resultHtml + '</div></div></div></div><div class="stats-grid-detail"><div class="stats-panel" style="--league-color: ' + lc + ';"><div id="clickInfo" class="click-info" style="display:none;">1° click: <span id="firstClickInfo"></span> - clicca 2° per combo</div><div id="comboError" class="combo-error" style="display:none;">❌ Combo non valida!</div><div class="stats-section"><div class="stats-section-title" style="color: ' + lc + ';">Doppia Chance</div><div class="stats-row"><div class="stat-item" id="dc-1x" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'1X\',\'' + match.date + '\',\'dc-1x\',\'DC\')"><span class="label">1X</span><span class="value">-</span></div><div class="stat-item" id="dc-12" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'12\',\'' + match.date + '\',\'dc-12\',\'DC\')"><span class="label">12</span><span class="value">-</span></div><div class="stat-item" id="dc-x2" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'X2\',\'' + match.date + '\',\'dc-x2\',\'DC\')"><span class="label">X2</span><span class="value">-</span></div></div></div><div class="stats-section"><div class="stats-section-title" style="color: ' + lc + ';">Under - Over</div><div class="stats-row"><div class="stat-item" id="o-15" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'Over 1,5\',\'' + match.date + '\',\'o-15\',\'UNDER_OVER\')"><span class="label">Over 1,5</span><span class="value">-</span></div><div class="stat-item" id="o-25" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'Over 2,5\',\'' + match.date + '\',\'o-25\',\'UNDER_OVER\')"><span class="label">Over 2,5</span><span class="value">-</span></div><div class="stat-item" id="u-35" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'Under 3,5\',\'' + match.date + '\',\'u-35\',\'UNDER_OVER\')"><span class="label">Under 3,5</span><span class="value">-</span></div><div class="stat-item" id="u-45" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'Under 4,5\',\'' + match.date + '\',\'u-45\',\'UNDER_OVER\')"><span class="label">Under 4,5</span><span class="value">-</span></div></div></div><div class="stats-section"><div class="stats-section-title" style="color: ' + lc + ';">Multigol Casa - Ospite</div><div class="stats-row-6"><div class="stat-item" id="mh-01" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG Casa 0-1\',\'' + match.date + '\',\'mh-01\',\'MULTIGOL_CASA\')"><span class="label">Casa 0-1</span><span class="value">-</span></div><div class="stat-item" id="mh-13" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG Casa 1-3\',\'' + match.date + '\',\'mh-13\',\'MULTIGOL_CASA\')"><span class="label">Casa 1-3</span><span class="value">-</span></div><div class="stat-item" id="mh-24" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG Casa 2-4\',\'' + match.date + '\',\'mh-24\',\'MULTIGOL_CASA\')"><span class="label">Casa 2-4</span><span class="value">-</span></div><div class="stat-item" id="ma-01" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG Ospite 0-1\',\'' + match.date + '\',\'ma-01\',\'MULTIGOL_OSPITE\')"><span class="label">Ospite 0-1</span><span class="value">-</span></div><div class="stat-item" id="ma-13" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG Ospite 1-3\',\'' + match.date + '\',\'ma-13\',\'MULTIGOL_OSPITE\')"><span class="label">Ospite 1-3</span><span class="value">-</span></div><div class="stat-item" id="ma-24" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG Ospite 2-4\',\'' + match.date + '\',\'ma-24\',\'MULTIGOL_OSPITE\')"><span class="label">Ospite 2-4</span><span class="value">-</span></div></div></div><div class="stats-section"><div class="stats-section-title" style="color: ' + lc + ';">Multigol Totali</div><div class="stats-row"><div class="stat-item" id="mt-14" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG 1-4\',\'' + match.date + '\',\'mt-14\',\'MULTIGOL_TOTALE\')"><span class="label">1-4</span><span class="value">-</span></div><div class="stat-item" id="mt-25" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'MG 2-5\',\'' + match.date + '\',\'mt-25\',\'MULTIGOL_TOTALE\')"><span class="label">2-5</span><span class="value">-</span></div><div class="stat-item" id="oh-15" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'Over 1,5 Casa\',\'' + match.date + '\',\'oh-15\',\'MULTIGOL_TOTALE\')"><span class="label">O 1,5 Casa</span><span class="value">-</span></div><div class="stat-item" id="oa-15" onclick="handleBetClick(\'' + match.homeTeam + ' vs ' + match.awayTeam + '\',\'Over 1,5 Ospite\',\'' + match.date + '\',\'oa-15\',\'MULTIGOL_TOTALE\')"><span class="label">O 1,5 Ospite</span><span class="value">-</span></div></div></div></div><div class="stats-panel"><div class="stats-section-title" style="color:' + lc + ';">📊 Classifica</div><div id="standingsContent" style="margin-top:15px;"></div></div></div><div class="h2h-section"><div class="stats-section-title" style="color:' + lc + ';">️ Head-to-Head (Ultimi Incontri)</div><div id="h2hContent"></div></div><div class="h2h-section"><div class="stats-section-title" style="color:' + lc + ';">🏥 Infortuni e Squalifiche</div><div id="injuriesContent"></div></div><div class="ai-panel" style="--league-color: ' + lc + ';"><div class="stats-section-title" style="color:' + lc + ';"> ANALISI AI (GROQ)</div><div class="ai-content" id="matchAiContent"><div style="text-align:center;color:#87ceeb;"><div style="font-size:32px;margin-bottom:10px;">⏳</div>Generazione...</div></div><div class="export-buttons"><button class="btn btn-success" onclick="exportMatchAIAsPNG()">📷 PNG</button><button class="btn" onclick="exportMatchAIAsText()"> Testo</button><button class="btn btn-secondary" onclick="shareMatchAITelegram()">✈️ Telegram</button><button class="btn btn-secondary" onclick="shareMatchAIWhatsApp()">💬 WhatsApp</button><button class="btn btn-secondary" onclick="shareMatchAIEmail()">📧 Email</button></div></div>';
+
+// ORA che l'HTML è nel DOM, aggiorno TUTTI i valori delle percentuali
+if (stats) {
+    // Doppia Chance - TUTTI
+    const dc1xEl = document.getElementById('dc-1x');
+    const dc12El = document.getElementById('dc-12');
+    const dcX2El = document.getElementById('dc-x2');
+    if (dc1xEl) dc1xEl.querySelector('.value').textContent = (stats.dc1x || 0) + '%';
+    if (dc12El) dc12El.querySelector('.value').textContent = (stats.dc12 || 0) + '%';
+    if (dcX2El) dcX2El.querySelector('.value').textContent = (stats.dcX2 || 0) + '%';
+    
+    // Under/Over - TUTTI
+    const o15El = document.getElementById('o-15');
+    const o25El = document.getElementById('o-25');
+    const u35El = document.getElementById('u-35');
+    const u45El = document.getElementById('u-45');
+    if (o15El) o15El.querySelector('.value').textContent = (stats.o15 || 0) + '%';
+    if (o25El) o25El.querySelector('.value').textContent = (stats.o25 || 0) + '%';
+    if (u35El) u35El.querySelector('.value').textContent = (stats.u35 || 0) + '%';
+    if (u45El) u45El.querySelector('.value').textContent = (stats.u45 || 0) + '%';
+    
+    // Multigol Casa - TUTTI
+    const mh01El = document.getElementById('mh-01');
+    const mh13El = document.getElementById('mh-13');
+    const mh24El = document.getElementById('mh-24');
+    if (mh01El) mh01El.querySelector('.value').textContent = (stats.mgc01 || 0) + '%';
+    if (mh13El) mh13El.querySelector('.value').textContent = (stats.mgc13 || 0) + '%';
+    if (mh24El) mh24El.querySelector('.value').textContent = (stats.mgc24 || 0) + '%';
+    
+    // Multigol Ospite - TUTTI
+    const ma01El = document.getElementById('ma-01');
+    const ma13El = document.getElementById('ma-13');
+    const ma24El = document.getElementById('ma-24');
+    if (ma01El) ma01El.querySelector('.value').textContent = (stats.mgo01 || 0) + '%';
+    if (ma13El) ma13El.querySelector('.value').textContent = (stats.mgo13 || 0) + '%';
+    if (ma24El) ma24El.querySelector('.value').textContent = (stats.mgo24 || 0) + '%';
+    
+    // Multigol Totali - TUTTI
+    const mt14El = document.getElementById('mt-14');
+    const mt25El = document.getElementById('mt-25');
+    const oh15El = document.getElementById('oh-15');
+    const oa15El = document.getElementById('oa-15');
+    if (mt14El) mt14El.querySelector('.value').textContent = (stats.mgtot14 || 0) + '%';
+    if (mt25El) mt25El.querySelector('.value').textContent = (stats.mgtot25 || 0) + '%';
+    if (oh15El) oh15El.querySelector('.value').textContent = (stats.mgoh15 || 0) + '%';
+    if (oa15El) oa15El.querySelector('.value').textContent = (stats.mgoa15 || 0) + '%';
+    
+    // Evidenzia i valori più alti
+    const maxValue = stats.maxValue;
+    if (dc1xEl && stats.dc1x === maxValue && maxValue > 0) dc1xEl.classList.add('highlight');
+    if (dc12El && stats.dc12 === maxValue && maxValue > 0) dc12El.classList.add('highlight');
+    if (dcX2El && stats.dcX2 === maxValue && maxValue > 0) dcX2El.classList.add('highlight');
+    if (o15El && stats.o15 === maxValue && maxValue > 0) o15El.classList.add('highlight');
+    if (o25El && stats.o25 === maxValue && maxValue > 0) o25El.classList.add('highlight');
+    if (u35El && stats.u35 === maxValue && maxValue > 0) u35El.classList.add('highlight');
+    if (u45El && stats.u45 === maxValue && maxValue > 0) u45El.classList.add('highlight');
+    if (mh01El && stats.mgc01 === maxValue && maxValue > 0) mh01El.classList.add('highlight');
+    if (mh13El && stats.mgc13 === maxValue && maxValue > 0) mh13El.classList.add('highlight');
+    if (mh24El && stats.mgc24 === maxValue && maxValue > 0) mh24El.classList.add('highlight');
+    if (ma01El && stats.mgo01 === maxValue && maxValue > 0) ma01El.classList.add('highlight');
+    if (ma13El && stats.mgo13 === maxValue && maxValue > 0) ma13El.classList.add('highlight');
+    if (ma24El && stats.mgo24 === maxValue && maxValue > 0) ma24El.classList.add('highlight');
+    if (mt14El && stats.mgtot14 === maxValue && maxValue > 0) mt14El.classList.add('highlight');
+    if (mt25El && stats.mgtot25 === maxValue && maxValue > 0) mt25El.classList.add('highlight');
+    if (oh15El && stats.mgoh15 === maxValue && maxValue > 0) oh15El.classList.add('highlight');
+    if (oa15El && stats.mgoa15 === maxValue && maxValue > 0) oa15El.classList.add('highlight');
+}
 
 renderStandings(match.league, match.homeTeam, match.awayTeam, lc);
 renderHeadToHead(match);
@@ -913,8 +994,12 @@ const totalMatches = homeMatchesCount + awayMatchesCount;
 
 if (totalMatches === 0) {
 matchStatsPercentages[match.id] = {
-dc12: 0, u45: 0, o15: 0, mgc13: 0, mgo24: 0, mgtot25: 0, maxValue: 0,
-homeXG: 0, awayXG: 0
+dc1x: 0, dc12: 0, dcX2: 0,
+o15: 0, o25: 0, u35: 0, u45: 0,
+mgc01: 0, mgc13: 0, mgc24: 0,
+mgo01: 0, mgo13: 0, mgo24: 0,
+mgtot14: 0, mgtot25: 0, mgoh15: 0, mgoa15: 0,
+maxValue: 0, homeXG: 0, awayXG: 0
 };
 return;
 }
@@ -1023,11 +1108,21 @@ const oa15P = awayMatchesCount > 0 ? Math.round((oa15 / awayMatchesCount) * 100)
 const homeXG = homeMatchesCount > 0 ? Math.round((homeTeamMatches.reduce((sum, m) => sum + (m.homeTeam === homeTeam ? m.homeGoals : m.awayGoals), 0) / homeMatchesCount) * 100) : 0;
 const awayXG = awayMatchesCount > 0 ? Math.round((awayTeamMatches.reduce((sum, m) => sum + (m.homeTeam === awayTeam ? m.homeGoals : m.awayGoals), 0) / awayMatchesCount) * 100) : 0;
 
-const allFlagValues = [dc12, u45, o15, mh13P, ma24P, mt25P];
+const allFlagValues = [dc1x, dc12, dcX2, o15, o25, u35, u45, mh01P, mh13P, mh24P, ma01P, ma13P, ma24P, mt14P, mt25P, oh15P, oa15P];
 const maxValue = Math.max(...allFlagValues);
 
 matchStatsPercentages[match.id] = {
-dc12: dc12, u45: u45, o15: o15, mgc13: mh13P, mgo24: ma24P, mgtot25: mt25P,
+// Doppia Chance
+dc1x: dc1x, dc12: dc12, dcX2: dcX2,
+// Under/Over
+o15: o15, o25: o25, u35: u35, u45: u45,
+// Multigol Casa
+mgc01: mh01P, mgc13: mh13P, mgc24: mh24P,
+// Multigol Ospite
+mgo01: ma01P, mgo13: ma13P, mgo24: ma24P,
+// Multigol Totali
+mgtot14: mt14P, mgtot25: mt25P, mgoh15: oh15P, mgoa15: oa15P,
+// Altro
 maxValue: maxValue, homeXG: homeXG, awayXG: awayXG
 };
 }
@@ -1281,7 +1376,7 @@ c.innerHTML = schedinaBets.map(b =>
 
 function exportSchedinaToText() {
 if (schedinaBets.length === 0) return;
-let text = "🎲 SCHEDINA GESSSAI-PRO\n";
+let text = " SCHEDINA GESSSAI-PRO\n";
 schedinaBets.forEach(b => {
 text += "• " + b.matchName + "\nGiocata: " + b.betType + "\n";
 });
@@ -1461,6 +1556,7 @@ return { fatti: f, subiti: s };
 function updateLeagueSelectors() {
 ['leagueSelectPalinsesto', 'leagueSelectStorico'].forEach(id => {
 const sel = document.getElementById(id);
+if (!sel) return;
 const cv = sel.value;
 sel.innerHTML = '<option value="all">Tutti i Campionati</option>';
 const leaguesToUse = leagueOrder.length > 0 ? leagueOrder : savedLeagues;
@@ -1470,6 +1566,7 @@ sel.value = cv || 'all';
 const allTeams = [...new Set(allMatches.flatMap(m => [m.homeTeam, m.awayTeam]))].sort();
 ['compareTeam1', 'compareTeam2'].forEach(id => {
 const sel = document.getElementById(id);
+if (!sel) return;
 const cv = sel.value;
 sel.innerHTML = '<option value="">-- Seleziona Squadra --</option>';
 allTeams.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o); });
@@ -1490,7 +1587,7 @@ if (!c) return;
 let html = '';
 if (leagueOrder.length > 0) {
 html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="color:#87ceeb;">Campionati salvati</span><button class="btn btn-danger" onclick="clearLeagueOrder()" style="padding:5px 10px;font-size:12px;">🗑️ Svuota lista</button></div>';
-html += leagueOrder.map((l, i) => '<div class="league-order-item" style="--league-color: ' + getLeagueColor(l) + ';"><span style="flex:1;">⚽ ' + l + '</span><div class="league-order-buttons"><button class="league-order-btn" onclick="removeFromOrder(' + i + ')" title="Rimuovi dalla lista" style="background:#dc3545;">✕</button><button class="league-order-btn" onclick="moveLeagueUp(' + i + ')" ' + (i === 0 ? 'disabled' : '') + '>↑</button><button class="league-order-btn" onclick="moveLeagueDown(' + i + ')" ' + (i === leagueOrder.length - 1 ? 'disabled' : '') + '>↓</button></div></div>').join('');
+html += leagueOrder.map((l, i) => '<div class="league-order-item" style="--league-color: ' + getLeagueColor(l) + ';"><span style="flex:1;"> ' + l + '</span><div class="league-order-buttons"><button class="league-order-btn" onclick="removeFromOrder(' + i + ')" title="Rimuovi dalla lista" style="background:#dc3545;">✕</button><button class="league-order-btn" onclick="moveLeagueUp(' + i + ')" ' + (i === 0 ? 'disabled' : '') + '>↑</button><button class="league-order-btn" onclick="moveLeagueDown(' + i + ')" ' + (i === leagueOrder.length - 1 ? 'disabled' : '') + '>↓</button></div></div>').join('');
 } else { html = '<div style="text-align:center;padding:20px;color:#87ceeb;">Nessun campionato</div>'; }
 c.innerHTML = html;
 }
@@ -1534,7 +1631,6 @@ const i = ['palinsesto', 'partita', 'storico', 'schedina', 'impostazioni'].index
 if (i >= 0) document.querySelectorAll('.tab-btn')[i].classList.add('active');
 document.getElementById('tab-' + t).classList.add('active');
 
-// FIX per lo storico
 if (t === 'storico') {
 renderStorico();
 }
@@ -1594,8 +1690,6 @@ if (l !== 'all') m = m.filter(x => x.league === l);
 m.sort((a, b) => parseDateForSort(b.date) - parseDateForSort(a.date));
 
 const c = document.getElementById('matchesStorico');
-
-// FIX CSS per la griglia dello storico
 c.className = 'matches-grid';
 
 if (m.length === 0) { c.innerHTML = '<div style="text-align:center;padding:40px;color:#87ceeb;grid-column:1/-1;">Nessuna partita</div>'; return; }
@@ -1692,6 +1786,9 @@ const subject = encodeURIComponent('Analisi AI GesssAI-Pro');
 const body = encodeURIComponent(el.innerText);
 window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
 }
+
+function searchTheSportsDBLeague() { showNotification('⚠️ Funzione in sviluppo.', 'error'); }
+function searchApiFootballLeague() { showNotification('⚠️ Funzione in sviluppo.', 'error'); }
 </script>
 </body>
 </html>
