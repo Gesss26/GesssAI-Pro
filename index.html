@@ -2740,10 +2740,11 @@ function App() {
   };
   
   const filteredMatches = (stato) => {
-    let list = matches.filter(m => m.stato === stato);
-    if (selectedChamp !== 'Tutti') list = list.filter(m => m.campionato === selectedChamp);
-    return list.sort((a,b) => new Date(a.data+' '+a.ora) - new Date(b.data+' '+b.ora));
-  };
+  let list = matches.filter(m => m.stato === stato);
+  if (selectedChamp !== 'Tutti') list = list.filter(m => m.campionato === selectedChamp);
+  // Ordine decrescente: dalla data più recente alla più vecchia
+  return list.sort((a, b) => new Date(b.data + ' ' + b.ora) - new Date(a.data + ' ' + a.ora));
+};
   
   const saveLocal = () => {
     const data = { championships, matches, apiKeys, theme, customTheme, exportedAt: new Date().toISOString() };
