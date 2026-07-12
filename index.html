@@ -1238,6 +1238,30 @@ const getMostFrequentGoalRange = (teamName, allMatches) => {
   return { label, pct: Math.round(rangePct) };
 };
 
+// Funzione per calcolare le combo approvate e la migliore "libera"
+const getBestFreeCombo = (stats, homeMG, awayMG, mgTot) => {
+  // Combo disponibili (escluse quelle già usate come consigli 1 e 2 per evitare duplicati)
+  const combos = [
+    { 
+      id: '1X+Over1.5', 
+      label: '1X + Over 1.5', 
+      pct: (stats.p1X + stats.underOver[0].over) / 2 
+    },
+    // 12+Under4.5 e Casa1-3+Ospiti0-2 sono escluse perché già usate come consigli principali
+  ];
+  
+  // Aggiungiamo anche altre opzioni se vogliamo, ma per ora teniamo solo questa
+  // Se volessimo includere altre, le aggiungiamo qui
+  
+  // Scegli la combo con la percentuale più alta
+  let best = combos[0];
+  combos.forEach(c => {
+    if (c.pct > best.pct) best = c;
+  });
+  
+  return best;
+};
+
 const computeMatchStats = (match, allMatches) => {
   const homeTeam = match.casa;
   const awayTeam = match.ospiti;
@@ -1503,6 +1527,15 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina }) => {
   const homeRange = getMostFrequentGoalRange(match.casa, allMatches);
   const awayRange = getMostFrequentGoalRange(match.ospiti, allMatches);
   
+  // Calcolo per la "Libera" (1X+Over1.5)
+  const stats = computeMatchStats(match, allMatches);
+  let freeCombo = { label: '1X+Over1.5', pct: 0 };
+  if (!stats.error) {
+    const p1X = stats.p1X;
+    const over15 = stats.underOver[0].over;
+    freeCombo.pct = Math.round((p1X + over15) / 2);
+  }
+  
   const allUO = { ...homeUO, ...awayUO };
   let bestBet = '';
   let bestPct = 0;
@@ -1513,7 +1546,7 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina }) => {
     }
   });
   
-  const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + bestPct) / 4);
+  const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + freeCombo.pct) / 4);
   
   const handleClick = (e) => {
     e.stopPropagation();
@@ -1532,7 +1565,7 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina }) => {
   };
   const addBet3 = (e) => {
     e.stopPropagation();
-    const text = `Miglior U/O: ${bestBet} ${Math.round(bestPct)}% (${match.casa} vs ${match.ospiti})`;
+    const text = `Libera: ${freeCombo.label} (${freeCombo.pct}%) - ${match.casa} vs ${match.ospiti}`;
     addToSchedina(text);
   };
   
@@ -1584,8 +1617,8 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina }) => {
           </div>
         </div>
         <div className="bet-item" onClick={addBet3}>
-          <div className="bet-label">Miglior U/O</div>
-          <div className="bet-value">{bestBet}: {Math.round(bestPct)}%</div>
+          <div className="bet-label">Libera</div>
+          <div className="bet-value">{freeCombo.label} ({freeCombo.pct}%)</div>
         </div>
       </div>
     </div>
@@ -1922,6 +1955,11 @@ const AIAnalysis = ({ match, allMatches, apiKey, setTab }) => {
       const pct12Under45 = get12Under45(allMatches, match.casa, match.ospiti);
       const is12Under45Good = pct12Under45 >= 70;
       
+      // Calcolo percentuali combo approvate
+      const combo1X_Over15 = Math.round((stats.p1X + stats.underOver[0].over) / 2);
+      const combo12_Under45 = Math.round((stats.p12 + stats.underOver[3].under) / 2);
+      const comboHomeAway = Math.round((stats.homeMG['1-3'] + stats.awayMG['0-2']) / 2);
+      
       const prompt = `Analizza i seguenti dati pre-match e genera un'analisi dettagliata.
 Rispondi ESCLUSIVAMENTE in formato JSON valido, con questa struttura:
 {
@@ -1949,12 +1987,19 @@ Rispondi ESCLUSIVAMENTE in formato JSON valido, con questa struttura:
     },
     {
       "tipo": "libera",
-      "giocata": "Multigol 1-3 + Over 2.5",
-      "percentuale": 72
+      "giocata": "1X+Over1.5",
+      "percentuale": ${combo1X_Over15}
     }
   ],
   "indice_rischio_match": 5
 }
+
+Per il consiglio "libera", scegli UNA delle seguenti combo approvate, basandoti sui dati e sulla percentuale di sicurezza:
+- 1X+Over1.5 (percentuale: ${combo1X_Over15}%)
+- 12+Under4.5 (percentuale: ${combo12_Under45}%)
+- Casa1-3+Ospiti0-2 (percentuale: ${comboHomeAway}%)
+
+Scegli la combo che ritieni più solida e giustificala nel campo "giocata" (scrivi il nome della combo). La percentuale deve essere quella calcolata.
 
 Dati partita:
 Partita: ${match.casa} vs ${match.ospiti}
@@ -1974,7 +2019,7 @@ Multigol Casa: 0-1=${Math.round(stats.homeMG['0-1'])}% 0-2=${Math.round(stats.ho
 Multigol Ospite: 0-1=${Math.round(stats.awayMG['0-1'])}% 0-2=${Math.round(stats.awayMG['0-2'])}% 1-3=${Math.round(stats.awayMG['1-3'])}% 2-4=${Math.round(stats.awayMG['2-4'])}%
 Multigol Totale: 1-4=${Math.round(stats.mgTot['1-4'])}% 2-4=${Math.round(stats.mgTot['2-4'])}% 2-5=${Math.round(stats.mgTot['2-5'])}% 3-6=${Math.round(stats.mgTot['3-6'])}%
 
-Genera 3 consigli di giocate (singola, combinata, libera) basati sui dati, con percentuali realistiche.`;
+Genera i 3 consigli (singola, combinata, libera) con percentuali realistiche. Per la libera usa una delle combo sopra elencate.`;
       
       const res = await askGroq(prompt, apiKey);
       
@@ -1982,6 +2027,18 @@ Genera 3 consigli di giocate (singola, combinata, libera) basati sui dati, con p
       const jsonMatch = res.match(/```(?:json)?\s*([\s\S]*?)```/);
       if (jsonMatch) jsonStr = jsonMatch[1];
       const parsed = JSON.parse(jsonStr.trim());
+      
+      // Fallback: se l'AI non ha scelto una combo valida, forziamo 1X+Over1.5
+      if (parsed.consigli && parsed.consigli.length === 3) {
+        const libera = parsed.consigli[2];
+        const validCombos = ['1X+Over1.5', '12+Under4.5', 'Casa1-3+Ospiti0-2'];
+        if (!validCombos.some(c => libera.giocata.includes(c))) {
+          // Sostituisci con la combo migliore calcolata automaticamente
+          const bestCombo = { label: '1X+Over1.5', pct: combo1X_Over15 };
+          libera.giocata = bestCombo.label;
+          libera.percentuale = bestCombo.pct;
+        }
+      }
       
       if (parsed.pronostico) {
         parsed.pronostico['12+under_4_5'] = is12Under45Good ? 'Sì' : 'No';
@@ -2881,6 +2938,15 @@ function App() {
       const homeRange = getMostFrequentGoalRange(m.casa, matches);
       const awayRange = getMostFrequentGoalRange(m.ospiti, matches);
       
+      // Calcolo libera (1X+Over1.5)
+      const stats = computeMatchStats(m, matches);
+      let freeComboPct = 0;
+      if (!stats.error) {
+        const p1X = stats.p1X;
+        const over15 = stats.underOver[0].over;
+        freeComboPct = Math.round((p1X + over15) / 2);
+      }
+      
       const allUO = { ...homeUO, ...awayUO };
       let bestPct = 0;
       let bestBet = '';
@@ -2891,8 +2957,8 @@ function App() {
         }
       });
       
-      const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + bestPct) / 4);
-      return { ...m, score, homeRange, awayRange, pct12Under45, bestBet, bestPct };
+      const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + freeComboPct) / 4);
+      return { ...m, score, homeRange, awayRange, pct12Under45, bestBet, bestPct, freeComboPct };
     });
     
     scoredMatches.sort((a, b) => b.score - a.score);
@@ -3391,7 +3457,7 @@ Struttura JSON richiesta (array di oggetti, uno per partita):
       },
       {
         "tipo": "libera",
-        "giocata": "Multigol 1-3 + Over 2.5",
+        "giocata": "1X+Over1.5",
         "percentuale": 72
       }
     ],
@@ -3399,13 +3465,19 @@ Struttura JSON richiesta (array di oggetti, uno per partita):
   }
 ]
 
+Per il consiglio "libera", usa UNA delle seguenti combo approvate (scegli la migliore in base ai dati):
+- 1X+Over1.5
+- 12+Under4.5
+- Casa1-3+Ospiti0-2
+
+Le percentuali delle combo sono calcolate come media delle due giocate che le compongono. Scegli la combo che ritieni più solida.
+
 Regole:
 - Il campo "tipo" deve essere esattamente "singola", "combinata" o "libera".
 - "singola": una singola giocata (es. Over 1.5, Fissa 1, Multigol Casa 1-3, ecc.)
 - "combinata": una combinata di almeno due giocate (es. 2+Under 4.5, X2+Over 1.5, 12+Under 4.5, ecc.)
-- "libera": a tua scelta, singola o combinata, la più promettente.
+- "libera": una delle combo approvate sopra.
 - La percentuale deve essere un numero intero tra 0 e 100, basato sui dati statistici forniti.
-- Sii coerente con i dati: se Under 4.5 è al 90%, non suggerire Over 4.5.
 
 Dati:
 ${matchData}`;
@@ -3636,7 +3708,7 @@ ${matchData}`;
                   
                   const giocata1 = `12+U4.5 ${Math.round(m.pct12Under45)}%`;
                   const giocata2 = `${m.casa} ${m.homeRange.label} (${m.homeRange.pct}%) + ${m.ospiti} ${m.awayRange.label} (${m.awayRange.pct}%)`;
-                  const giocata3 = `${m.bestBet} ${Math.round(m.bestPct)}%`;
+                  const giocata3 = `Libera: 1X+Over1.5 (${m.freeComboPct}%)`;
                   
                   const giocate = [
                     { label: giocata1, value: giocata1 },
