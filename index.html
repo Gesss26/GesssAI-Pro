@@ -2469,6 +2469,18 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
   const getOpponent = (match, team) => {
     return match.casa === team ? match.ospiti : match.casa;
   };
+  
+  const getResultColor = (result) => {
+    if (result === 'win') return 'var(--win)';      // Verde
+    if (result === 'draw') return 'var(--draw)';    // Giallo
+    return 'var(--lose)';                           // Rosso
+  };
+  
+  const getResultLabel = (result) => {
+    if (result === 'win') return 'V';
+    if (result === 'draw') return 'P';
+    return 'S';
+  };
 
   return (
     <div className="card" style={{padding: '12px'}}>
@@ -2479,19 +2491,36 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
             <tr>
               <th>Data</th>
               <th>Avversario</th>
-              <th>Risultato</th>
+              <th style={{textAlign:'center'}}>Risultato</th>
             </tr>
           </thead>
           <tbody>
             {teamMatches.map(m => {
               const result = getResult(m, teamName);
               const opponent = getOpponent(m, teamName);
-              const rowClass = result === 'win' ? 'result-win' : result === 'draw' ? 'result-draw' : 'result-loss';
+              const resultColor = getResultColor(result);
+              const resultLabel = getResultLabel(result);
+              const scoreText = `${m.golCasa} - ${m.golOspite}`;
+              
               return (
-                <tr key={m.id} className={rowClass}>
-                  <td>{formatDateEU(m.data)}</td>
-                  <td>{opponent}</td>
-                  <td>{m.golCasa} - {m.golOspite}</td>
+                <tr key={m.id}>
+                  <td style={{color: 'var(--text)'}}>{formatDateEU(m.data)}</td>
+                  <td style={{color: 'var(--text)'}}>{opponent}</td>
+                  <td style={{textAlign: 'center'}}>
+                    <span style={{
+                      display: 'inline-block',
+                      backgroundColor: resultColor,
+                      color: '#000',
+                      fontWeight: 'bold',
+                      padding: '2px 12px',
+                      borderRadius: '4px',
+                      minWidth: '60px',
+                      textAlign: 'center',
+                      fontSize: '14px'
+                    }}>
+                      {scoreText}
+                    </span>
+                  </td>
                 </tr>
               );
             })}
