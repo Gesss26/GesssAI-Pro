@@ -959,15 +959,15 @@
   .debug-columns h4 { margin-bottom: 8px; color: var(--accent); }
   .debug-columns code { display: inline-block; background: var(--card); padding: 2px 6px; border-radius: 4px; margin: 2px; }
   
-/* Stili per la tabella Storico - senza colori */
-.history-table td {
-  padding: 6px 12px;
-  text-align: center;
-}
-.history-table td {
-  color: var(--text);
-}
-
+  /* Stili per la tabella Storico - solo testo colorato */
+  .history-table td {
+    padding: 6px 12px;
+    text-align: center;
+  }
+  .history-table .result-win { color: var(--win); background: transparent; font-weight: bold; }
+  .history-table .result-draw { color: var(--draw); background: transparent; font-weight: bold; }
+  .history-table .result-loss { color: var(--lose); background: transparent; font-weight: bold; }
+  
   .scraped-matches-table {
     width: 100%;
     border-collapse: collapse;
@@ -2473,6 +2473,15 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
     );
   }
 
+  const getResult = (match, team) => {
+    const isHome = match.casa === team;
+    const teamGoals = isHome ? match.golCasa : match.golOspite;
+    const oppGoals = isHome ? match.golOspite : match.golCasa;
+    if (teamGoals > oppGoals) return 'win';
+    if (teamGoals === oppGoals) return 'draw';
+    return 'loss';
+  };
+
   const getOpponent = (match, team) => {
     return match.casa === team ? match.ospiti : match.casa;
   };
@@ -2491,9 +2500,11 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
           </thead>
           <tbody>
             {teamMatches.map(m => {
+              const result = getResult(m, teamName);
               const opponent = getOpponent(m, teamName);
+              const rowClass = result === 'win' ? 'result-win' : result === 'draw' ? 'result-draw' : 'result-loss';
               return (
-                <tr key={m.id}>
+                <tr key={m.id} className={rowClass}>
                   <td>{formatDateEU(m.data)}</td>
                   <td>{opponent}</td>
                   <td>{m.golCasa} - {m.golOspite}</td>
