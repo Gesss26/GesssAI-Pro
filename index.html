@@ -552,7 +552,7 @@
   .match-tab-history .score {
     font-size: 24px;
     font-weight: bold;
-    padding: 0 12px;
+    padding: 0px 12px;
   }
   .match-tab-history .score-win { color: var(--win); }
   .match-tab-history .score-draw { color: var(--draw); }
@@ -1139,10 +1139,44 @@ const SOFASCORE_LEAGUE_IDS = {
   'Swiss Super League': 215
 };
 
+// Funzione per gestire la blacklist
+const getBlacklist = () => {
+  try {
+    return JSON.parse(localStorage.getItem('ft_sofablacklist') || '[]');
+  } catch(e) { return []; }
+};
+
+const saveBlacklist = (blacklist) => {
+  localStorage.setItem('ft_sofablacklist', JSON.stringify(blacklist));
+};
+
+const getCustomSofaLeagues = () => {
+  try {
+    return JSON.parse(localStorage.getItem('ft_sofaleagues') || '[]');
+  } catch(e) { return []; }
+};
+
+const saveCustomSofaLeagues = (leagues) => {
+  localStorage.setItem('ft_sofaleagues', JSON.stringify(leagues));
+};
+
+// Funzione per ottenere la lista completa dei campionati (escludendo blacklist)
+const getVisibleLeagues = (customLeagues) => {
+  const blacklist = getBlacklist();
+  const defaultLeagues = Object.entries(SOFASCORE_LEAGUE_IDS)
+    .filter(([name, id]) => !blacklist.includes(id))
+    .map(([name, id]) => ({ name, id, isDefault: true }));
+  
+  const custom = customLeagues
+    .filter(l => !blacklist.includes(l.id))
+    .map(l => ({ ...l, isDefault: false }));
+  
+  return [...defaultLeagues, ...custom];
+};
+
 // ============================================================
-// NUOVA FUNZIONE fetchSofaScoreMatches con supporto stagione
+// fetchSofaScoreMatches con supporto stagione
 // ============================================================
-// Sostituisci la funzione fetchSofaScoreMatches con questa versione
 const fetchSofaScoreMatches = async (leagueId, seasonYear) => {
   try {
     const seasonsRes = await fetch(
@@ -1154,7 +1188,6 @@ const fetchSofaScoreMatches = async (leagueId, seasonYear) => {
     let targetSeasonId = null;
     let availableSeasons = [];
     
-    // Mostra tutte le stagioni disponibili
     if (seasonsData.seasons) {
       seasonsData.seasons.forEach(season => {
         availableSeasons.push({
@@ -1165,7 +1198,6 @@ const fetchSofaScoreMatches = async (leagueId, seasonYear) => {
       });
     }
     
-    // Cerca la stagione corrispondente all'anno selezionato
     if (seasonsData.seasons) {
       for (const season of seasonsData.seasons) {
         const seasonName = season.name || '';
@@ -1182,14 +1214,12 @@ const fetchSofaScoreMatches = async (leagueId, seasonYear) => {
       }
     }
     
-    // Se non trova la stagione specifica, usa la prima disponibile
     if (!targetSeasonId && seasonsData.seasons && seasonsData.seasons.length > 0) {
       targetSeasonId = seasonsData.seasons[0].id;
       console.log(`⚠️ Stagione ${seasonYear} non trovata, uso la prima disponibile: ${seasonsData.seasons[0].name}`);
     }
     
     if (!targetSeasonId) {
-      // Mostra le stagioni disponibili all'utente
       const availableNames = availableSeasons.map(s => s.name).join(', ');
       throw new Error(`Nessuna stagione disponibile. Stagioni trovate: ${availableNames}`);
     }
@@ -1248,16 +1278,6 @@ const getFlagClass = (valore) => {
   if (valore < 66) return 'flag-neutral';
   if (valore < 90) return 'flag-green';
   return 'flag-gold';
-};
-
-const getCustomSofaLeagues = () => {
-  try {
-    return JSON.parse(localStorage.getItem('ft_sofaleagues') || '[]');
-  } catch(e) { return []; }
-};
-
-const saveCustomSofaLeagues = (leagues) => {
-  localStorage.setItem('ft_sofaleagues', JSON.stringify(leagues));
 };
 
 const getChampColor = (champName) => {
@@ -2182,7 +2202,7 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
 };
 
 // ============================================================
-// AIAnalysis - Versione Professionale con API (invariato)
+// AIAnalysis - Versione Professionale con API
 // ============================================================
 const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
   const [analysis, setAnalysis] = useState(null);
@@ -3183,10 +3203,9 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
 };
 
 // ============================================================
-// SofaScoreManager con selettore stagione
+// SofaScoreManager con selettore stagione e X per tutti
 // ============================================================
-// SOSTITUISCI il componente SofaScoreManager con questa versione
-const SofaScoreManager = ({ onImport, loading }) => {
+const SofaScoreManager = ({ onImport, loading, matches, setMatches }) => {
   const [customLeagues, setCustomLeagues] = useState(getCustomSofaLeagues);
   const [newLeagueName, setNewLeagueName] = useState('');
   const [newLeagueId, setNewLeagueId] = useState('');
@@ -3202,19 +3221,46 @@ const SofaScoreManager = ({ onImport, loading }) => {
     saveCustomSofaLeagues(leagues);
   };
 
-  // Funzione per controllare se una lega ha partite
-  const checkLeagueHasMatches = async (leagueId, seasonYear) => {
-    try {
-      const result = await fetchSofaScoreMatches(leagueId, seasonYear);
-      const events = result.events || [];
-      return { hasMatches: events.length > 0, count: events.length, usedSeason: result.usedSeason };
-    } catch (e) {
-      console.error('Errore controllo lega:', e);
-      return { hasMatches: false, count: 0, usedSeason: null, error: e.message };
+  // Funzione per rimuovere un campionato (anche predefinito)
+  const removeLeague = (id, name) => {
+    const isDefault = Object.values(SOFASCORE_LEAGUE_IDS).includes(id);
+    
+    // Controlla se ha partite importate
+    const matchCount = matches ? matches.filter(m => m.campionato === name).length : 0;
+    
+    if (matchCount > 0) {
+      if (!confirm(`⚠️ Il campionato "${name}" ha ${matchCount} partite importate.\n\nEliminarlo cancellerà anche le partite. Continuare?`)) {
+        return;
+      }
+      // Elimina le partite
+      setMatches(prev => prev.filter(m => m.campionato !== name));
+    }
+    
+    if (isDefault) {
+      // Per i campionati predefiniti: aggiungi alla blacklist
+      const blacklist = getBlacklist();
+      if (!blacklist.includes(id)) {
+        blacklist.push(id);
+        saveBlacklist(blacklist);
+      }
+      showAlert('success', `🗑️ "${name}" rimosso dalla lista!`);
+    } else {
+      // Per i campionati personalizzati: rimuovi dalla lista
+      saveLeagues(customLeagues.filter(l => l.id !== id));
+      showAlert('success', `🗑️ "${name}" rimosso dalla lista!`);
     }
   };
 
-  // Funzione per aggiungere e importare una lega
+  const checkLeagueHasMatches = async (leagueId, seasonYear) => {
+    try {
+      const events = await fetchSofaScoreMatches(leagueId, seasonYear);
+      return { hasMatches: events.length > 0, count: events.length };
+    } catch (e) {
+      console.error('Errore controllo lega:', e);
+      return { hasMatches: false, count: 0, error: e.message };
+    }
+  };
+
   const addAndImportLeague = async () => {
     if (!newLeagueName.trim() || !newLeagueId.trim()) {
       alert('Inserisci sia il nome che l\'ID del campionato.');
@@ -3227,12 +3273,7 @@ const SofaScoreManager = ({ onImport, loading }) => {
       return;
     }
 
-    // Controlla se la lega è già presente
-    const allLeagues = [
-      ...Object.entries(SOFASCORE_LEAGUE_IDS).map(([n, i]) => ({ name: n, id: i })),
-      ...customLeagues
-    ];
-    
+    const allLeagues = getVisibleLeagues(customLeagues);
     if (allLeagues.some(l => l.id === id || l.name.toLowerCase() === newLeagueName.toLowerCase())) {
       alert('⚠️ Questo campionato o ID è già presente nella lista.');
       return;
@@ -3242,33 +3283,24 @@ const SofaScoreManager = ({ onImport, loading }) => {
     const leagueName = newLeagueName.trim();
 
     try {
-      // Prima controlla se ci sono partite
       const checkResult = await checkLeagueHasMatches(id, selectedSeason);
       
       if (checkResult.error) {
-        alert(`❌ Errore nel controllo: ${checkResult.error}\n\nVerifica che l'ID sia corretto.`);
+        alert(`❌ Errore nel controllo: ${checkResult.error}`);
         setIsChecking(false);
         return;
       }
 
       if (!checkResult.hasMatches) {
-        alert(`❌ Nessuna partita trovata per "${leagueName}" (ID: ${id}) nella stagione ${selectedSeason}.\n\n` +
-              `💡 Suggerimenti:\n` +
-              `• Verifica che l'ID sia corretto\n` +
-              `• Prova con un'altra stagione (es. 25/26 o 26/26)\n` +
-              `• Assicurati che il campionato abbia partite nella stagione selezionata`);
+        alert(`❌ Nessuna partita trovata per "${leagueName}" (ID: ${id}) nella stagione ${selectedSeason}.`);
         setIsChecking(false);
         return;
       }
 
-      // Se ci sono partite, aggiungi la lega
       const newLeague = { name: leagueName, id: id };
       saveLeagues([...customLeagues, newLeague]);
-      
-      // Poi importa le partite
       await onImport(leagueName, selectedSeason);
       
-      // Resetta i campi
       setNewLeagueName('');
       setNewLeagueId('');
       
@@ -3278,12 +3310,6 @@ const SofaScoreManager = ({ onImport, loading }) => {
     }
     
     setIsChecking(false);
-  };
-
-  const removeCustomLeague = (id) => {
-    if (confirm('Rimuovere questo campionato dalla lista?')) {
-      saveLeagues(customLeagues.filter(l => l.id !== id));
-    }
   };
 
   const searchSofaLeagues = async () => {
@@ -3317,16 +3343,11 @@ const SofaScoreManager = ({ onImport, loading }) => {
     setSearching(false);
   };
 
-  // Funzione per aggiungere da ricerca con controllo
   const addFromSearch = async (tournament) => {
     const name = tournament.name;
     const id = tournament.id;
     
-    const allLeagues = [
-      ...Object.entries(SOFASCORE_LEAGUE_IDS).map(([n, i]) => ({ name: n, id: i })),
-      ...customLeagues
-    ];
-    
+    const allLeagues = getVisibleLeagues(customLeagues);
     if (allLeagues.some(l => l.id === id || l.name.toLowerCase() === name.toLowerCase())) {
       alert('⚠️ Questo campionato è già nella tua lista.');
       return;
@@ -3335,7 +3356,6 @@ const SofaScoreManager = ({ onImport, loading }) => {
     setIsChecking(true);
     
     try {
-      // Controlla se ci sono partite
       const checkResult = await checkLeagueHasMatches(id, selectedSeason);
       
       if (checkResult.error) {
@@ -3345,18 +3365,13 @@ const SofaScoreManager = ({ onImport, loading }) => {
       }
 
       if (!checkResult.hasMatches) {
-        alert(`❌ Nessuna partita trovata per "${name}" (ID: ${id}) nella stagione ${selectedSeason}.\n\n` +
-              `💡 Suggerimenti:\n` +
-              `• Prova con un'altra stagione (es. 25/26 o 26/26)\n` +
-              `• Verifica che il campionato sia attivo`);
+        alert(`❌ Nessuna partita trovata per "${name}" (ID: ${id}) nella stagione ${selectedSeason}.`);
         setIsChecking(false);
         return;
       }
 
-      // Se ci sono partite, aggiungi e importa
       saveLeagues([...customLeagues, { name, id }]);
       await onImport(name, selectedSeason);
-      
       setSearchResults(searchResults.filter(r => r.id !== id));
       
     } catch (e) {
@@ -3367,10 +3382,14 @@ const SofaScoreManager = ({ onImport, loading }) => {
     setIsChecking(false);
   };
 
-  const allLeagues = [
-    ...Object.entries(SOFASCORE_LEAGUE_IDS).map(([name, id]) => ({ name, id, isDefault: true })),
-    ...customLeagues.map(l => ({ ...l, isDefault: false }))
-  ];
+  const allLeagues = getVisibleLeagues(customLeagues);
+
+  // Funzione per mostrare alert (passata dal componente padre)
+  const showAlert = (type, text) => {
+    // Questa funzione sarà passata dal componente padre
+    if (window.showAlert) window.showAlert(type, text);
+    else alert(text);
+  };
 
   return (
     <div className="card">
@@ -3438,9 +3457,7 @@ const SofaScoreManager = ({ onImport, loading }) => {
                 </thead>
                 <tbody>
                   {allLeagues.map(league => {
-                    // Conta le partite per questo campionato
-                    const matchCount = window.matches ? 
-                      window.matches.filter(m => m.campionato === league.name).length : 0;
+                    const matchCount = matches ? matches.filter(m => m.campionato === league.name).length : 0;
                     
                     return (
                       <tr key={league.id} style={{borderBottom:'1px solid var(--border)'}}>
@@ -3487,15 +3504,14 @@ const SofaScoreManager = ({ onImport, loading }) => {
                           >
                             📥 Importa
                           </button>
-                          {!league.isDefault && (
-                            <button
-                              className="btn btn-danger"
-                              style={{fontSize:'11px', padding:'2px 8px'}}
-                              onClick={() => removeCustomLeague(league.id)}
-                            >
-                              ✖
-                            </button>
-                          )}
+                          {/* X per TUTTI i campionati */}
+                          <button
+                            className="btn btn-danger"
+                            style={{fontSize:'11px', padding:'2px 8px'}}
+                            onClick={() => removeLeague(league.id, league.name)}
+                          >
+                            ✖
+                          </button>
                         </td>
                       </tr>
                     );
@@ -3514,6 +3530,10 @@ const SofaScoreManager = ({ onImport, loading }) => {
             <br/>
             <span style={{color:'var(--accent)'}}>
               ⚡ Il pulsante "Aggiungi e Importa" controlla prima se ci sono partite!
+            </span>
+            <br/>
+            <span style={{color:'var(--win)'}}>
+              ✅ Il pulsante ✖ rimuove TUTTI i campionati (anche quelli predefiniti)!
             </span>
           </div>
         </div>
@@ -3548,11 +3568,8 @@ const SofaScoreManager = ({ onImport, loading }) => {
                 </thead>
                 <tbody>
                   {searchResults.map(t => {
-                    const allLeagues = [
-                      ...Object.entries(SOFASCORE_LEAGUE_IDS).map(([n, i]) => ({ name: n, id: i })),
-                      ...customLeagues
-                    ];
-                    const isAdded = allLeagues.some(l => l.id === t.id);
+                    const allLeaguesList = getVisibleLeagues(customLeagues);
+                    const isAdded = allLeaguesList.some(l => l.id === t.id);
                     return (
                       <tr key={t.id} style={{borderBottom:'1px solid var(--border)'}}>
                         <td style={{padding:'6px 8px'}}>{t.name}</td>
@@ -3743,13 +3760,11 @@ function App() {
   };
 
   const importAllFromSofaScore = async () => {
-    const allLeagues = [
-      ...Object.keys(SOFASCORE_LEAGUE_IDS),
-      ...getCustomSofaLeagues().map(l => l.name)
-    ];
-    
+    const allLeagues = getVisibleLeagues(getCustomSofaLeagues());
     const importedNames = new Set(championships.map(c => c.name));
-    const leaguesToImport = allLeagues.filter(name => !importedNames.has(name));
+    const leaguesToImport = allLeagues
+      .filter(l => !importedNames.has(l.name))
+      .map(l => l.name);
     
     if (leaguesToImport.length === 0) {
       showAlert('info', 'ℹ️ Tutti i campionati disponibili sono già stati importati.');
@@ -4697,8 +4712,14 @@ ${matchData}`;
                   <button className="btn btn-danger" onClick={() => {
                     if (confirm('Vuoi davvero resettare TUTTI i dati?')) {
                       localStorage.clear();
-                      setChampionships([]); setMatches([]); setApiKeys({}); setTempKeys({});
-                      showAlert('success', '🗑️ Dati resettati.');
+                      // Resetta anche la blacklist e la lista SofaScore
+                      saveBlacklist([]);
+                      saveCustomSofaLeagues([]);
+                      setChampionships([]); 
+                      setMatches([]); 
+                      setApiKeys({}); 
+                      setTempKeys({});
+                      showAlert('success', '🗑️ Dati resettati completamente (inclusa lista campionati).');
                     }
                   }}>🗑️ Reset Completo</button>
                 </div>
@@ -4712,6 +4733,8 @@ ${matchData}`;
                 <SofaScoreManager 
                   onImport={importFromSofaScore} 
                   loading={loading} 
+                  matches={matches}
+                  setMatches={setMatches}
                 />
                 
                 <hr style={{borderColor:'var(--border)', margin:'20px 0'}}/>
