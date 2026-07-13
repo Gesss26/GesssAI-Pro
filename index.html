@@ -959,15 +959,6 @@
   .debug-columns h4 { margin-bottom: 8px; color: var(--accent); }
   .debug-columns code { display: inline-block; background: var(--card); padding: 2px 6px; border-radius: 4px; margin: 2px; }
   
-  /* Stili per la tabella Storico - solo testo colorato */
-  .history-table td {
-    padding: 6px 12px;
-    text-align: center;
-  }
-  .history-table .result-win { color: var(--win); background: transparent; font-weight: bold; }
-  .history-table .result-draw { color: var(--draw); background: transparent; font-weight: bold; }
-  .history-table .result-loss { color: var(--lose); background: transparent; font-weight: bold; }
-  
   .scraped-matches-table {
     width: 100%;
     border-collapse: collapse;
@@ -987,6 +978,13 @@
     border-bottom: 1px solid var(--border);
   }
   .scraped-matches-table tr:hover td { background: var(--card); }
+  
+  /* Stili per la tabella Storico - senza colori */
+  .history-table td {
+    padding: 6px 12px;
+    text-align: center;
+    color: var(--text);
+  }
   
   @media (max-width: 768px) {
     .match-tab, .match-tab-history { min-width: 100%; max-width: 100%; }
@@ -1074,7 +1072,7 @@ const CITTÀ_PER_CAMPIONATO = {
   'FIFA World Cup 2026': 'New York'
 };
 
-// Mappa campionati -> ID SofaScore
+// Mappa campionati -> ID SofaScore (predefiniti)
 const SOFASCORE_LEAGUE_IDS = {
   'Allsvenskan': 40,
   'Eliteserien': 20,
@@ -1090,6 +1088,17 @@ const SOFASCORE_LEAGUE_IDS = {
   'Liga Portugal Betclic': 238,
   'Russian Premier League': 203,
   'Swiss Super League': 215
+};
+
+// Funzioni per campionati SofaScore personalizzati
+const getCustomSofaLeagues = () => {
+  try {
+    return JSON.parse(localStorage.getItem('ft_sofaleagues') || '[]');
+  } catch(e) { return []; }
+};
+
+const saveCustomSofaLeagues = (leagues) => {
+  localStorage.setItem('ft_sofaleagues', JSON.stringify(leagues));
 };
 
 const getChampColor = (champName) => {
@@ -1220,7 +1229,6 @@ const calcTeamMG = (matches, teamName) => {
   return `${(scored/played.length).toFixed(1)}-${(conceded/played.length).toFixed(1)}`;
 };
 
-// Funzione che restituisce la fascia più frequente, ma con etichetta "Over 1,5" al posto di "2-4"
 const getMostFrequentGoalRange = (teamName, allMatches) => {
   const matches = allMatches.filter(m => m.stato === 'Giocata' && (m.casa === teamName || m.ospiti === teamName));
   if (matches.length === 0) return { label: 'N/A', pct: 0 };
@@ -1263,7 +1271,6 @@ const getMostFrequentGoalRange = (teamName, allMatches) => {
   return { label, pct: Math.round(rangePct) };
 };
 
-// Calcola la migliore "Libera" tra tutte le combo approvate
 const getBestFreeCombo = (stats, homeMG, awayMG, mgTot) => {
   if (stats.error) return { label: 'N/A', pct: 0 };
   
@@ -1273,42 +1280,35 @@ const getBestFreeCombo = (stats, homeMG, awayMG, mgTot) => {
   
   const candidates = [];
   
-  // Singole
   candidates.push({ label: '1X', pct: p1X });
   candidates.push({ label: '12', pct: p12 });
   candidates.push({ label: 'X2', pct: pX2 });
   candidates.push({ label: 'Over 1.5', pct: over15 });
   candidates.push({ label: 'Under 3.5', pct: under35 });
   
-  // Multigol Totale
   for (const [label, pct] of Object.entries(mgTot)) {
     let displayLabel = label === '2-4' ? 'Over 1,5' : label;
     candidates.push({ label: `MG Tot ${displayLabel}`, pct });
   }
   
-  // Multigol Casa
   for (const [label, pct] of Object.entries(homeMG)) {
     let displayLabel = label === '2-4' ? 'Over 1,5' : label;
     candidates.push({ label: `MG Casa ${displayLabel}`, pct });
   }
   
-  // Multigol Ospite
   for (const [label, pct] of Object.entries(awayMG)) {
     let displayLabel = label === '2-4' ? 'Over 1,5' : label;
     candidates.push({ label: `MG Ospite ${displayLabel}`, pct });
   }
   
-  // DC + Over 1.5
   candidates.push({ label: '1X+Over1.5', pct: (p1X + over15) / 2 });
   candidates.push({ label: '12+Over1.5', pct: (p12 + over15) / 2 });
   candidates.push({ label: 'X2+Over1.5', pct: (pX2 + over15) / 2 });
   
-  // DC + Under 3.5
   candidates.push({ label: '1X+Under3.5', pct: (p1X + under35) / 2 });
   candidates.push({ label: '12+Under3.5', pct: (p12 + under35) / 2 });
   candidates.push({ label: 'X2+Under3.5', pct: (pX2 + under35) / 2 });
   
-  // DC + Multigol Totale
   for (const [mgLabel, mgPct] of Object.entries(mgTot)) {
     let displayLabel = mgLabel === '2-4' ? 'Over 1,5' : mgLabel;
     candidates.push({ label: `1X+MG Tot ${displayLabel}`, pct: (p1X + mgPct) / 2 });
@@ -1316,7 +1316,6 @@ const getBestFreeCombo = (stats, homeMG, awayMG, mgTot) => {
     candidates.push({ label: `X2+MG Tot ${displayLabel}`, pct: (pX2 + mgPct) / 2 });
   }
   
-  // Multigol Casa + Multigol Ospite
   for (const [homeLabel, homePct] of Object.entries(homeMG)) {
     for (const [awayLabel, awayPct] of Object.entries(awayMG)) {
       let displayHome = homeLabel === '2-4' ? 'Over 1,5' : homeLabel;
@@ -1462,7 +1461,6 @@ const get12Under45 = (allMatches, homeTeam, awayTeam) => {
 // ============================================================
 const fetchSofaScoreMatches = async (leagueId, seasonId) => {
   try {
-    // Prima ottieni le stagioni disponibili
     const seasonsRes = await fetch(
       `https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/seasons`
     );
@@ -2877,6 +2875,287 @@ const WebScraping = ({ setChampionships, setMatches, championships, matches, sho
   );
 };
 
+// ---------- COMPONENTE GESTIONE SOFASCORE ----------
+const SofaScoreManager = ({ onImport, loading }) => {
+  const [customLeagues, setCustomLeagues] = useState(getCustomSofaLeagues);
+  const [newLeagueName, setNewLeagueName] = useState('');
+  const [newLeagueId, setNewLeagueId] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [selectedTab, setSelectedTab] = useState('lista');
+
+  const saveLeagues = (leagues) => {
+    setCustomLeagues(leagues);
+    saveCustomSofaLeagues(leagues);
+  };
+
+  const addCustomLeague = () => {
+    if (!newLeagueName.trim() || !newLeagueId.trim()) {
+      alert('Inserisci sia il nome che l\'ID del campionato.');
+      return;
+    }
+    const id = parseInt(newLeagueId);
+    if (isNaN(id) || id <= 0) {
+      alert('L\'ID deve essere un numero positivo.');
+      return;
+    }
+    if (customLeagues.some(l => l.id === id || l.name.toLowerCase() === newLeagueName.toLowerCase())) {
+      alert('Questo campionato o ID è già presente nella lista.');
+      return;
+    }
+    const defaultIds = Object.values(SOFASCORE_LEAGUE_IDS);
+    if (defaultIds.includes(id)) {
+      alert('Questo ID è già presente nelle leghe predefinite.');
+      return;
+    }
+    const newLeague = { name: newLeagueName.trim(), id: id };
+    saveLeagues([...customLeagues, newLeague]);
+    setNewLeagueName('');
+    setNewLeagueId('');
+    alert(`✅ Campionato "${newLeagueName}" (ID: ${id}) aggiunto!`);
+  };
+
+  const removeCustomLeague = (id) => {
+    if (confirm('Rimuovere questo campionato dalla lista?')) {
+      saveLeagues(customLeagues.filter(l => l.id !== id));
+    }
+  };
+
+  const searchSofaLeagues = async () => {
+    if (!searchQuery.trim()) {
+      alert('Inserisci un termine di ricerca.');
+      return;
+    }
+    setSearching(true);
+    setSearchResults([]);
+    try {
+      const response = await fetch(
+        `https://api.sofascore.com/api/v1/search?q=${encodeURIComponent(searchQuery)}&type=tournament`
+      );
+      if (!response.ok) throw new Error('Errore nella ricerca');
+      const data = await response.json();
+      if (data.results && data.results.length > 0) {
+        const footballTournaments = data.results.filter(
+          r => r.sport?.id === 1 || r.sport?.slug === 'football'
+        );
+        setSearchResults(footballTournaments);
+        if (footballTournaments.length === 0) {
+          alert('Nessun campionato di calcio trovato. Prova con un termine più specifico.');
+        }
+      } else {
+        alert('Nessun risultato trovato.');
+      }
+    } catch (e) {
+      console.error('Errore ricerca:', e);
+      alert('Errore durante la ricerca. Verifica la connessione.');
+    }
+    setSearching(false);
+  };
+
+  const addFromSearch = (tournament) => {
+    const name = tournament.name;
+    const id = tournament.id;
+    const allLeagues = [
+      ...Object.entries(SOFASCORE_LEAGUE_IDS).map(([n, i]) => ({ name: n, id: i })),
+      ...customLeagues
+    ];
+    if (allLeagues.some(l => l.id === id || l.name.toLowerCase() === name.toLowerCase())) {
+      alert('Questo campionato è già nella tua lista.');
+      return;
+    }
+    saveLeagues([...customLeagues, { name, id }]);
+    setSearchResults(searchResults.filter(r => r.id !== id));
+    alert(`✅ Campionato "${name}" (ID: ${id}) aggiunto!`);
+  };
+
+  const allLeagues = [
+    ...Object.entries(SOFASCORE_LEAGUE_IDS).map(([name, id]) => ({ name, id, isDefault: true })),
+    ...customLeagues.map(l => ({ ...l, isDefault: false }))
+  ];
+
+  return (
+    <div className="card">
+      <h4 style={{marginBottom:'12px'}}>🌐 Gestione Campionati SofaScore</h4>
+      
+      <div className="sub-tabs" style={{marginBottom:'12px'}}>
+        <button className={selectedTab === 'lista' ? 'active' : ''} onClick={() => setSelectedTab('lista')}>
+          📋 Lista campionati ({allLeagues.length})
+        </button>
+        <button className={selectedTab === 'cerca' ? 'active' : ''} onClick={() => setSelectedTab('cerca')}>
+          🔍 Cerca e aggiungi
+        </button>
+      </div>
+
+      {selectedTab === 'lista' && (
+        <div>
+          <div style={{display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'12px'}}>
+            <input
+              type="text"
+              value={newLeagueName}
+              onChange={e => setNewLeagueName(e.target.value)}
+              placeholder="Nome campionato (es. Serie A)"
+              style={{flex:1, minWidth:'150px'}}
+            />
+            <input
+              type="number"
+              value={newLeagueId}
+              onChange={e => setNewLeagueId(e.target.value)}
+              placeholder="ID SofaScore"
+              style={{width:'120px'}}
+            />
+            <button className="btn" onClick={addCustomLeague}>➕ Aggiungi</button>
+          </div>
+          
+          <div style={{maxHeight:'300px', overflowY:'auto'}}>
+            {allLeagues.length === 0 ? (
+              <p style={{color:'var(--text-muted)', textAlign:'center', padding:'20px'}}>
+                Nessun campionato configurato.
+              </p>
+            ) : (
+              <table className="standings-table" style={{fontSize:'13px'}}>
+                <thead>
+                  <tr>
+                    <th>Campionato</th>
+                    <th style={{textAlign:'center'}}>ID</th>
+                    <th style={{textAlign:'center'}}>Tipo</th>
+                    <th style={{textAlign:'center'}}>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allLeagues.map(league => (
+                    <tr key={league.id} style={{borderBottom:'1px solid var(--border)'}}>
+                      <td style={{padding:'6px 8px'}}>
+                        <span style={{color: league.isDefault ? 'var(--text)' : 'var(--accent)'}}>
+                          {league.isDefault ? '📌 ' : '⭐ '}
+                          {league.name}
+                        </span>
+                      </td>
+                      <td style={{textAlign:'center', padding:'6px 8px'}}>{league.id}</td>
+                      <td style={{textAlign:'center', padding:'6px 8px'}}>
+                        <span style={{
+                          fontSize:'10px',
+                          padding:'2px 8px',
+                          borderRadius:'10px',
+                          background: league.isDefault ? 'var(--surface)' : 'var(--accent)',
+                          color: league.isDefault ? 'var(--text-muted)' : '#000'
+                        }}>
+                          {league.isDefault ? 'Predefinito' : 'Personalizzato'}
+                        </span>
+                      </td>
+                      <td style={{textAlign:'center', padding:'6px 8px'}}>
+                        <button
+                          className="btn btn-secondary"
+                          style={{fontSize:'11px', padding:'2px 8px', marginRight:'4px'}}
+                          onClick={() => onImport(league.name)}
+                          disabled={loading}
+                        >
+                          📥 Importa
+                        </button>
+                        {!league.isDefault && (
+                          <button
+                            className="btn btn-danger"
+                            style={{fontSize:'11px', padding:'2px 8px'}}
+                            onClick={() => removeCustomLeague(league.id)}
+                          >
+                            ✖
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+          
+          <div style={{marginTop:'8px', fontSize:'12px', color:'var(--text-muted)'}}>
+            💡 Trova l'ID di un campionato nell'URL di SofaScore: 
+            <code style={{background:'var(--surface)', padding:'2px 6px', borderRadius:'4px', margin:'0 4px'}}>
+              sofascore.com/.../allsvenskan/40
+            </code>
+            → ID è <b>40</b>
+          </div>
+        </div>
+      )}
+
+      {selectedTab === 'cerca' && (
+        <div>
+          <div style={{display:'flex', gap:'8px', marginBottom:'12px'}}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Cerca campionato (es. 'Serie A', 'Bundesliga')"
+              style={{flex:1}}
+              onKeyDown={e => e.key === 'Enter' && searchSofaLeagues()}
+            />
+            <button className="btn" onClick={searchSofaLeagues} disabled={searching}>
+              {searching ? '⏳ Cercando...' : '🔍 Cerca'}
+            </button>
+          </div>
+          
+          {searchResults.length > 0 && (
+            <div style={{maxHeight:'250px', overflowY:'auto'}}>
+              <table className="standings-table" style={{fontSize:'13px'}}>
+                <thead>
+                  <tr>
+                    <th>Campionato</th>
+                    <th style={{textAlign:'center'}}>ID</th>
+                    <th style={{textAlign:'center'}}>Categoria</th>
+                    <th style={{textAlign:'center'}}>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {searchResults.map(t => {
+                    const allLeagues = [
+                      ...Object.entries(SOFASCORE_LEAGUE_IDS).map(([n, i]) => ({ name: n, id: i })),
+                      ...customLeagues
+                    ];
+                    const isAdded = allLeagues.some(l => l.id === t.id);
+                    return (
+                      <tr key={t.id} style={{borderBottom:'1px solid var(--border)'}}>
+                        <td style={{padding:'6px 8px'}}>{t.name}</td>
+                        <td style={{textAlign:'center', padding:'6px 8px'}}>{t.id}</td>
+                        <td style={{textAlign:'center', padding:'6px 8px'}}>
+                          {t.category?.name || 'N/A'}
+                        </td>
+                        <td style={{textAlign:'center', padding:'6px 8px'}}>
+                          {isAdded ? (
+                            <span style={{color:'var(--win)'}}>✅ Già aggiunto</span>
+                          ) : (
+                            <button
+                              className="btn btn-secondary"
+                              style={{fontSize:'11px', padding:'2px 10px'}}
+                              onClick={() => addFromSearch(t)}
+                            >
+                              ➕ Aggiungi
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+          
+          {searchResults.length === 0 && searchQuery && !searching && (
+            <p style={{color:'var(--text-muted)', textAlign:'center', padding:'20px'}}>
+              Nessun risultato per "{searchQuery}". Prova con un termine diverso.
+            </p>
+          )}
+          
+          <div style={{marginTop:'8px', fontSize:'12px', color:'var(--text-muted)'}}>
+            💡 Cerca il nome del campionato in italiano o inglese (es. "Serie A", "Premier League").
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ============================================================
 // COMPONENTE APP
 // ============================================================
@@ -3069,7 +3348,7 @@ function App() {
   const [selectedCompetition, setSelectedCompetition] = useState(null);
   const [loadingCompetitions, setLoadingCompetitions] = useState(false);
   
-  // ---------- FUNZIONE DI IMPORT JSON CORRETTA ----------
+  // ---------- FUNZIONE DI IMPORT JSON ----------
   const importJSON = async (file) => {
     setLoading(true);
     try {
@@ -3138,7 +3417,14 @@ function App() {
 
   // ---------- FUNZIONE IMPORT DA SOFASCORE ----------
   const importFromSofaScore = async (champName) => {
-    const leagueId = SOFASCORE_LEAGUE_IDS[champName];
+    let leagueId = SOFASCORE_LEAGUE_IDS[champName];
+    
+    if (!leagueId) {
+      const customLeagues = getCustomSofaLeagues();
+      const found = customLeagues.find(l => l.name === champName);
+      if (found) leagueId = found.id;
+    }
+    
     if (!leagueId) {
       showAlert('error', `❌ ID non trovato per ${champName}`);
       return;
@@ -4338,6 +4624,14 @@ ${matchData}`;
             {settingsTab === 'Importa Campionato' && (
               <div>
                 <h3 style={{marginBottom:'12px'}}>📥 Importa Campionato da XLSX, JSON o SofaScore</h3>
+                
+                <SofaScoreManager 
+                  onImport={importFromSofaScore} 
+                  loading={loading} 
+                />
+                
+                <hr style={{borderColor:'var(--border)', margin:'20px 0'}}/>
+                
                 <div className="card">
                   <div className="alert alert-info">
                     <b>XLSX:</b> Il file deve avere colonne: <b>Campionato | Round | Data | Ora | Casa | Risultato | Ospite | Stato | Gol Casa | Gol Ospite | Città</b><br/>
@@ -4366,28 +4660,6 @@ ${matchData}`;
                       </div>
                     </div>
                   )}
-                  
-                  <hr style={{borderColor:'var(--border)', margin:'12px 0'}}/>
-                  
-                  <div style={{paddingTop:'8px'}}>
-                    <h4>🌐 Importa da SofaScore API</h4>
-                    <p style={{fontSize:'13px', color:'var(--text-muted)', marginBottom:'8px'}}>
-                      Scarica direttamente le partite di un campionato usando le API di SofaScore (gratuite, senza chiave).
-                    </p>
-                    <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
-                      {Object.keys(SOFASCORE_LEAGUE_IDS).map(name => (
-                        <button
-                          key={name}
-                          className="btn btn-secondary"
-                          style={{fontSize:'12px', padding:'6px 12px'}}
-                          onClick={() => importFromSofaScore(name)}
-                          disabled={loading}
-                        >
-                          {name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
                 </div>
                 
                 <h3 style={{margin:'20px 0 12px'}}>
