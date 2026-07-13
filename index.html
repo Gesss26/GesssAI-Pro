@@ -14,7 +14,7 @@
     --card: #232b36;
     --banner: #2c3642;
     --text: #e6edf3;
-    --text-muted: #8b949e;
+    --text-muted: #ffff00;
     --accent: #f39c12;
     --accent2: #e67e22;
     --border: #30363d;
@@ -23,7 +23,6 @@
     --lose: #eb5757;
     --tab-active: #f39c12;
     
-    /* Colori percentuali */
     --pct-rosso: #eb5757;
     --pct-neutro: #8b949e;
     --pct-verde: #6fcf97;
@@ -32,7 +31,6 @@
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
   body { background: var(--bg); color: var(--text); min-height: 100vh; }
   
-  /* CLASSI PER COLORI PERCENTUALI - APPLICABILI A QUALSIASI TESTO */
   .pct-rosso {
     color: var(--pct-rosso) !important;
     font-weight: bold;
@@ -51,7 +49,6 @@
     text-shadow: 0 0 10px rgba(243, 156, 18, 0.3);
   }
 
-  /* STILE PER GIOCATE */
   .giocata-box {
     background: var(--surface);
     padding: 12px 16px;
@@ -633,30 +630,32 @@
     gap: 8px;
   }
   .detail-stat-box {
-    padding: 12px 8px;
+    padding: 8px 12px;
     border-radius: 8px;
     text-align: center;
     border: 1px solid var(--border);
     background: var(--surface);
-    color: #fff;
     transition: background 0.2s, transform 0.1s;
     min-width: 60px;
     flex: 1;
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
   .detail-stat-box:hover { transform: scale(1.02); }
   .detail-stat-box .label {
     display: block;
-    font-size: 20px;
+    font-size: 14px;
     font-weight: 600;
-    color: #fff;
+    color: #ffff00;
     margin-bottom: 2px;
   }
   .detail-stat-box .value {
     display: block;
     font-size: 20px;
     font-weight: bold;
-    color: #fff;
   }
   .detail-stat-box .bomb-icon {
     display: inline-block;
@@ -666,18 +665,19 @@
     margin-left: 4px;
   }
   .detail-stat-box.flag-red { background: var(--lose); }
+  .detail-stat-box.flag-red .value { color: #000; }
   .detail-stat-box.flag-neutral { background: var(--pct-neutro); }
+  .detail-stat-box.flag-neutral .value { color: #000; }
   .detail-stat-box.flag-green { background: var(--win); }
-  .detail-stat-box.flag-gold { background: var(--accent); color: #000; }
-  .detail-stat-box.flag-gold .label,
+  .detail-stat-box.flag-green .value { color: #000; }
+  .detail-stat-box.flag-gold { background: var(--accent); }
   .detail-stat-box.flag-gold .value { color: #000; }
   .detail-stat-box.flag-bomb { 
     background: var(--accent); 
-    color: #000;
     animation: bomb-glow 1s infinite alternate;
   }
-  .detail-stat-box.flag-bomb .label,
   .detail-stat-box.flag-bomb .value { color: #000; }
+  
   @keyframes bomb-bounce {
     0% { transform: scale(1) rotate(0deg); }
     50% { transform: scale(1.3) rotate(10deg); }
@@ -768,13 +768,15 @@
   }
   .ai-analysis-box h4 {
     color: var(--accent);
-    margin: 8px 0 4px;
+    margin: 12px 0 6px;
     font-size: 14px;
+    font-weight: 700;
   }
   .ai-analysis-box p {
     font-size: 13px;
-    line-height: 1.5;
+    line-height: 1.6;
     margin-bottom: 6px;
+    color: var(--text);
   }
   .ai-analysis-box .pronostico-mini {
     display: flex;
@@ -809,7 +811,7 @@
   @media (max-width: 768px) { .ai-analysis-box .consigli-grid { grid-template-columns: 1fr; } }
   .ai-analysis-box .consiglio-card {
     background: var(--card);
-    padding: 8px;
+    padding: 10px;
     border-radius: 6px;
     border: 1px solid var(--border);
   }
@@ -817,11 +819,13 @@
     font-size: 10px;
     text-transform: uppercase;
     color: var(--text-muted);
+    font-weight: 600;
   }
   .ai-analysis-box .consiglio-card .giocata {
     font-size: 14px;
     font-weight: bold;
     margin: 2px 0;
+    color: #ffff00;
   }
   .ai-analysis-box .consiglio-card .percentuale {
     font-size: 22px;
@@ -869,6 +873,40 @@
     cursor: pointer;
   }
   .ai-analysis-error .btn-go-key:hover { background: var(--accent2); }
+  
+  .ai-extra-section {
+    background: var(--card);
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 8px;
+    border: 1px solid var(--border);
+  }
+  .ai-extra-section h5 {
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .ai-extra-section .row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .ai-extra-section .col {
+    flex: 1;
+    min-width: 120px;
+  }
+  .ai-extra-section .item {
+    font-size: 12px;
+    padding: 3px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+  }
+  .ai-extra-section .item:last-child { border-bottom: none; }
+  .weather-icon-big { font-size: 32px; }
+  .weather-temp-big { font-size: 28px; font-weight: bold; color: var(--accent); }
+  
   .ai-result {
     background: var(--surface);
     padding: 16px;
@@ -903,7 +941,7 @@
   .ai-result .consiglio-card .giocata {
     font-size: 16px;
     font-weight: bold;
-    color: var(--text);
+    color: #ffff00;
   }
   .ai-result .consiglio-card .percentuale {
     font-size: 28px;
@@ -1018,12 +1056,12 @@
 const { useState, useEffect } = React;
 
 const THEMES = {
-  'Scuro Blu Notte': { bg:'#0f1419', surface:'#1a2028', card:'#232b36', banner:'#2c3642', text:'#e6edf3', textMuted:'#8b949e', accent:'#f39c12', accent2:'#e67e22', border:'#30363d', tabActive:'#f39c12' },
-  'Chiaro': { bg:'#f5f7fa', surface:'#ffffff', card:'#ffffff', banner:'#e8ecf1', text:'#1a2028', textMuted:'#546e7a', accent:'#1976d2', accent2:'#0d47a1', border:'#cfd8dc', tabActive:'#1976d2' },
-  'Tramonto': { bg:'#2c1810', surface:'#3d2817', card:'#4a3422', banner:'#5d3f2a', text:'#ffe0b2', textMuted:'#bcaaa4', accent:'#ff6b35', accent2:'#f7931e', border:'#6d4c41', tabActive:'#ff6b35' },
-  'Ghiaccio': { bg:'#e3f2fd', surface:'#ffffff', card:'#ffffff', banner:'#bbdefb', text:'#01579b', textMuted:'#455a64', accent:'#0288d1', accent2:'#01579b', border:'#90caf9', tabActive:'#0288d1' },
-  'Neon': { bg:'#0a0e27', surface:'#131836', card:'#1a1f42', banner:'#24294f', text:'#00ffcc', textMuted:'#7b81a8', accent:'#ff00ff', accent2:'#00ffff', border:'#2d325f', tabActive:'#ff00ff' },
-  'Calcio': { bg:'#1b5e20', surface:'#2e7d32', card:'#388e3c', banner:'#2e7d32', text:'#fff', textMuted:'#c8e6c9', accent:'#ffc107', accent2:'#ff9800', border:'#1b5e20', tabActive:'#ffc107' },
+  'Scuro Blu Notte': { bg:'#0f1419', surface:'#1a2028', card:'#232b36', banner:'#2c3642', text:'#e6edf3', textMuted:'#ffff00', accent:'#f39c12', accent2:'#e67e22', border:'#30363d', tabActive:'#f39c12' },
+  'Chiaro': { bg:'#f5f7fa', surface:'#ffffff', card:'#ffffff', banner:'#e8ecf1', text:'#1a2028', textMuted:'#000000', accent:'#1976d2', accent2:'#0d47a1', border:'#cfd8dc', tabActive:'#1976d2' },
+  'Tramonto': { bg:'#2c1810', surface:'#3d2817', card:'#4a3422', banner:'#5d3f2a', text:'#ffe0b2', textMuted:'#ffff00', accent:'#ff6b35', accent2:'#f7931e', border:'#6d4c41', tabActive:'#ff6b35' },
+  'Ghiaccio': { bg:'#e3f2fd', surface:'#ffffff', card:'#ffffff', banner:'#bbdefb', text:'#01579b', textMuted:'#000000', accent:'#0288d1', accent2:'#01579b', border:'#90caf9', tabActive:'#0288d1' },
+  'Neon': { bg:'#0a0e27', surface:'#131836', card:'#1a1f42', banner:'#24294f', text:'#00ffcc', textMuted:'#ffff00', accent:'#ff00ff', accent2:'#00ffff', border:'#2d325f', tabActive:'#ff00ff' },
+  'Calcio': { bg:'#1b5e20', surface:'#2e7d32', card:'#388e3c', banner:'#2e7d32', text:'#fff', textMuted:'#ffff00', accent:'#ffc107', accent2:'#ff9800', border:'#1b5e20', tabActive:'#ffc107' },
 };
 
 const MAIN_TABS = ['Palinsesto','Statistiche','Storico','Schedina AI','API KEY','Impostazioni'];
@@ -1101,7 +1139,6 @@ const SOFASCORE_LEAGUE_IDS = {
   'Swiss Super League': 215
 };
 
-// FUNZIONE PER DETERMINARE LA CLASSE IN BASE ALLA PERCENTUALE
 const getPercentualeClasse = (valore) => {
   if (valore < 33) return 'pct-rosso';
   if (valore < 66) return 'pct-neutro';
@@ -1109,15 +1146,6 @@ const getPercentualeClasse = (valore) => {
   return 'pct-oro';
 };
 
-// FUNZIONE PER OTTENERE IL COLORE DELLA PERCENTUALE (usato per flag)
-const getPercentualeColore = (valore) => {
-  if (valore < 33) return '#eb5757';
-  if (valore < 66) return '#8b949e';
-  if (valore < 90) return '#6fcf97';
-  return '#f39c12';
-};
-
-// FUNZIONE PER OTTENERE LA FLAG CLASS IN BASE ALLA PERCENTUALE
 const getFlagClass = (valore) => {
   if (valore < 33) return 'flag-red';
   if (valore < 66) return 'flag-neutral';
@@ -1230,9 +1258,6 @@ const saveState = (data) => {
   localStorage.setItem('ft_custom_theme', JSON.stringify(data.customTheme));
 };
 
-// ============================================================
-// FUNZIONI DI CALCOLO
-// ============================================================
 const calcFormAndStats = (matches, teamName) => {
   const played = matches.filter(m => m.stato === 'Giocata' && (m.casa === teamName || m.ospiti === teamName))
     .sort((a,b) => new Date(b.data+' '+b.ora) - new Date(a.data+' '+a.ora))
@@ -1490,9 +1515,6 @@ const get12Under45 = (allMatches, homeTeam, awayTeam) => {
   return (count / allGames.length) * 100;
 };
 
-// ============================================================
-// FUNZIONI SOFASCORE API
-// ============================================================
 const fetchSofaScoreMatches = async (leagueId, seasonId) => {
   try {
     const seasonsRes = await fetch(
@@ -1550,9 +1572,6 @@ const fetchSofaScoreMatches = async (leagueId, seasonId) => {
   }
 };
 
-// ============================================================
-// COMPONENTI
-// ============================================================
 const Standings = ({ matches, filterChampionship, highlightTeams = [] }) => {
   const [view, setView] = useState('generale');
   
@@ -1693,9 +1712,6 @@ const WeatherBadge = ({ weatherData }) => {
   );
 };
 
-// ============================================================
-// COMPONENTE MatchTab CON TUTTI I TESTI COLORATI
-// ============================================================
 const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) => {
   const homeForm = calcFormAndStats(allMatches, match.casa);
   const awayForm = calcFormAndStats(allMatches, match.ospiti);
@@ -1736,6 +1752,7 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
   });
   
   const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + freeCombo.pct) / 4);
+  const mediaCombinata = Math.round((homeRange.pct + awayRange.pct) / 2);
   
   const handleClick = (e) => {
     e.stopPropagation();
@@ -1757,9 +1774,6 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
     const text = `Libera: ${freeCombo.label} (${freeCombo.pct}%) - ${match.casa} vs ${match.ospiti}`;
     addToSchedina(text);
   };
-  
-  // Calcola media per il colore di COMBINATA
-  const mediaCombinata = Math.round((homeRange.pct + awayRange.pct) / 2);
   
   return (
     <div className="match-tab" style={{borderLeftColor: champColor}} onClick={handleClick}>
@@ -1798,9 +1812,7 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
         📊 Differenza forma: <span>{diff}%</span>
       </div>
       
-      {/* BET ROW - TUTTI I TESTI COLORATI */}
       <div className="bet-row">
-        {/* 12+U4.5 */}
         <div className="bet-item" onClick={addBet1}>
           <div className="bet-label">
             <span className={getPercentualeClasse(Math.round(pct12Under45))}>
@@ -1814,7 +1826,6 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
           </div>
         </div>
         
-        {/* COMBINATA */}
         <div className="bet-item" style={{flex: 2}} onClick={addBet2}>
           <div className="bet-label">
             <span className={getPercentualeClasse(mediaCombinata)}>
@@ -1832,7 +1843,6 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
           </div>
         </div>
         
-        {/* LIBERA */}
         <div className="bet-item" onClick={addBet3}>
           <div className="bet-label">
             <span className={getPercentualeClasse(freeCombo.pct)}>
@@ -1883,9 +1893,6 @@ const MatchTabHistory = ({ match, onSelect }) => {
   );
 };
 
-// ============================================================
-// MatchDetail con colori
-// ============================================================
 const MatchDetail = ({ match, allMatches, addToSchedina }) => {
   const stats = computeMatchStats(match, allMatches);
   if (stats.error) {
@@ -1898,44 +1905,31 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
   
   const { homeGames, awayGames, totalGames } = stats;
   
-  const getColorClass = (value, allValues = null) => {
+  const getColorClass = (value) => {
     if (value >= 90) return 'flag-bomb';
     if (value >= 66.67) return 'flag-green';
     if (value >= 33.34) return 'flag-neutral';
     return 'flag-red';
   };
   
-  const fisse = [stats.p1, stats.pX, stats.p2];
-  const dc = [stats.p1X, stats.p12, stats.pX2];
-  const uo = stats.underOver.flatMap(u => [u.under, u.over]);
-  const mgHome = Object.values(stats.homeMG);
-  const mgAway = Object.values(stats.awayMG);
-  const mgTot = Object.values(stats.mgTot);
-  
-  const getDisplayLabel = (label) => label === '2-4' ? 'Over 1,5' : label;
-  
-  const renderStatBox = (label, value, groupValues = null, onClickLabel = null) => {
-    const cls = getColorClass(value, groupValues);
-    const isBomb = value >= 90;
-    const displayLabel = getDisplayLabel(label);
+  const renderStatBox = (label, value, onClickLabel = null) => {
+    const numValue = typeof value === 'number' ? value : 0;
+    const roundedValue = Math.round(numValue);
+    const cls = getColorClass(numValue);
+    const isBomb = numValue >= 90;
+    
     const handleClick = () => {
       if (onClickLabel) {
-        const text = `${onClickLabel}: ${Math.round(value)}% (${match.casa} vs ${match.ospiti})`;
+        const text = `${onClickLabel}: ${roundedValue}% (${match.casa} vs ${match.ospiti})`;
         addToSchedina(text);
       }
     };
-    const pctClass = getPercentualeClasse(value);
+    
     return (
       <div className={`detail-stat-box ${cls}`} onClick={handleClick}>
-        <span className="label">
-          <span className={pctClass} style={{color: 'inherit'}}>
-            {displayLabel}
-          </span>
-        </span>
-        <span className="value">
-          <span className={pctClass} style={{color: 'inherit'}}>
-            {Math.round(value)}%
-          </span>
+        <span className="label">{label}</span>
+        <span className="value" style={{color: '#000', fontSize: '20px', fontWeight: 'bold'}}>
+          {roundedValue}%
           {isBomb && <span className="bomb-icon">💣</span>}
         </span>
       </div>
@@ -2056,18 +2050,18 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
       <div className="card detail-section">
         <h4>⚡ FISSA</h4>
         <div className="detail-row">
-          {renderStatBox('1', stats.p1, fisse, 'Fissa 1')}
-          {renderStatBox('X', stats.pX, fisse, 'Fissa X')}
-          {renderStatBox('2', stats.p2, fisse, 'Fissa 2')}
+          {renderStatBox('1', stats.p1, 'Fissa 1')}
+          {renderStatBox('X', stats.pX, 'Fissa X')}
+          {renderStatBox('2', stats.p2, 'Fissa 2')}
         </div>
       </div>
       
       <div className="card detail-section">
         <h4>🛡️ DOPPIA CHANCE</h4>
         <div className="detail-row">
-          {renderStatBox('1X', stats.p1X, dc, 'Doppia Chance 1X')}
-          {renderStatBox('12', stats.p12, dc, 'Doppia Chance 12')}
-          {renderStatBox('X2', stats.pX2, dc, 'Doppia Chance X2')}
+          {renderStatBox('1X', stats.p1X, 'Doppia Chance 1X')}
+          {renderStatBox('12', stats.p12, 'Doppia Chance 12')}
+          {renderStatBox('X2', stats.pX2, 'Doppia Chance X2')}
         </div>
       </div>
       
@@ -2075,12 +2069,12 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
         <h4>📊 UNDER / OVER</h4>
         {stats.underOver.map(u => (
           <div key={u.threshold} className="detail-row">
-            <div className="detail-stat-box" style={{flex:'0 0 70px', background:'var(--surface)', color:'var(--text)'}}>
-              <span className="label" style={{color:'var(--text)'}}>Soglia</span>
-              <span className="value" style={{color:'var(--text)', fontSize:'14px'}}>{u.threshold}</span>
+            <div className="detail-stat-box" style={{flex:'0 0 70px', background:'var(--surface)'}}>
+              <span className="label" style={{color: '#ffff00'}}>Soglia</span>
+              <span className="value" style={{color: '#fff', fontSize:'14px'}}>{u.threshold}</span>
             </div>
-            {renderStatBox('Under', u.under, uo, `Under ${u.threshold}`)}
-            {renderStatBox('Over', u.over, uo, `Over ${u.threshold}`)}
+            {renderStatBox('Under', u.under, `Under ${u.threshold}`)}
+            {renderStatBox('Over', u.over, `Over ${u.threshold}`)}
           </div>
         ))}
       </div>
@@ -2091,23 +2085,23 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
           <div>
             <div style={{fontWeight:'bold', color: getChampColor(match.campionato)}}>Casa</div>
             <div className="detail-row" style={{marginBottom:'4px'}}>
-              {renderStatBox('0-1', stats.homeMG['0-1'], mgHome, `Casa 0-1`)}
-              {renderStatBox('0-2', stats.homeMG['0-2'], mgHome, `Casa 0-2`)}
+              {renderStatBox('0-1', stats.homeMG['0-1'], `Casa 0-1`)}
+              {renderStatBox('0-2', stats.homeMG['0-2'], `Casa 0-2`)}
             </div>
             <div className="detail-row" style={{marginBottom:'4px'}}>
-              {renderStatBox('1-3', stats.homeMG['1-3'], mgHome, `Casa 1-3`)}
-              {renderStatBox('2-4', stats.homeMG['2-4'], mgHome, `Casa Over 1,5`)}
+              {renderStatBox('1-3', stats.homeMG['1-3'], `Casa 1-3`)}
+              {renderStatBox('Over 1,5', stats.homeMG['2-4'], `Casa Over 1,5`)}
             </div>
           </div>
           <div>
             <div style={{fontWeight:'bold', color: getChampColor(match.campionato)}}>Ospite</div>
             <div className="detail-row" style={{marginBottom:'4px'}}>
-              {renderStatBox('0-1', stats.awayMG['0-1'], mgAway, `Ospite 0-1`)}
-              {renderStatBox('0-2', stats.awayMG['0-2'], mgAway, `Ospite 0-2`)}
+              {renderStatBox('0-1', stats.awayMG['0-1'], `Ospite 0-1`)}
+              {renderStatBox('0-2', stats.awayMG['0-2'], `Ospite 0-2`)}
             </div>
             <div className="detail-row" style={{marginBottom:'4px'}}>
-              {renderStatBox('1-3', stats.awayMG['1-3'], mgAway, `Ospite 1-3`)}
-              {renderStatBox('2-4', stats.awayMG['2-4'], mgAway, `Ospite Over 1,5`)}
+              {renderStatBox('1-3', stats.awayMG['1-3'], `Ospite 1-3`)}
+              {renderStatBox('Over 1,5', stats.awayMG['2-4'], `Ospite Over 1,5`)}
             </div>
           </div>
         </div>
@@ -2117,24 +2111,21 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
         <h4>🎯 MULTIGOL TOTALE</h4>
         <div className="detail-row">
           {Object.entries(stats.mgTot).map(([label, val]) => {
-            const cls = getColorClass(val, mgTot);
-            const isBomb = val >= 90;
-            const displayLabel = getDisplayLabel(label);
+            const numValue = typeof val === 'number' ? val : 0;
+            const roundedValue = Math.round(numValue);
+            const isBomb = numValue >= 90;
+            const displayLabel = label === '2-4' ? 'Over 1,5' : label;
+            const cls = getColorClass(numValue);
+            
             const handleClick = () => {
-              const text = `MG Totale ${displayLabel}: ${Math.round(val)}% (${match.casa} vs ${match.ospiti})`;
+              const text = `MG Totale ${displayLabel}: ${roundedValue}% (${match.casa} vs ${match.ospiti})`;
               addToSchedina(text);
             };
             return (
               <div key={label} className={`detail-stat-box ${cls}`} style={{flex:'1', minWidth:'80px'}} onClick={handleClick}>
-                <span className="label">
-                  <span className={getPercentualeClasse(val)} style={{color: 'inherit'}}>
-                    {displayLabel}
-                  </span>
-                </span>
-                <span className="value">
-                  <span className={getPercentualeClasse(val)} style={{color: 'inherit'}}>
-                    {Math.round(val)}%
-                  </span>
+                <span className="label">{displayLabel}</span>
+                <span className="value" style={{color: '#000', fontSize: '20px', fontWeight: 'bold'}}>
+                  {roundedValue}%
                   {isBomb && <span className="bomb-icon">💣</span>}
                 </span>
               </div>
@@ -2151,7 +2142,7 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
 };
 
 // ============================================================
-// COMPONENTE AIAnalysis
+// AIAnalysis - Versione Professionale con API
 // ============================================================
 const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
   const [analysis, setAnalysis] = useState(null);
@@ -2160,6 +2151,9 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
   const [weatherData, setWeatherData] = useState(null);
   const [injuriesData, setInjuriesData] = useState(null);
   const [standingsData, setStandingsData] = useState(null);
+  const [headToHeadData, setHeadToHeadData] = useState(null);
+  const [playersData, setPlayersData] = useState(null);
+  const [teamStatsData, setTeamStatsData] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   
   const fetchWeather = async (city, matchDate) => {
@@ -2185,9 +2179,12 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
         temp_min: forecast.main.temp_min,
         temp_max: forecast.main.temp_max,
         weather: forecast.weather[0].description,
+        weather_icon: forecast.weather[0].icon,
         wind_speed: forecast.wind.speed,
         rain: forecast.rain ? forecast.rain['3h'] : 0,
         snow: forecast.snow ? forecast.snow['3h'] : 0,
+        humidity: forecast.main.humidity,
+        pressure: forecast.main.pressure
       };
     } catch (e) { return null; }
   };
@@ -2203,6 +2200,96 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
       const data = await r.json();
       return data.response || [];
     } catch (e) { return null; }
+  };
+  
+  const fetchHeadToHead = async (homeTeam, awayTeam) => {
+    const apiKey = apiKeys['API-Football'];
+    if (!apiKey) return null;
+    try {
+      const r = await fetch(`https://v3.football.api-sports.io/fixtures/headtohead?h2h=${encodeURIComponent(homeTeam)}-${encodeURIComponent(awayTeam)}&last=10`, {
+        headers: { 'x-apisports-key': apiKey }
+      });
+      if (!r.ok) return null;
+      const data = await r.json();
+      return data.response || [];
+    } catch (e) { return null; }
+  };
+  
+  const fetchTeamStats = async (teamName) => {
+    const apiKey = apiKeys['API-Football'];
+    if (!apiKey) return null;
+    try {
+      const searchRes = await fetch(`https://v3.football.api-sports.io/teams?search=${encodeURIComponent(teamName)}`, {
+        headers: { 'x-apisports-key': apiKey }
+      });
+      if (!searchRes.ok) return null;
+      const searchData = await searchRes.json();
+      if (!searchData.response || searchData.response.length === 0) return null;
+      
+      const teamId = searchData.response[0].team.id;
+      
+      const statsRes = await fetch(`https://v3.football.api-sports.io/teams/statistics?team=${teamId}&league=${getLeagueIdFromChampionship(match.campionato)}&season=${new Date().getFullYear()}`, {
+        headers: { 'x-apisports-key': apiKey }
+      });
+      if (!statsRes.ok) return null;
+      const statsData = await statsRes.json();
+      return statsData.response;
+    } catch (e) { return null; }
+  };
+  
+  const fetchPlayers = async (teamName) => {
+    const apiKey = apiKeys['API-Football'];
+    if (!apiKey) return null;
+    try {
+      const searchRes = await fetch(`https://v3.football.api-sports.io/teams?search=${encodeURIComponent(teamName)}`, {
+        headers: { 'x-apisports-key': apiKey }
+      });
+      if (!searchRes.ok) return null;
+      const searchData = await searchRes.json();
+      if (!searchData.response || searchData.response.length === 0) return null;
+      
+      const teamId = searchData.response[0].team.id;
+      
+      const playersRes = await fetch(`https://v3.football.api-sports.io/players?team=${teamId}&season=${new Date().getFullYear()}`, {
+        headers: { 'x-apisports-key': apiKey }
+      });
+      if (!playersRes.ok) return null;
+      const playersData = await playersRes.json();
+      return playersData.response || [];
+    } catch (e) { return null; }
+  };
+  
+  const getLeagueIdFromChampionship = (champName) => {
+    const leagueMap = {
+      'Premier League': 39,
+      'Serie A': 135,
+      'La Liga': 140,
+      'Bundesliga': 78,
+      'Ligue 1': 61,
+      'Eredivisie': 88,
+      'Primeira Liga': 94,
+      'Allsvenskan': 45,
+      'Eliteserien': 44,
+      'Danish Superliga': 40,
+      'Pro League': 42,
+      'Championship': 40,
+      'Liga MX': 85,
+      'Brasileirão': 71,
+      'J1 League': 98,
+      'K League 1': 103,
+      'Swiss Super League': 36,
+      'Austrian Bundesliga': 135,
+      'Chinese Super League': 169,
+      'Premier Division': 72,
+      'Besta deild': 45,
+      'Liga Portugal Betclic': 94
+    };
+    for (const [key, id] of Object.entries(leagueMap)) {
+      if (champName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(champName.toLowerCase())) {
+        return id;
+      }
+    }
+    return null;
   };
   
   const getStandings = (teamName, championship) => {
@@ -2242,6 +2329,18 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
     return teamPos ? { pos: teamPos.pos, punti: teamPos.punti, pg: teamPos.pg } : null;
   };
   
+  const getWeatherEmoji = (weatherDesc) => {
+    if (!weatherDesc) return '🌤️';
+    const desc = weatherDesc.toLowerCase();
+    if (desc.includes('clear') || desc.includes('sunny')) return '☀️';
+    if (desc.includes('cloud') || desc.includes('overcast')) return '☁️';
+    if (desc.includes('rain') || desc.includes('drizzle')) return '🌧️';
+    if (desc.includes('thunder') || desc.includes('storm')) return '⛈️';
+    if (desc.includes('snow') || desc.includes('sleet')) return '❄️';
+    if (desc.includes('fog') || desc.includes('mist')) return '🌫️';
+    return '🌤️';
+  };
+  
   useEffect(() => {
     if (!match) return;
     const storageKey = `ft_ai_${match.id}`;
@@ -2253,6 +2352,9 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
         setWeatherData(parsed.weatherData || null);
         setInjuriesData(parsed.injuriesData || null);
         setStandingsData(parsed.standingsData || null);
+        setHeadToHeadData(parsed.headToHeadData || null);
+        setPlayersData(parsed.playersData || null);
+        setTeamStatsData(parsed.teamStatsData || null);
         setError(null);
         return;
       } catch (e) {}
@@ -2285,7 +2387,6 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
       const homeMG = calcTeamMG(allMatches, match.casa);
       const awayMG = calcTeamMG(allMatches, match.ospiti);
       const pct12Under45 = get12Under45(allMatches, match.casa, match.ospiti);
-      const is12Under45Good = pct12Under45 >= 70;
       
       const city = getCittaFromChampionship(match.campionato);
       let weather = null;
@@ -2295,13 +2396,39 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
       }
       
       let injuries = null;
+      let h2h = null;
+      let players = null;
+      let teamStats = null;
+      
       if (apiKeys['API-Football']) {
-        const injHome = await fetchInjuries(match.casa);
-        const injAway = await fetchInjuries(match.ospiti);
+        const [injHome, injAway, h2hData, playersHome, playersAway, statsHome, statsAway] = await Promise.all([
+          fetchInjuries(match.casa),
+          fetchInjuries(match.ospiti),
+          fetchHeadToHead(match.casa, match.ospiti),
+          fetchPlayers(match.casa),
+          fetchPlayers(match.ospiti),
+          fetchTeamStats(match.casa),
+          fetchTeamStats(match.ospiti)
+        ]);
+        
         if (injHome || injAway) {
           injuries = { home: injHome || [], away: injAway || [] };
         }
         setInjuriesData(injuries);
+        
+        if (h2hData) {
+          setHeadToHeadData(h2hData);
+        }
+        
+        if (playersHome || playersAway) {
+          players = { home: playersHome || [], away: playersAway || [] };
+          setPlayersData(players);
+        }
+        
+        if (statsHome || statsAway) {
+          teamStats = { home: statsHome, away: statsAway };
+          setTeamStatsData(teamStats);
+        }
       }
       
       const standingHome = getStandings(match.casa, match.campionato);
@@ -2311,89 +2438,246 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
       
       let meteoSection = '';
       if (weather) {
+        const weatherEmoji = getWeatherEmoji(weather.weather);
         meteoSection = `
-🌤️ Condizioni meteo previste per ${city} il giorno della partita:
+🌤️ CONDIZIONI METEO PREVISTE (${city}):
+- ${weatherEmoji} ${weather.weather}
 - Temperatura: ${weather.temp}°C (min ${weather.temp_min}°C, max ${weather.temp_max}°C)
-- Condizioni: ${weather.weather}
 - Vento: ${weather.wind_speed} m/s
 - Pioggia: ${weather.rain ? weather.rain + ' mm' : 'nessuna'}
-- Neve: ${weather.snow ? weather.snow + ' mm' : 'nessuna'}
+- Umidità: ${weather.humidity || 'N/A'}%
+- Pressione: ${weather.pressure || 'N/A'} hPa
 
-💡 Impatto sul gioco:
-${weather.rain > 0 ? '🔴 Pioggia: campo scivoloso, favorisce il gioco corto e i contrasti.' : '✅ Meteo favorevole per un calcio spettacolare.'}
-${weather.wind_speed > 5 ? '💨 Vento forte: può influenzare i lanci lunghi e i calci piazzati.' : ''}
-${weather.temp > 30 ? '🔥 Caldo intenso: potrebbe affaticare i giocatori, favorendo le sostituzioni.' : ''}
-${weather.temp < 5 ? '❄️ Freddo: potrebbe rallentare il gioco, favorire il possesso palla.' : ''}
+IMPATTO SUL GIOCO:
+${weather.rain > 5 ? '🔴 Pioggia intensa: campo pesante, favorisce il gioco fisico e i contrasti.' : weather.rain > 0 ? '🟡 Pioggia leggera: campo scivoloso, attenzione ai passaggi.' : '✅ Meteo favorevole per un calcio spettacolare.'}
+${weather.wind_speed > 5 ? '💨 Vento forte (oltre 5 m/s): influenzerà lanci lunghi e calci piazzati.' : ''}
+${weather.temp > 30 ? '🔥 Caldo estremo: possibile calo fisico nel secondo tempo.' : ''}
+${weather.temp < 5 ? '❄️ Freddo intenso: campo duro, favorisce il possesso palla.' : ''}
+${weather.humidity > 70 ? '💧 Alta umidità: palleggiatura più difficile, favorisce il gioco corto.' : ''}
 `;
       } else {
-        meteoSection = 'Dati meteo non disponibili.';
+        meteoSection = '⚠️ Dati meteo non disponibili per questa partita.';
       }
       
       let injuriesSection = '';
       if (injuries && (injuries.home.length > 0 || injuries.away.length > 0)) {
-        injuriesSection = '⚠️ Infortuni e squalifiche:\n';
+        injuriesSection = '⚠️ INFORTUNI E SQUALIFICHE:\n';
         if (injuries.home.length > 0) {
-          injuriesSection += `  ${match.casa}: ${injuries.home.map(i => `${i.player.name} (${i.status})`).join(', ')}\n`;
+          const keyInjuries = injuries.home.filter(i => i.status === 'out' || i.status === 'doubtful');
+          const minorInjuries = injuries.home.filter(i => i.status !== 'out' && i.status !== 'doubtful');
+          injuriesSection += `  ${match.casa}:\n`;
+          if (keyInjuries.length > 0) {
+            injuriesSection += `    🔴 Giocatori chiave assenti: ${keyInjuries.map(i => `${i.player.name} (${i.type || 'infortunio'})`).join(', ')}\n`;
+          }
+          if (minorInjuries.length > 0) {
+            injuriesSection += `    🟡 Altri assenti: ${minorInjuries.map(i => `${i.player.name} (${i.status})`).join(', ')}\n`;
+          }
+          if (injuries.home.length === 0) {
+            injuriesSection += `    ✅ Tutti disponibili\n`;
+          }
         }
         if (injuries.away.length > 0) {
-          injuriesSection += `  ${match.ospiti}: ${injuries.away.map(i => `${i.player.name} (${i.status})`).join(', ')}\n`;
+          const keyInjuries = injuries.away.filter(i => i.status === 'out' || i.status === 'doubtful');
+          const minorInjuries = injuries.away.filter(i => i.status !== 'out' && i.status !== 'doubtful');
+          injuriesSection += `  ${match.ospiti}:\n`;
+          if (keyInjuries.length > 0) {
+            injuriesSection += `    🔴 Giocatori chiave assenti: ${keyInjuries.map(i => `${i.player.name} (${i.type || 'infortunio'})`).join(', ')}\n`;
+          }
+          if (minorInjuries.length > 0) {
+            injuriesSection += `    🟡 Altri assenti: ${minorInjuries.map(i => `${i.player.name} (${i.status})`).join(', ')}\n`;
+          }
+          if (injuries.away.length === 0) {
+            injuriesSection += `    ✅ Tutti disponibili\n`;
+          }
         }
       } else {
-        injuriesSection = 'Nessuna informazione su infortuni/squalifiche.';
+        injuriesSection = '✅ Nessuna informazione su infortuni/squalifiche - squadre al completo.';
+      }
+      
+      let h2hSection = '';
+      if (h2h && h2h.length > 0) {
+        const last10 = h2h.slice(0, 10);
+        const homeWins = h2h.filter(f => f.teams.home.name === match.casa && f.goals.home > f.goals.away).length;
+        const awayWins = h2h.filter(f => f.teams.away.name === match.ospiti && f.goals.away > f.goals.home).length;
+        const draws = h2h.filter(f => f.goals.home === f.goals.away).length;
+        const totalGoals = h2h.reduce((sum, f) => sum + f.goals.home + f.goals.away, 0);
+        const avgGoals = (totalGoals / h2h.length).toFixed(1);
+        const homeGoals = h2h.reduce((sum, f) => sum + (f.teams.home.name === match.casa ? f.goals.home : f.goals.away), 0);
+        const awayGoals = h2h.reduce((sum, f) => sum + (f.teams.away.name === match.ospiti ? f.goals.away : f.goals.home), 0);
+        
+        h2hSection = `📊 TESTA A TESTA (ultime ${h2h.length} partite):
+- ${match.casa} vittorie: ${homeWins} (${Math.round(homeWins/h2h.length*100)}%)
+- ${match.ospiti} vittorie: ${awayWins} (${Math.round(awayWins/h2h.length*100)}%)
+- Pareggi: ${draws} (${Math.round(draws/h2h.length*100)}%)
+- Media gol a partita: ${avgGoals}
+- Gol fatti: ${match.casa} ${homeGoals} - ${match.ospiti} ${awayGoals}
+
+ULTIMI 5 SCONTRI DIRETTI:
+${last10.map((f, i) => `  ${i+1}. ${f.teams.home.name} ${f.goals.home}-${f.goals.away} ${f.teams.away.name}${f.fixture?.date ? ` (${new Date(f.fixture.date).toLocaleDateString('it-IT')})` : ''}`).join('\n')}
+`;
+      } else {
+        h2hSection = '📊 Dati testa a testa non disponibili.';
+      }
+      
+      let playersSection = '';
+      if (players && (players.home.length > 0 || players.away.length > 0)) {
+        playersSection = '⭐ GIOCATORI CHIAVE:\n';
+        if (players.home.length > 0) {
+          const topScorers = players.home
+            .filter(p => p.statistics?.[0]?.goals?.total > 0)
+            .sort((a, b) => (b.statistics?.[0]?.goals?.total || 0) - (a.statistics?.[0]?.goals?.total || 0))
+            .slice(0, 3);
+          if (topScorers.length > 0) {
+            playersSection += `  ${match.casa}:\n`;
+            topScorers.forEach(p => {
+              const stats = p.statistics?.[0] || {};
+              playersSection += `    ⚽ ${p.player.name} - ${stats.goals?.total || 0} gol, ${stats.shots?.total || 0} tiri\n`;
+            });
+          }
+        }
+        if (players.away.length > 0) {
+          const topScorers = players.away
+            .filter(p => p.statistics?.[0]?.goals?.total > 0)
+            .sort((a, b) => (b.statistics?.[0]?.goals?.total || 0) - (a.statistics?.[0]?.goals?.total || 0))
+            .slice(0, 3);
+          if (topScorers.length > 0) {
+            playersSection += `  ${match.ospiti}:\n`;
+            topScorers.forEach(p => {
+              const stats = p.statistics?.[0] || {};
+              playersSection += `    ⚽ ${p.player.name} - ${stats.goals?.total || 0} gol, ${stats.shots?.total || 0} tiri\n`;
+            });
+          }
+        }
+      } else {
+        playersSection = '⭐ Dati giocatori non disponibili.';
       }
       
       let standingsSection = '';
-      if (standings.home) {
-        standingsSection = `🏆 Classifica in campionato:\n- ${match.casa}: ${standings.home.pos}° posto (${standings.home.punti} punti, ${standings.home.pg} partite)\n- ${match.ospiti}: ${standings.away ? standings.away.pos + '° posto (' + standings.away.punti + ' punti, ' + standings.away.pg + ' partite)' : 'N/A'}`;
+      if (standings.home && standings.away) {
+        const homePtsPerGame = (standings.home.punti / standings.home.pg).toFixed(2);
+        const awayPtsPerGame = (standings.away.punti / standings.away.pg).toFixed(2);
+        standingsSection = `🏆 CLASSIFICA CAMPIONATO:
+- ${match.casa}: ${standings.home.pos}° posto (${standings.home.punti} punti, ${standings.home.pg} partite) - Media: ${homePtsPerGame} pts/partita
+- ${match.ospiti}: ${standings.away.pos}° posto (${standings.away.punti} punti, ${standings.away.pg} partite) - Media: ${awayPtsPerGame} pts/partita
+- Differenza in classifica: ${Math.abs(standings.home.pos - standings.away.pos)} posizioni
+- Differenza punti: ${Math.abs(standings.home.punti - standings.away.punti)} punti`;
       } else {
-        standingsSection = 'Classifica non disponibile.';
+        standingsSection = '🏆 Classifica non disponibile.';
       }
       
-      const prompt = `Analizza la partita ${match.casa} vs ${match.ospiti} (${match.campionato} - Giornata: ${match.round}) del ${match.data} alle ${match.ora}.
+      let teamStatsSection = '';
+      if (teamStats && (teamStats.home || teamStats.away)) {
+        teamStatsSection = '📊 STATISTICHE SQUADRE (stagione):\n';
+        if (teamStats.home) {
+          const s = teamStats.home;
+          teamStatsSection += `  ${match.casa}:\n`;
+          teamStatsSection += `    ⚽ Media gol: ${s.goals?.avg || 'N/A'}\n`;
+          teamStatsSection += `    🎯 Tiri: ${s.shots?.avg || 'N/A'}\n`;
+          teamStatsSection += `    🎯 Tiri in porta: ${s.shots_on_goal?.avg || 'N/A'}\n`;
+          teamStatsSection += `    🛡️ % possesso: ${s.possession?.avg || 'N/A'}%\n`;
+          teamStatsSection += `    🟡 Cartellini: ${s.cards?.yellow?.avg || 'N/A'} gialli, ${s.cards?.red?.avg || 'N/A'} rossi\n`;
+        }
+        if (teamStats.away) {
+          const s = teamStats.away;
+          teamStatsSection += `  ${match.ospiti}:\n`;
+          teamStatsSection += `    ⚽ Media gol: ${s.goals?.avg || 'N/A'}\n`;
+          teamStatsSection += `    🎯 Tiri: ${s.shots?.avg || 'N/A'}\n`;
+          teamStatsSection += `    🎯 Tiri in porta: ${s.shots_on_goal?.avg || 'N/A'}\n`;
+          teamStatsSection += `    🛡️ % possesso: ${s.possession?.avg || 'N/A'}%\n`;
+          teamStatsSection += `    🟡 Cartellini: ${s.cards?.yellow?.avg || 'N/A'} gialli, ${s.cards?.red?.avg || 'N/A'} rossi\n`;
+        }
+      } else {
+        teamStatsSection = '📊 Statistiche squadre non disponibili.';
+      }
+      
+      const prompt = `Sei un analista tattico professionista di calcio con 20 anni di esperienza. Analizza in modo approfondito la partita:
 
-Dati statistici:
-- Forma Casa (ultime 5): ${homeForm.form} (${homeForm.pct}%)
+${match.casa} vs ${match.ospiti}
+${match.campionato} - Giornata: ${match.round}
+Data: ${match.data} - Ora: ${match.ora}
+
+📊 DATI STATISTICI AVANZATI:
+
+FORMA E TENDENZA:
+- Forma Casa (ultime 5): ${homeForm.form} (${homeForm.pct}%) 
 - Forma Ospite: ${awayForm.form} (${awayForm.pct}%)
 - Differenza forma: ${Math.abs(homeForm.pct - awayForm.pct)}%
 - Media Gol Casa: ${homeMG} - Media Gol Ospite: ${awayMG}
-- 1X2: 1=${Math.round(stats.p1)}% X=${Math.round(stats.pX)}% 2=${Math.round(stats.p2)}%
-- Doppia Chance: 1X=${Math.round(stats.p1X)}% 12=${Math.round(stats.p12)}% X2=${Math.round(stats.pX2)}%
-- Under/Over 1.5: U=${Math.round(stats.underOver[0].under)}% O=${Math.round(stats.underOver[0].over)}%
-- Under/Over 2.5: U=${Math.round(stats.underOver[1].under)}% O=${Math.round(stats.underOver[1].over)}%
-- Under/Over 3.5: U=${Math.round(stats.underOver[2].under)}% O=${Math.round(stats.underOver[2].over)}%
-- Under/Over 4.5: U=${Math.round(stats.underOver[3].under)}% O=${Math.round(stats.underOver[3].over)}%
-- Multigol Casa: 0-1=${Math.round(stats.homeMG['0-1'])}% 0-2=${Math.round(stats.homeMG['0-2'])}% 1-3=${Math.round(stats.homeMG['1-3'])}% Over 1,5=${Math.round(stats.homeMG['2-4'])}%
-- Multigol Ospite: 0-1=${Math.round(stats.awayMG['0-1'])}% 0-2=${Math.round(stats.awayMG['0-2'])}% 1-3=${Math.round(stats.awayMG['1-3'])}% Over 1,5=${Math.round(stats.awayMG['2-4'])}%
-- Multigol Totale: 1-4=${Math.round(stats.mgTot['1-4'])}% Over 1,5=${Math.round(stats.mgTot['2-4'])}% 2-5=${Math.round(stats.mgTot['2-5'])}% 3-6=${Math.round(stats.mgTot['3-6'])}%
+
+PROBABILITÀ 1X2:
+- 1 (Vittoria Casa): ${Math.round(stats.p1)}%
+- X (Pareggio): ${Math.round(stats.pX)}%
+- 2 (Vittoria Ospite): ${Math.round(stats.p2)}%
+
+DOPPIA CHANCE:
+- 1X: ${Math.round(stats.p1X)}%
+- 12: ${Math.round(stats.p12)}%
+- X2: ${Math.round(stats.pX2)}%
+
+UNDER/OVER:
+- Under 1.5: ${Math.round(stats.underOver[0].under)}% | Over 1.5: ${Math.round(stats.underOver[0].over)}%
+- Under 2.5: ${Math.round(stats.underOver[1].under)}% | Over 2.5: ${Math.round(stats.underOver[1].over)}%
+- Under 3.5: ${Math.round(stats.underOver[2].under)}% | Over 3.5: ${Math.round(stats.underOver[2].over)}%
+- Under 4.5: ${Math.round(stats.underOver[3].under)}% | Over 4.5: ${Math.round(stats.underOver[3].over)}%
+
+MULTIGOL:
+Casa: 0-1=${Math.round(stats.homeMG['0-1'])}% | 0-2=${Math.round(stats.homeMG['0-2'])}% | 1-3=${Math.round(stats.homeMG['1-3'])}% | Over1,5=${Math.round(stats.homeMG['2-4'])}%
+Ospite: 0-1=${Math.round(stats.awayMG['0-1'])}% | 0-2=${Math.round(stats.awayMG['0-2'])}% | 1-3=${Math.round(stats.awayMG['1-3'])}% | Over1,5=${Math.round(stats.awayMG['2-4'])}%
+Totale: 1-4=${Math.round(stats.mgTot['1-4'])}% | Over1,5=${Math.round(stats.mgTot['2-4'])}% | 2-5=${Math.round(stats.mgTot['2-5'])}% | 3-6=${Math.round(stats.mgTot['3-6'])}%
 
 ${meteoSection}
 
 ${injuriesSection}
 
+${h2hSection}
+
+${playersSection}
+
 ${standingsSection}
 
-Sulla base di questi dati, genera un'analisi dettagliata in formato JSON con la seguente struttura:
+${teamStatsSection}
+
+🔍 RICHIESTA ANALISI:
+
+Sulla base di tutti questi dati, genera un'analisi tattica professionale in formato JSON con la seguente struttura:
+
 {
-  "panoramica": "Analisi dello stato di forma e probabile andamento",
-  "impatto_assenze": "Valutazione degli assenti e impatto sulla squadra",
-  "fattore_meteo_campo": "Come il meteo e il campo potrebbero influenzare il gioco",
-  "chiavi_tattiche": "Aspetti tattici da tenere d'occhio",
+  "analisi_generale": "Panoramica completa della partita con valutazione dello stato di forma, trend e probabile andamento (3-4 righe)",
+  "analisi_tattica": {
+    "punti_di_forza_casa": "Punti di forza del gioco della squadra di casa (2-3 punti)",
+    "punti_di_forza_ospite": "Punti di forza della squadra ospite (2-3 punti)",
+    "debolezze_casa": "Debolezze tattiche della squadra di casa (2-3 punti)",
+    "debolezze_ospite": "Debolezze tattiche della squadra ospite (2-3 punti)",
+    "chiave_tattica": "La chiave tattica principale della partita",
+    "duelli_chiave": "I duelli individuali che potrebbero fare la differenza"
+  },
+  "fattori_esterni": {
+    "meteo": "Impatto delle condizioni meteo sul gioco",
+    "assenze": "Impatto degli infortuni/squalifiche",
+    "classifica": "Pressione psicologica dovuta alla classifica"
+  },
   "pronostico": {
     "esito_1X2": "1, X o 2",
     "percentuale_sicurezza": 75,
-    "12+under_4_5": "${is12Under45Good ? 'Sì' : 'No'}",
-    "12+under_4_5_pct": ${Math.round(pct12Under45)},
-    "motivazione_sintetica": "Frase riepilogativa"
+    "12+under_4_5": "Sì o No",
+    "12+under_4_5_pct": 67,
+    "motivazione": "Motivazione sintetica del pronostico"
   },
-  "consigli": [
+  "consigli_giocate": [
     { "tipo": "singola", "giocata": "Over 1.5", "percentuale": 68 },
     { "tipo": "combinata", "giocata": "2 + Under 4.5", "percentuale": 55 },
     { "tipo": "libera", "giocata": "1X+Over1.5", "percentuale": 72 }
   ],
-  "indice_rischio_match": 5
+  "indice_rischio": 5,
+  "valutazione_giocata": "Valutazione complessiva della partita come evento scommettibile (2-3 righe)"
 }
 
-Sii preciso e utilizza le percentuali calcolate. Per il consiglio "libera", scegli tra le combo approvate (DC, Over, Under, DC+Over, DC+Under, DC+MG Tot, MG Tot, MG Casa, MG Ospite, MG Casa+MG Ospite).`;
+REGOLA PER I CONSIGLI:
+- "singola": una singola giocata (es. Over 1.5, Fissa 1, Multigol Casa 1-3)
+- "combinata": combinata di almeno due giocate (es. 2+Under 4.5, X2+Over 1.5, 12+Under 4.5)
+- "libera": una delle tipologie: DC (1X, 12, X2), Over 1.5, Under 3.5, DC+Over 1.5, DC+Under 3.5, DC+MG Tot, MG Tot, MG Casa, MG Ospite, MG Casa+MG Ospite
+
+Usa percentuali basate sui dati statistici forniti. Sii preciso e professionale.`;
 
       const res = await askGroq(prompt, apiKeys['GROQ']);
       let jsonStr = res;
@@ -2401,9 +2685,9 @@ Sii preciso e utilizza le percentuali calcolate. Per il consiglio "libera", sceg
       if (jsonMatch) jsonStr = jsonMatch[1];
       const parsed = JSON.parse(jsonStr.trim());
       
-      if (parsed.consigli && parsed.consigli.length === 3) {
+      if (parsed.consigli_giocate && parsed.consigli_giocate.length === 3) {
         const bestFree = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
-        const libera = parsed.consigli[2];
+        const libera = parsed.consigli_giocate[2];
         const validKeywords = ['1X','12','X2','Over','Under','MG','Multigol','Casa','Ospite','DC'];
         const isValid = validKeywords.some(k => libera.giocata.includes(k));
         if (!isValid) {
@@ -2417,7 +2701,10 @@ Sii preciso e utilizza le percentuali calcolate. Per il consiglio "libera", sceg
         analysis: parsed,
         weatherData: weather,
         injuriesData: injuries,
-        standingsData: standings
+        standingsData: standings,
+        headToHeadData: h2h,
+        playersData: players,
+        teamStatsData: teamStats
       };
       localStorage.setItem(storageKey, JSON.stringify(toStore));
       
@@ -2448,9 +2735,11 @@ Sii preciso e utilizza le percentuali calcolate. Per il consiglio "libera", sceg
   if (loading) {
     return (
       <div className="ai-analysis-loading">
-        ⏳ Generazione analisi AI...<br/>
-        <span style={{fontSize:'12px', color:'var(--text-muted)'}}>Potrebbe richiedere alcuni secondi</span>
-        {isRefreshing && <div style={{marginTop:'8px'}}>🔄 Aggiornamento con meteo e infortuni</div>}
+        ⏳ Generazione analisi AI professionale...<br/>
+        <span style={{fontSize:'12px', color:'var(--text-muted)'}}>
+          Analisi approfondita con meteo, infortuni, testa a testa, statistiche e giocatori chiave
+        </span>
+        {isRefreshing && <div style={{marginTop:'8px'}}>🔄 Aggiornamento con i dati più recenti</div>}
       </div>
     );
   }
@@ -2480,35 +2769,223 @@ Sii preciso e utilizza le percentuali calcolate. Per il consiglio "libera", sceg
   
   if (!analysis) return null;
   
-  const { panoramica, impatto_assenze, fattore_meteo_campo, chiavi_tattiche, pronostico, consigli, indice_rischio_match } = analysis;
+  const { analisi_generale, analisi_tattica, fattori_esterni, pronostico, consigli_giocate, indice_rischio, valutazione_giocata } = analysis;
+  
+  const weatherEmoji = weatherData ? getWeatherEmoji(weatherData.weather) : '🌤️';
   
   return (
     <div className="ai-analysis-box">
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'6px'}}>
         <h3 style={{color: getChampColor(match.campionato), margin:0, fontSize:'16px'}}>
           🤖 Analisi AI Avanzata
-          {weatherData && <span style={{marginLeft:'8px', fontSize:'14px'}}>🌤️</span>}
-          {injuriesData && <span style={{marginLeft:'4px', fontSize:'14px'}}>🏥</span>}
+          {weatherData && <span style={{marginLeft:'8px', fontSize:'20px'}}>{weatherEmoji}</span>}
+          {injuriesData && (injuriesData.home.length > 0 || injuriesData.away.length > 0) && <span style={{marginLeft:'4px', fontSize:'14px'}}>🏥</span>}
+          {headToHeadData && headToHeadData.length > 0 && <span style={{marginLeft:'4px', fontSize:'14px'}}>⚔️</span>}
         </h3>
         <div>
-          <button className="btn-refresh" onClick={refreshAnalysis} title="Rigenera analisi con meteo aggiornato">
-            🌤️ Aggiorna Meteo
+          <button className="btn-refresh" onClick={refreshAnalysis} title="Rigenera analisi">
+            🔄 Aggiorna
           </button>
-          <button className="btn-refresh" onClick={refreshAnalysis} title="Rigenera analisi" style={{marginLeft:'6px'}}>🔄</button>
         </div>
       </div>
       
-      <h4>📋 Panoramica</h4>
-      <p>{panoramica || 'N/A'}</p>
+      {weatherData && (
+        <div className="ai-extra-section">
+          <h5>🌤️ METEO - {match.campionato}</h5>
+          <div className="row">
+            <div className="col" style={{textAlign:'center'}}>
+              <div className="weather-icon-big">{weatherEmoji}</div>
+              <div className="weather-temp-big">{Math.round(weatherData.temp)}°C</div>
+              <div style={{fontSize:'13px', color:'var(--text-muted)'}}>{weatherData.weather}</div>
+              <div style={{fontSize:'12px', color:'var(--text-muted)'}}>💧 {weatherData.humidity || 'N/A'}% · 💨 {Math.round(weatherData.wind_speed)} m/s</div>
+            </div>
+            <div className="col">
+              <div className="item"><span>🌡️ Min/Max</span><span>{Math.round(weatherData.temp_min)}°C / {Math.round(weatherData.temp_max)}°C</span></div>
+              <div className="item"><span>💨 Vento</span><span>{Math.round(weatherData.wind_speed)} m/s</span></div>
+              {weatherData.rain > 0 && <div className="item"><span>🌧️ Pioggia</span><span>{weatherData.rain} mm</span></div>}
+              <div className="item"><span>📊 Pressione</span><span>{weatherData.pressure || 'N/A'} hPa</span></div>
+            </div>
+          </div>
+        </div>
+      )}
       
-      <h4>⚠️ Impatto Assenze</h4>
-      <p>{impatto_assenze || 'Nessuna informazione'}</p>
+      {injuriesData && (injuriesData.home.length > 0 || injuriesData.away.length > 0) && (
+        <div className="ai-extra-section">
+          <h5>🏥 INFORTUNI E ASSENZE</h5>
+          <div className="row">
+            {injuriesData.home.length > 0 && (
+              <div className="col">
+                <div style={{fontWeight:'bold', color: getChampColor(match.campionato)}}>{match.casa}</div>
+                {injuriesData.home.map((i, idx) => {
+                  const isKey = i.status === 'out' || i.status === 'doubtful';
+                  return (
+                    <div key={idx} className="item">
+                      <span>{i.player.name}</span>
+                      <span style={{color: isKey ? 'var(--lose)' : 'var(--draw)'}}>
+                        {i.status === 'out' ? '🔴 Out' : i.status === 'doubtful' ? '🟡 In dubbio' : i.status}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {injuriesData.away.length > 0 && (
+              <div className="col">
+                <div style={{fontWeight:'bold', color: getChampColor(match.campionato)}}>{match.ospiti}</div>
+                {injuriesData.away.map((i, idx) => {
+                  const isKey = i.status === 'out' || i.status === 'doubtful';
+                  return (
+                    <div key={idx} className="item">
+                      <span>{i.player.name}</span>
+                      <span style={{color: isKey ? 'var(--lose)' : 'var(--draw)'}}>
+                        {i.status === 'out' ? '🔴 Out' : i.status === 'doubtful' ? '🟡 In dubbio' : i.status}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       
-      <h4>🌤️ Fattore Meteo/Campo</h4>
-      <p>{fattore_meteo_campo || 'Nessuna informazione'}</p>
+      {headToHeadData && headToHeadData.length > 0 && (
+        <div className="ai-extra-section">
+          <h5>⚔️ TESTA A TESTA</h5>
+          <div className="row">
+            <div className="col">
+              <div className="item"><span>🏆 {match.casa}</span><span style={{color:'var(--win)'}}>{headToHeadData.filter(f => f.teams.home.name === match.casa && f.goals.home > f.goals.away).length} V</span></div>
+              <div className="item"><span>🤝 Pareggi</span><span style={{color:'var(--draw)'}}>{headToHeadData.filter(f => f.goals.home === f.goals.away).length}</span></div>
+              <div className="item"><span>🏆 {match.ospiti}</span><span style={{color:'var(--win)'}}>{headToHeadData.filter(f => f.teams.away.name === match.ospiti && f.goals.away > f.goals.home).length} V</span></div>
+              <div className="item"><span>⚽ Media gol</span><span>{(headToHeadData.reduce((sum, f) => sum + f.goals.home + f.goals.away, 0) / headToHeadData.length).toFixed(1)}</span></div>
+            </div>
+            <div className="col">
+              <div style={{fontSize:'12px', color:'var(--text-muted)'}}>Ultimi 5 scontri:</div>
+              {headToHeadData.slice(0, 5).map((f, idx) => (
+                <div key={idx} className="item">
+                  <span>{f.teams.home.name} vs {f.teams.away.name}</span>
+                  <span style={{fontWeight:'bold'}}>{f.goals.home}-{f.goals.away}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       
-      <h4>🧠 Chiavi Tattiche</h4>
-      <p>{chiavi_tattiche || 'N/A'}</p>
+      {playersData && (playersData.home.length > 0 || playersData.away.length > 0) && (
+        <div className="ai-extra-section">
+          <h5>⭐ GIOCATORI CHIAVE</h5>
+          <div className="row">
+            {playersData.home && playersData.home.length > 0 && (
+              <div className="col">
+                <div style={{fontWeight:'bold', color: getChampColor(match.campionato)}}>{match.casa}</div>
+                {playersData.home
+                  .filter(p => p.statistics?.[0]?.goals?.total > 0)
+                  .sort((a, b) => (b.statistics?.[0]?.goals?.total || 0) - (a.statistics?.[0]?.goals?.total || 0))
+                  .slice(0, 3)
+                  .map((p, idx) => {
+                    const stats = p.statistics?.[0] || {};
+                    return (
+                      <div key={idx} className="item">
+                        <span>⚽ {p.player.name}</span>
+                        <span>{stats.goals?.total || 0} gol · {stats.shots?.total || 0} tiri</span>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+            {playersData.away && playersData.away.length > 0 && (
+              <div className="col">
+                <div style={{fontWeight:'bold', color: getChampColor(match.campionato)}}>{match.ospiti}</div>
+                {playersData.away
+                  .filter(p => p.statistics?.[0]?.goals?.total > 0)
+                  .sort((a, b) => (b.statistics?.[0]?.goals?.total || 0) - (a.statistics?.[0]?.goals?.total || 0))
+                  .slice(0, 3)
+                  .map((p, idx) => {
+                    const stats = p.statistics?.[0] || {};
+                    return (
+                      <div key={idx} className="item">
+                        <span>⚽ {p.player.name}</span>
+                        <span>{stats.goals?.total || 0} gol · {stats.shots?.total || 0} tiri</span>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {teamStatsData && (teamStatsData.home || teamStatsData.away) && (
+        <div className="ai-extra-section">
+          <h5>📊 STATISTICHE SQUADRE</h5>
+          <div className="row">
+            {teamStatsData.home && (
+              <div className="col">
+                <div style={{fontWeight:'bold', color: getChampColor(match.campionato)}}>{match.casa}</div>
+                <div className="item"><span>⚽ Media gol</span><span>{teamStatsData.home.goals?.avg || 'N/A'}</span></div>
+                <div className="item"><span>🎯 Tiri</span><span>{teamStatsData.home.shots?.avg || 'N/A'}</span></div>
+                <div className="item"><span>🔄 Possesso</span><span>{teamStatsData.home.possession?.avg || 'N/A'}%</span></div>
+                <div className="item"><span>🟡 Cartellini</span><span>{teamStatsData.home.cards?.yellow?.avg || 'N/A'} gialli</span></div>
+              </div>
+            )}
+            {teamStatsData.away && (
+              <div className="col">
+                <div style={{fontWeight:'bold', color: getChampColor(match.campionato)}}>{match.ospiti}</div>
+                <div className="item"><span>⚽ Media gol</span><span>{teamStatsData.away.goals?.avg || 'N/A'}</span></div>
+                <div className="item"><span>🎯 Tiri</span><span>{teamStatsData.away.shots?.avg || 'N/A'}</span></div>
+                <div className="item"><span>🔄 Possesso</span><span>{teamStatsData.away.possession?.avg || 'N/A'}%</span></div>
+                <div className="item"><span>🟡 Cartellini</span><span>{teamStatsData.away.cards?.yellow?.avg || 'N/A'} gialli</span></div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      <h4>📋 Analisi Generale</h4>
+      <p>{analisi_generale || 'N/A'}</p>
+      
+      {analisi_tattica && (
+        <>
+          <h4>🧠 Analisi Tattica</h4>
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px'}}>
+            <div style={{background:'var(--card)', padding:'8px', borderRadius:'6px'}}>
+              <div style={{fontWeight:'bold', color: getChampColor(match.campionato)}}>✅ {match.casa}</div>
+              <div style={{fontSize:'12px'}}><b>Punti di forza:</b> {analisi_tattica.punti_di_forza_casa || 'N/A'}</div>
+              <div style={{fontSize:'12px', color:'var(--lose)'}}><b>Debolezze:</b> {analisi_tattica.debolezze_casa || 'N/A'}</div>
+            </div>
+            <div style={{background:'var(--card)', padding:'8px', borderRadius:'6px'}}>
+              <div style={{fontWeight:'bold', color: getChampColor(match.campionato)}}>✅ {match.ospiti}</div>
+              <div style={{fontSize:'12px'}}><b>Punti di forza:</b> {analisi_tattica.punti_di_forza_ospite || 'N/A'}</div>
+              <div style={{fontSize:'12px', color:'var(--lose)'}}><b>Debolezze:</b> {analisi_tattica.debolezze_ospite || 'N/A'}</div>
+            </div>
+          </div>
+          <div style={{marginTop:'8px', background:'var(--card)', padding:'8px', borderRadius:'6px'}}>
+            <div style={{fontSize:'13px'}}><b>🔑 Chiave tattica:</b> {analisi_tattica.chiave_tattica || 'N/A'}</div>
+            <div style={{fontSize:'13px', marginTop:'4px'}}><b>⚔️ Duelli chiave:</b> {analisi_tattica.duelli_chiave || 'N/A'}</div>
+          </div>
+        </>
+      )}
+      
+      {fattori_esterni && (
+        <>
+          <h4>🌍 Fattori Esterni</h4>
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px'}}>
+            <div style={{background:'var(--card)', padding:'8px', borderRadius:'6px', textAlign:'center'}}>
+              <div style={{fontSize:'20px'}}>🌤️</div>
+              <div style={{fontSize:'12px'}}>{fattori_esterni.meteo || 'N/A'}</div>
+            </div>
+            <div style={{background:'var(--card)', padding:'8px', borderRadius:'6px', textAlign:'center'}}>
+              <div style={{fontSize:'20px'}}>🏥</div>
+              <div style={{fontSize:'12px'}}>{fattori_esterni.assenze || 'N/A'}</div>
+            </div>
+            <div style={{background:'var(--card)', padding:'8px', borderRadius:'6px', textAlign:'center'}}>
+              <div style={{fontSize:'20px'}}>🏆</div>
+              <div style={{fontSize:'12px'}}>{fattori_esterni.classifica || 'N/A'}</div>
+            </div>
+          </div>
+        </>
+      )}
       
       <div className="pronostico-mini">
         <div className="item">
@@ -2536,17 +3013,16 @@ Sii preciso e utilizza le percentuali calcolate. Per il consiglio "libera", sceg
         </div>
         <div className="item" style={{flex: '0 0 100%'}}>
           <div className="label">Motivazione</div>
-          <div style={{fontSize:'14px', color:'var(--text)'}}>{pronostico?.motivazione_sintetica || ''}</div>
+          <div style={{fontSize:'14px', color:'var(--text)'}}>{pronostico?.motivazione || ''}</div>
         </div>
       </div>
       
-      {consigli && consigli.length > 0 && (
+      {consigli_giocate && consigli_giocate.length > 0 && (
         <>
           <h4 style={{marginTop:'12px', marginBottom:'6px'}}>🎯 Consigli Giocate</h4>
           <div className="consigli-grid">
-            {consigli.map((c, idx) => {
+            {consigli_giocate.map((c, idx) => {
               const isBomb = c.percentuale >= 90;
-              const pctClass = getPercentualeClasse(c.percentuale);
               return (
                 <div key={idx} className="consiglio-card" style={{borderColor: isBomb ? 'var(--accent)' : 'var(--border)'}}>
                   <div className="tipo">
@@ -2556,12 +3032,10 @@ Sii preciso e utilizza le percentuali calcolate. Per il consiglio "libera", sceg
                     {isBomb && ' 💣'}
                   </div>
                   <div className="giocata">
-                    <span className={pctClass}>
-                      {c.giocata}
-                    </span>
+                    {c.giocata}
                   </div>
                   <div className={`percentuale ${isBomb ? 'flag-bomb' : ''}`}>
-                    <span className={pctClass} style={{color: isBomb ? 'var(--accent)' : 'var(--accent)'}}>
+                    <span className={getPercentualeClasse(c.percentuale)}>
                       {c.percentuale || 0}%
                     </span>
                   </div>
@@ -2572,18 +3046,22 @@ Sii preciso e utilizza le percentuali calcolate. Per il consiglio "libera", sceg
         </>
       )}
       
+      {valutazione_giocata && (
+        <div style={{marginTop:'8px', background:'var(--card)', padding:'10px', borderRadius:'6px'}}>
+          <div style={{fontWeight:'bold', color:'var(--accent)'}}>📈 Valutazione Giocata</div>
+          <div style={{fontSize:'13px'}}>{valutazione_giocata}</div>
+        </div>
+      )}
+      
       <div style={{marginTop:'8px'}}>
         <span className="indice-rischio" style={{background:'var(--card)', padding:'4px 12px', borderRadius:'20px'}}>
-          🎯 Indice Rischio Match: {indice_rischio_match || 'N/D'}/10
+          🎯 Indice Rischio Match: {indice_rischio || 'N/D'}/10
         </span>
       </div>
     </div>
   );
 };
 
-// ============================================================
-// TeamMatchesHistory
-// ============================================================
 const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
   const teamMatches = allMatches
     .filter(m => m.campionato === championship && m.stato === 'Giocata' && (m.casa === teamName || m.ospiti === teamName))
@@ -2615,12 +3093,6 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
     if (result === 'draw') return 'var(--draw)';
     return 'var(--lose)';
   };
-  
-  const getResultLabel = (result) => {
-    if (result === 'win') return 'V';
-    if (result === 'draw') return 'P';
-    return 'S';
-  };
 
   return (
     <div className="card" style={{padding: '12px'}}>
@@ -2639,7 +3111,6 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
               const result = getResult(m, teamName);
               const opponent = getOpponent(m, teamName);
               const resultColor = getResultColor(result);
-              const resultLabel = getResultLabel(result);
               const scoreText = `${m.golCasa} - ${m.golOspite}`;
               
               return (
@@ -2671,7 +3142,6 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
   );
 };
 
-// ---------- COMPONENTE GESTIONE SOFASCORE ----------
 const SofaScoreManager = ({ onImport, loading }) => {
   const [customLeagues, setCustomLeagues] = useState(getCustomSofaLeagues);
   const [newLeagueName, setNewLeagueName] = useState('');
@@ -2771,11 +3241,7 @@ const SofaScoreManager = ({ onImport, loading }) => {
   ];
 
   return (
-    <div className="card" style={{ 
-      maxHeight: 'none', 
-      height: 'auto',
-      transition: 'height 0.3s ease'
-    }}>
+    <div className="card">
       <h4 style={{marginBottom:'12px'}}>🌐 Gestione Campionati SofaScore</h4>
       
       <div className="sub-tabs" style={{marginBottom:'12px'}}>
@@ -2807,11 +3273,7 @@ const SofaScoreManager = ({ onImport, loading }) => {
             <button className="btn" onClick={addCustomLeague}>➕ Aggiungi</button>
           </div>
           
-          <div style={{ 
-            maxHeight: '500px', 
-            overflowY: 'auto',
-            transition: 'max-height 0.3s ease'
-          }}>
+          <div style={{maxHeight:'300px', overflowY:'auto'}}>
             {allLeagues.length === 0 ? (
               <p style={{color:'var(--text-muted)', textAlign:'center', padding:'20px'}}>
                 Nessun campionato configurato.
@@ -2879,8 +3341,6 @@ const SofaScoreManager = ({ onImport, loading }) => {
               sofascore.com/.../allsvenskan/40
             </code>
             → ID è <b>40</b>
-            <br/>
-            <span style={{fontSize:'11px'}}>📊 Totale campionati: <b>{allLeagues.length}</b> (Predefiniti: {Object.keys(SOFASCORE_LEAGUE_IDS).length} | Personalizzati: {customLeagues.length})</span>
           </div>
         </div>
       )}
@@ -2952,19 +3412,12 @@ const SofaScoreManager = ({ onImport, loading }) => {
               Nessun risultato per "{searchQuery}". Prova con un termine diverso.
             </p>
           )}
-          
-          <div style={{marginTop:'12px', fontSize:'12px', color:'var(--text-muted)', padding:'8px', background:'var(--surface)', borderRadius:'6px'}}>
-            💡 Cerca il nome del campionato in italiano o inglese (es. "Serie A", "Premier League").
-          </div>
         </div>
       )}
     </div>
   );
 };
 
-// ============================================================
-// COMPONENTE APP
-// ============================================================
 const askGroq = async (prompt, key) => {
   if (!key) {
     throw new Error('🔑 API GROQ non configurata. Vai nel tab API KEY per configurarla.');
@@ -3024,8 +3477,7 @@ function App() {
   const [selectedMatchId, setSelectedMatchId] = useState(null);
   
   const [statsSubTab, setStatsSubTab] = useState('Classifica');
-  
-  // ---------- FUNZIONE IMPORT DA SOFASCORE ----------
+
   const importFromSofaScore = async (champName) => {
     let leagueId = SOFASCORE_LEAGUE_IDS[champName];
     
@@ -3115,7 +3567,6 @@ function App() {
     setLoading(false);
   };
 
-  // ---------- FUNZIONE IMPORT TUTTI ----------
   const importAllFromSofaScore = async () => {
     const allLeagues = [
       ...Object.keys(SOFASCORE_LEAGUE_IDS),
@@ -3233,7 +3684,6 @@ function App() {
     }
   };
 
-  // ---------- FUNZIONI DELL'APP ----------
   const addToSchedina = (text) => {
     setSchedinaPrompt(prev => prev + '\n- ' + text);
     setTab('Schedina AI');
@@ -3479,13 +3929,31 @@ function App() {
   };
   
   const saveLocal = () => {
-    const data = { championships, matches, apiKeys, theme, customTheme, exportedAt: new Date().toISOString() };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `gesssai-backup-${Date.now()}.json`; a.click();
-    showAlert('success', '💾 Backup scaricato!');
+  const data = { 
+    championships, 
+    matches, 
+    apiKeys, 
+    theme, 
+    customTheme, 
+    exportedAt: new Date().toISOString() 
   };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  
+  // Formatta la data per il nome del file: GesssAI-backup-YYYY-MM-DD-HH-MM
+  const now = new Date();
+  const dateStr = now.getFullYear() + '-' + 
+                  String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                  String(now.getDate()).padStart(2, '0') + '_' +
+                  String(now.getHours()).padStart(2, '0') + '-' +
+                  String(now.getMinutes()).padStart(2, '0');
+  
+  a.href = url; 
+  a.download = `GesssAI-backup-${dateStr}.json`; 
+  a.click();
+  showAlert('success', `💾 Backup GesssAI-backup-${dateStr}.json scaricato!`);
+};
   
   const loadLocal = (file) => {
     const reader = new FileReader();
@@ -3535,7 +4003,6 @@ function App() {
             <div className="consigli-grid">
               {consigli.map((c, ci) => {
                 const isBomb = c.percentuale >= 90;
-                const pctClass = getPercentualeClasse(c.percentuale);
                 return (
                   <div key={ci} className="consiglio-card" style={{borderColor: isBomb ? 'var(--accent)' : 'var(--border)'}}>
                     <div className="tipo">
@@ -3545,12 +4012,10 @@ function App() {
                       {isBomb && ' 💣'}
                     </div>
                     <div className="giocata">
-                      <span className={pctClass}>
-                        {c.giocata || 'N/A'}
-                      </span>
+                      {c.giocata || 'N/A'}
                     </div>
                     <div className={`percentuale ${isBomb ? 'flag-bomb' : ''}`}>
-                      <span className={pctClass} style={{color: isBomb ? 'var(--accent)' : 'var(--accent)'}}>
+                      <span className={getPercentualeClasse(c.percentuale)}>
                         {c.percentuale || 0}%
                       </span>
                     </div>
@@ -3677,9 +4142,6 @@ ${matchData}`;
     setLoading(false);
   };
   
-  // ============================================================
-  // RENDER DELL'APP
-  // ============================================================
   return (
     <div>
       <div className="header">
@@ -3913,6 +4375,7 @@ ${matchData}`;
                             <button 
                               key={gi} 
                               className={`giocata-btn ${isDisabled ? 'disabled' : ''}`}
+                              style={{color: isDisabled ? '#888' : '#ffff00', fontWeight: 'bold'}}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (isDisabled) return;
@@ -3937,18 +4400,17 @@ ${matchData}`;
               ) : (
                 <div className="schedina-list">
                   {schedinaEntries.map((entry, i) => {
-                    // Estrai le percentuali dalla entry per colorarle
                     const parts = entry.split(/(\d+%)/);
                     return (
                       <div key={i} className="entry">
-                        <span className="schedina-entry-text">
+                        <span className="schedina-entry-text" style={{fontSize: '14px'}}>
                           {i+1}. {parts.map((part, idx) => {
                             const pctMatch = part.match(/^(\d+)%$/);
                             if (pctMatch) {
                               const pct = parseInt(pctMatch[1]);
                               return <span key={idx} className={getPercentualeClasse(pct)}>{part}</span>;
                             }
-                            return <span key={idx}>{part}</span>;
+                            return <span key={idx} style={{color: '#ffff00', fontWeight: 'bold', fontSize: '14px'}}>{part}</span>;
                           })}
                         </span>
                         <span className="remove-btn" onClick={() => {
