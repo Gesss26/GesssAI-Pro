@@ -1139,6 +1139,103 @@ const SOFASCORE_LEAGUE_IDS = {
   'Swiss Super League': 215
 };
 
+// ============================================================
+// NUOVA FUNZIONE fetchSofaScoreMatches con supporto stagione
+// ============================================================
+// Sostituisci la funzione fetchSofaScoreMatches con questa versione
+const fetchSofaScoreMatches = async (leagueId, seasonYear) => {
+  try {
+    const seasonsRes = await fetch(
+      `https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/seasons`
+    );
+    if (!seasonsRes.ok) throw new Error('Errore nel recupero stagioni');
+    const seasonsData = await seasonsRes.json();
+    
+    let targetSeasonId = null;
+    let availableSeasons = [];
+    
+    // Mostra tutte le stagioni disponibili
+    if (seasonsData.seasons) {
+      seasonsData.seasons.forEach(season => {
+        availableSeasons.push({
+          id: season.id,
+          name: season.name || `Stagione ${season.id}`
+        });
+        console.log(`📅 Stagione disponibile: ${season.name} (ID: ${season.id})`);
+      });
+    }
+    
+    // Cerca la stagione corrispondente all'anno selezionato
+    if (seasonsData.seasons) {
+      for (const season of seasonsData.seasons) {
+        const seasonName = season.name || '';
+        if (seasonYear === '25/26' && seasonName.includes('2025/2026')) {
+          targetSeasonId = season.id;
+          break;
+        } else if (seasonYear === '26/27' && seasonName.includes('2026/2027')) {
+          targetSeasonId = season.id;
+          break;
+        } else if (seasonYear === '26/26' && seasonName.includes('2026')) {
+          targetSeasonId = season.id;
+          break;
+        }
+      }
+    }
+    
+    // Se non trova la stagione specifica, usa la prima disponibile
+    if (!targetSeasonId && seasonsData.seasons && seasonsData.seasons.length > 0) {
+      targetSeasonId = seasonsData.seasons[0].id;
+      console.log(`⚠️ Stagione ${seasonYear} non trovata, uso la prima disponibile: ${seasonsData.seasons[0].name}`);
+    }
+    
+    if (!targetSeasonId) {
+      // Mostra le stagioni disponibili all'utente
+      const availableNames = availableSeasons.map(s => s.name).join(', ');
+      throw new Error(`Nessuna stagione disponibile. Stagioni trovate: ${availableNames}`);
+    }
+    
+    console.log(`📅 Stagione selezionata: ${targetSeasonId} (${seasonYear})`);
+    
+    let allEvents = [];
+    let round = 1;
+    let hasMore = true;
+    
+    while (hasMore && round <= 40) {
+      try {
+        const url = `https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/season/${targetSeasonId}/events/round/${round}`;
+        console.log(`🔍 Cerco round ${round}...`);
+        
+        const res = await fetch(url);
+        if (!res.ok) {
+          if (res.status === 404) {
+            hasMore = false;
+            break;
+          }
+          throw new Error(`HTTP ${res.status}`);
+        }
+        
+        const data = await res.json();
+        if (data.events && data.events.length > 0) {
+          allEvents = [...allEvents, ...data.events];
+          console.log(`✅ Round ${round}: ${data.events.length} partite`);
+        }
+        round++;
+        await new Promise(r => setTimeout(r, 100));
+      } catch (e) {
+        console.warn(`Round ${round} fallito:`, e.message);
+        hasMore = false;
+      }
+    }
+    
+    console.log(`📊 Totale partite trovate: ${allEvents.length}`);
+    return allEvents;
+    
+  } catch (e) {
+    console.error('Errore fetch SofaScore:', e);
+    return [];
+  }
+};
+
 const getPercentualeClasse = (valore) => {
   if (valore < 33) return 'pct-rosso';
   if (valore < 66) return 'pct-neutro';
@@ -1513,63 +1610,6 @@ const get12Under45 = (allMatches, homeTeam, awayTeam) => {
     return g.golCasa !== g.golOspite && total < 4.5;
   }).length;
   return (count / allGames.length) * 100;
-};
-
-const fetchSofaScoreMatches = async (leagueId, seasonId) => {
-  try {
-    const seasonsRes = await fetch(
-      `https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/seasons`
-    );
-    if (!seasonsRes.ok) throw new Error('Errore nel recupero stagioni');
-    const seasonsData = await seasonsRes.json();
-    
-    let targetSeasonId = seasonId;
-    if (!targetSeasonId && seasonsData.seasons && seasonsData.seasons.length > 0) {
-      targetSeasonId = seasonsData.seasons[0].id;
-    }
-    
-    if (!targetSeasonId) throw new Error('Nessuna stagione disponibile');
-    
-    console.log(`📅 Stagione selezionata: ${targetSeasonId}`);
-    
-    let allEvents = [];
-    let round = 1;
-    let hasMore = true;
-    
-    while (hasMore && round <= 40) {
-      try {
-        const url = `https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/season/${targetSeasonId}/events/round/${round}`;
-        console.log(`🔍 Cerco round ${round}...`);
-        
-        const res = await fetch(url);
-        if (!res.ok) {
-          if (res.status === 404) {
-            hasMore = false;
-            break;
-          }
-          throw new Error(`HTTP ${res.status}`);
-        }
-        
-        const data = await res.json();
-        if (data.events && data.events.length > 0) {
-          allEvents = [...allEvents, ...data.events];
-          console.log(`✅ Round ${round}: ${data.events.length} partite`);
-        }
-        round++;
-        await new Promise(r => setTimeout(r, 100));
-      } catch (e) {
-        console.warn(`Round ${round} fallito:`, e.message);
-        hasMore = false;
-      }
-    }
-    
-    console.log(`📊 Totale partite trovate: ${allEvents.length}`);
-    return allEvents;
-    
-  } catch (e) {
-    console.error('Errore fetch SofaScore:', e);
-    return [];
-  }
 };
 
 const Standings = ({ matches, filterChampionship, highlightTeams = [] }) => {
@@ -2142,7 +2182,7 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
 };
 
 // ============================================================
-// AIAnalysis - Versione Professionale con API
+// AIAnalysis - Versione Professionale con API (invariato)
 // ============================================================
 const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
   const [analysis, setAnalysis] = useState(null);
@@ -3142,44 +3182,102 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
   );
 };
 
+// ============================================================
+// SofaScoreManager con selettore stagione
+// ============================================================
+// SOSTITUISCI il componente SofaScoreManager con questa versione
 const SofaScoreManager = ({ onImport, loading }) => {
   const [customLeagues, setCustomLeagues] = useState(getCustomSofaLeagues);
   const [newLeagueName, setNewLeagueName] = useState('');
   const [newLeagueId, setNewLeagueId] = useState('');
+  const [selectedSeason, setSelectedSeason] = useState('26/27');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [selectedTab, setSelectedTab] = useState('lista');
+  const [isChecking, setIsChecking] = useState(false);
 
   const saveLeagues = (leagues) => {
     setCustomLeagues(leagues);
     saveCustomSofaLeagues(leagues);
   };
 
-  const addCustomLeague = () => {
+  // Funzione per controllare se una lega ha partite
+  const checkLeagueHasMatches = async (leagueId, seasonYear) => {
+    try {
+      const result = await fetchSofaScoreMatches(leagueId, seasonYear);
+      const events = result.events || [];
+      return { hasMatches: events.length > 0, count: events.length, usedSeason: result.usedSeason };
+    } catch (e) {
+      console.error('Errore controllo lega:', e);
+      return { hasMatches: false, count: 0, usedSeason: null, error: e.message };
+    }
+  };
+
+  // Funzione per aggiungere e importare una lega
+  const addAndImportLeague = async () => {
     if (!newLeagueName.trim() || !newLeagueId.trim()) {
       alert('Inserisci sia il nome che l\'ID del campionato.');
       return;
     }
+
     const id = parseInt(newLeagueId);
     if (isNaN(id) || id <= 0) {
       alert('L\'ID deve essere un numero positivo.');
       return;
     }
-    if (customLeagues.some(l => l.id === id || l.name.toLowerCase() === newLeagueName.toLowerCase())) {
-      alert('Questo campionato o ID è già presente nella lista.');
+
+    // Controlla se la lega è già presente
+    const allLeagues = [
+      ...Object.entries(SOFASCORE_LEAGUE_IDS).map(([n, i]) => ({ name: n, id: i })),
+      ...customLeagues
+    ];
+    
+    if (allLeagues.some(l => l.id === id || l.name.toLowerCase() === newLeagueName.toLowerCase())) {
+      alert('⚠️ Questo campionato o ID è già presente nella lista.');
       return;
     }
-    const defaultIds = Object.values(SOFASCORE_LEAGUE_IDS);
-    if (defaultIds.includes(id)) {
-      alert('Questo ID è già presente nelle leghe predefinite.');
-      return;
+
+    setIsChecking(true);
+    const leagueName = newLeagueName.trim();
+
+    try {
+      // Prima controlla se ci sono partite
+      const checkResult = await checkLeagueHasMatches(id, selectedSeason);
+      
+      if (checkResult.error) {
+        alert(`❌ Errore nel controllo: ${checkResult.error}\n\nVerifica che l'ID sia corretto.`);
+        setIsChecking(false);
+        return;
+      }
+
+      if (!checkResult.hasMatches) {
+        alert(`❌ Nessuna partita trovata per "${leagueName}" (ID: ${id}) nella stagione ${selectedSeason}.\n\n` +
+              `💡 Suggerimenti:\n` +
+              `• Verifica che l'ID sia corretto\n` +
+              `• Prova con un'altra stagione (es. 25/26 o 26/26)\n` +
+              `• Assicurati che il campionato abbia partite nella stagione selezionata`);
+        setIsChecking(false);
+        return;
+      }
+
+      // Se ci sono partite, aggiungi la lega
+      const newLeague = { name: leagueName, id: id };
+      saveLeagues([...customLeagues, newLeague]);
+      
+      // Poi importa le partite
+      await onImport(leagueName, selectedSeason);
+      
+      // Resetta i campi
+      setNewLeagueName('');
+      setNewLeagueId('');
+      
+    } catch (e) {
+      console.error('Errore:', e);
+      alert(`❌ Errore durante l'aggiunta: ${e.message}`);
     }
-    const newLeague = { name: newLeagueName.trim(), id: id };
-    saveLeagues([...customLeagues, newLeague]);
-    setNewLeagueName('');
-    setNewLeagueId('');
-    alert(`✅ Campionato "${newLeagueName}" (ID: ${id}) aggiunto!`);
+    
+    setIsChecking(false);
   };
 
   const removeCustomLeague = (id) => {
@@ -3219,20 +3317,54 @@ const SofaScoreManager = ({ onImport, loading }) => {
     setSearching(false);
   };
 
-  const addFromSearch = (tournament) => {
+  // Funzione per aggiungere da ricerca con controllo
+  const addFromSearch = async (tournament) => {
     const name = tournament.name;
     const id = tournament.id;
+    
     const allLeagues = [
       ...Object.entries(SOFASCORE_LEAGUE_IDS).map(([n, i]) => ({ name: n, id: i })),
       ...customLeagues
     ];
+    
     if (allLeagues.some(l => l.id === id || l.name.toLowerCase() === name.toLowerCase())) {
-      alert('Questo campionato è già nella tua lista.');
+      alert('⚠️ Questo campionato è già nella tua lista.');
       return;
     }
-    saveLeagues([...customLeagues, { name, id }]);
-    setSearchResults(searchResults.filter(r => r.id !== id));
-    alert(`✅ Campionato "${name}" (ID: ${id}) aggiunto!`);
+
+    setIsChecking(true);
+    
+    try {
+      // Controlla se ci sono partite
+      const checkResult = await checkLeagueHasMatches(id, selectedSeason);
+      
+      if (checkResult.error) {
+        alert(`❌ Errore nel controllo: ${checkResult.error}`);
+        setIsChecking(false);
+        return;
+      }
+
+      if (!checkResult.hasMatches) {
+        alert(`❌ Nessuna partita trovata per "${name}" (ID: ${id}) nella stagione ${selectedSeason}.\n\n` +
+              `💡 Suggerimenti:\n` +
+              `• Prova con un'altra stagione (es. 25/26 o 26/26)\n` +
+              `• Verifica che il campionato sia attivo`);
+        setIsChecking(false);
+        return;
+      }
+
+      // Se ci sono partite, aggiungi e importa
+      saveLeagues([...customLeagues, { name, id }]);
+      await onImport(name, selectedSeason);
+      
+      setSearchResults(searchResults.filter(r => r.id !== id));
+      
+    } catch (e) {
+      console.error('Errore:', e);
+      alert(`❌ Errore durante l'aggiunta: ${e.message}`);
+    }
+    
+    setIsChecking(false);
   };
 
   const allLeagues = [
@@ -3260,17 +3392,32 @@ const SofaScoreManager = ({ onImport, loading }) => {
               type="text"
               value={newLeagueName}
               onChange={e => setNewLeagueName(e.target.value)}
-              placeholder="Nome campionato (es. Serie A)"
+              placeholder="Nome campionato (es. Champions League)"
               style={{flex:1, minWidth:'150px'}}
             />
             <input
               type="number"
               value={newLeagueId}
               onChange={e => setNewLeagueId(e.target.value)}
-              placeholder="ID SofaScore"
+              placeholder="ID SofaScore (es. 7)"
               style={{width:'120px'}}
             />
-            <button className="btn" onClick={addCustomLeague}>➕ Aggiungi</button>
+            <select 
+              value={selectedSeason} 
+              onChange={e => setSelectedSeason(e.target.value)}
+              style={{width:'120px', padding:'8px'}}
+            >
+              <option value="25/26">25/26</option>
+              <option value="26/27">26/27</option>
+              <option value="26/26">26/26 (anno solare)</option>
+            </select>
+            <button 
+              className="btn" 
+              onClick={addAndImportLeague}
+              disabled={isChecking || loading}
+            >
+              {isChecking ? '⏳ Controllo...' : '➕ Aggiungi e Importa'}
+            </button>
           </div>
           
           <div style={{maxHeight:'300px', overflowY:'auto'}}>
@@ -3285,51 +3432,74 @@ const SofaScoreManager = ({ onImport, loading }) => {
                     <th>Campionato</th>
                     <th style={{textAlign:'center'}}>ID</th>
                     <th style={{textAlign:'center'}}>Tipo</th>
+                    <th style={{textAlign:'center'}}>Partite</th>
                     <th style={{textAlign:'center'}}>Azioni</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {allLeagues.map(league => (
-                    <tr key={league.id} style={{borderBottom:'1px solid var(--border)'}}>
-                      <td style={{padding:'6px 8px'}}>
-                        <span style={{color: league.isDefault ? 'var(--text)' : 'var(--accent)'}}>
-                          {league.isDefault ? '📌 ' : '⭐ '}
-                          {league.name}
-                        </span>
-                      </td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>{league.id}</td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>
-                        <span style={{
-                          fontSize:'10px',
-                          padding:'2px 8px',
-                          borderRadius:'10px',
-                          background: league.isDefault ? 'var(--surface)' : 'var(--accent)',
-                          color: league.isDefault ? 'var(--text-muted)' : '#000'
-                        }}>
-                          {league.isDefault ? 'Predefinito' : 'Personalizzato'}
-                        </span>
-                      </td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>
-                        <button
-                          className="btn btn-secondary"
-                          style={{fontSize:'11px', padding:'2px 8px', marginRight:'4px'}}
-                          onClick={() => onImport(league.name)}
-                          disabled={loading}
-                        >
-                          📥 Importa
-                        </button>
-                        {!league.isDefault && (
-                          <button
-                            className="btn btn-danger"
-                            style={{fontSize:'11px', padding:'2px 8px'}}
-                            onClick={() => removeCustomLeague(league.id)}
+                  {allLeagues.map(league => {
+                    // Conta le partite per questo campionato
+                    const matchCount = window.matches ? 
+                      window.matches.filter(m => m.campionato === league.name).length : 0;
+                    
+                    return (
+                      <tr key={league.id} style={{borderBottom:'1px solid var(--border)'}}>
+                        <td style={{padding:'6px 8px'}}>
+                          <span style={{color: league.isDefault ? 'var(--text)' : 'var(--accent)'}}>
+                            {league.isDefault ? '📌 ' : '⭐ '}
+                            {league.name}
+                          </span>
+                        </td>
+                        <td style={{textAlign:'center', padding:'6px 8px'}}>{league.id}</td>
+                        <td style={{textAlign:'center', padding:'6px 8px'}}>
+                          <span style={{
+                            fontSize:'10px',
+                            padding:'2px 8px',
+                            borderRadius:'10px',
+                            background: league.isDefault ? 'var(--surface)' : 'var(--accent)',
+                            color: league.isDefault ? 'var(--text-muted)' : '#000'
+                          }}>
+                            {league.isDefault ? 'Predefinito' : 'Personalizzato'}
+                          </span>
+                        </td>
+                        <td style={{textAlign:'center', padding:'6px 8px'}}>
+                          {matchCount > 0 ? (
+                            <span style={{color:'var(--win)', fontWeight:'bold'}}>{matchCount}</span>
+                          ) : (
+                            <span style={{color:'var(--text-muted)'}}>0</span>
+                          )}
+                        </td>
+                        <td style={{textAlign:'center', padding:'6px 8px'}}>
+                          <select 
+                            value={selectedSeason} 
+                            onChange={e => setSelectedSeason(e.target.value)}
+                            style={{width:'80px', padding:'2px 4px', fontSize:'11px', marginRight:'4px'}}
                           >
-                            ✖
+                            <option value="25/26">25/26</option>
+                            <option value="26/27">26/27</option>
+                            <option value="26/26">26/26</option>
+                          </select>
+                          <button
+                            className="btn btn-secondary"
+                            style={{fontSize:'11px', padding:'2px 8px', marginRight:'4px'}}
+                            onClick={() => onImport(league.name, selectedSeason)}
+                            disabled={loading}
+                          >
+                            📥 Importa
                           </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                          {!league.isDefault && (
+                            <button
+                              className="btn btn-danger"
+                              style={{fontSize:'11px', padding:'2px 8px'}}
+                              onClick={() => removeCustomLeague(league.id)}
+                            >
+                              ✖
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
@@ -3338,9 +3508,13 @@ const SofaScoreManager = ({ onImport, loading }) => {
           <div style={{marginTop:'12px', fontSize:'12px', color:'var(--text-muted)', padding:'8px', background:'var(--surface)', borderRadius:'6px'}}>
             💡 Trova l'ID di un campionato nell'URL di SofaScore: 
             <code style={{background:'var(--card)', padding:'2px 6px', borderRadius:'4px', margin:'0 4px'}}>
-              sofascore.com/.../allsvenskan/40
+              sofascore.com/.../champions-league/7
             </code>
-            → ID è <b>40</b>
+            → ID è <b>7</b>
+            <br/>
+            <span style={{color:'var(--accent)'}}>
+              ⚡ Il pulsante "Aggiungi e Importa" controlla prima se ci sono partite!
+            </span>
           </div>
         </div>
       )}
@@ -3352,11 +3526,11 @@ const SofaScoreManager = ({ onImport, loading }) => {
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Cerca campionato (es. 'Serie A', 'Bundesliga')"
+              placeholder="Cerca campionato (es. 'Champions League')"
               style={{flex:1}}
               onKeyDown={e => e.key === 'Enter' && searchSofaLeagues()}
             />
-            <button className="btn" onClick={searchSofaLeagues} disabled={searching}>
+            <button className="btn" onClick={searchSofaLeagues} disabled={searching || isChecking}>
               {searching ? '⏳ Cercando...' : '🔍 Cerca'}
             </button>
           </div>
@@ -3394,8 +3568,9 @@ const SofaScoreManager = ({ onImport, loading }) => {
                               className="btn btn-secondary"
                               style={{fontSize:'11px', padding:'2px 10px'}}
                               onClick={() => addFromSearch(t)}
+                              disabled={isChecking}
                             >
-                              ➕ Aggiungi
+                              {isChecking ? '⏳...' : '➕ Aggiungi e Importa'}
                             </button>
                           )}
                         </td>
@@ -3478,7 +3653,7 @@ function App() {
   
   const [statsSubTab, setStatsSubTab] = useState('Classifica');
 
-  const importFromSofaScore = async (champName) => {
+  const importFromSofaScore = async (champName, seasonYear = '26/27') => {
     let leagueId = SOFASCORE_LEAGUE_IDS[champName];
     
     if (!leagueId) {
@@ -3493,13 +3668,13 @@ function App() {
     }
     
     setLoading(true);
-    showAlert('info', `📥 Scaricando ${champName} da SofaScore...`);
+    showAlert('info', `📥 Scaricando ${champName} (stagione ${seasonYear}) da SofaScore...`);
     
     try {
-      const events = await fetchSofaScoreMatches(leagueId);
+      const events = await fetchSofaScoreMatches(leagueId, seasonYear);
       
       if (!events || events.length === 0) {
-        showAlert('error', `❌ Nessuna partita trovata per ${champName}. Verifica che il campionato abbia partite nella stagione corrente.`);
+        showAlert('error', `❌ Nessuna partita trovata per ${champName} nella stagione ${seasonYear}. Verifica che il campionato abbia partite nella stagione selezionata.`);
         setLoading(false);
         return;
       }
@@ -3549,7 +3724,7 @@ function App() {
       });
       
       if (newMatches.length === 0) {
-        showAlert('info', 'ℹ️ Nessuna nuova partita da aggiungere.');
+        showAlert('info', 'ℹ️ Nessuna nuova partita da aggiungere per questa stagione.');
         setLoading(false);
         return;
       }
@@ -3558,7 +3733,7 @@ function App() {
       setSelectedChamp(champName);
       setTab('Palinsesto');
       
-      showAlert('success', `✅ Importate ${newMatches.length} partite da ${champName}!`);
+      showAlert('success', `✅ Importate ${newMatches.length} partite da ${champName} (stagione ${seasonYear})!`);
       
     } catch (e) {
       console.error('Errore importazione:', e);
@@ -3583,13 +3758,14 @@ function App() {
     
     const confirmed = confirm(
       `📥 Importare tutti i ${leaguesToImport.length} campionati non ancora importati?\n\n` +
-      `${leaguesToImport.join(', ')}`
+      `${leaguesToImport.join(', ')}\n\n` +
+      `⚠️ Verrà usata la stagione 26/27 per tutti.`
     );
     
     if (!confirmed) return;
     
     setLoading(true);
-    showAlert('info', `📥 Importazione di ${leaguesToImport.length} campionati...`);
+    showAlert('info', `📥 Importazione di ${leaguesToImport.length} campionati (stagione 26/27)...`);
     
     let successCount = 0;
     let failCount = 0;
@@ -3605,7 +3781,7 @@ function App() {
           continue;
         }
         
-        const events = await fetchSofaScoreMatches(leagueId);
+        const events = await fetchSofaScoreMatches(leagueId, '26/27');
         
         if (!events || events.length === 0) {
           failCount++;
@@ -3711,109 +3887,93 @@ function App() {
   };
   
   const generateSchedina = () => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  // Calcola la data massima in base a daysRange
-  // daysRange = 0 → solo oggi
-  // daysRange = 1 → oggi + 1 giorno (oggi e domani)
-  // daysRange = 2 → oggi + 2 giorni (oggi, domani e dopodomani)
-  const maxDate = new Date(today);
-  maxDate.setDate(maxDate.getDate() + daysRange);
-  
-  // Filtra le partite future in base al range di giorni selezionato
-  let filtered = matches.filter(m => {
-    if (m.stato !== 'Futura') return false;
-    if (!m.data) return false;
-    const matchDate = new Date(m.data);
-    if (isNaN(matchDate.getTime())) return false;
-    matchDate.setHours(0, 0, 0, 0);
-    // Filtra le partite che sono tra oggi e maxDate (incluso)
-    return matchDate >= today && matchDate <= maxDate;
-  });
-  
-  // Filtra ulteriormente per campionato se selezionato
-  if (schedinaChamp !== 'Tutti') {
-    filtered = filtered.filter(m => m.campionato === schedinaChamp);
-  }
-  
-  // Se non ci sono partite disponibili, resetta e riprova
-  if (filtered.length === 0) {
-    setUsedMatchIds(new Set());
-    showAlert('info', '🔄 Nessuna partita disponibile nel range selezionato. CARD ricalcolate automaticamente.');
-    // Richiama la funzione per provare con tutte le partite disponibili
-    const allFiltered = matches.filter(m => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const maxDate = new Date(today);
+    maxDate.setDate(maxDate.getDate() + daysRange);
+    
+    let filtered = matches.filter(m => {
       if (m.stato !== 'Futura') return false;
       if (!m.data) return false;
       const matchDate = new Date(m.data);
       if (isNaN(matchDate.getTime())) return false;
       matchDate.setHours(0, 0, 0, 0);
-      return matchDate >= today;
+      return matchDate >= today && matchDate <= maxDate;
     });
-    if (allFiltered.length === 0) {
-      showAlert('error', '❌ Nessuna partita futura disponibile in nessun campionato.');
-      setSchedinaMatches([]);
-      return;
-    }
-    // Usa tutte le partite future disponibili
-    filtered = allFiltered;
-    setUsedMatchIds(new Set());
-  }
-  
-  // Rimuovi le partite già utilizzate
-  let available = filtered.filter(m => !usedMatchIds.has(m.id));
-  
-  // Se tutte le partite sono state consumate, resetta
-  if (available.length === 0) {
-    setUsedMatchIds(new Set());
-    showAlert('info', '🔄 Tutte le partite sono state consumate. CARD ricalcolate automaticamente.');
-    available = filtered;
-  }
-  
-  // Calcola il punteggio per ogni partita disponibile
-  const scoredMatches = available.map(m => {
-    const homeMG = getTeamMultigolV2(matches, m.casa);
-    const awayMG = getTeamMultigolV2(matches, m.ospiti);
-    const homeUO = getTeamUnderOver(matches, m.casa);
-    const awayUO = getTeamUnderOver(matches, m.ospiti);
-    const pct12Under45 = get12Under45(matches, m.casa, m.ospiti);
     
-    const homeRange = getMostFrequentGoalRange(m.casa, matches);
-    const awayRange = getMostFrequentGoalRange(m.ospiti, matches);
-    
-    const stats = computeMatchStats(m, matches);
-    let freeCombo = { label: 'N/A', pct: 0 };
-    if (!stats.error) {
-      freeCombo = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
+    if (schedinaChamp !== 'Tutti') {
+      filtered = filtered.filter(m => m.campionato === schedinaChamp);
     }
     
-    const allUO = { ...homeUO, ...awayUO };
-    let bestPct = 0;
-    let bestBet = '';
-    Object.entries(allUO).forEach(([key, val]) => {
-      if (val > bestPct) {
-        bestPct = val;
-        bestBet = key;
+    if (filtered.length === 0) {
+      setUsedMatchIds(new Set());
+      showAlert('info', '🔄 Nessuna partita disponibile nel range selezionato. CARD ricalcolate automaticamente.');
+      const allFiltered = matches.filter(m => {
+        if (m.stato !== 'Futura') return false;
+        if (!m.data) return false;
+        const matchDate = new Date(m.data);
+        if (isNaN(matchDate.getTime())) return false;
+        matchDate.setHours(0, 0, 0, 0);
+        return matchDate >= today;
+      });
+      if (allFiltered.length === 0) {
+        showAlert('error', '❌ Nessuna partita futura disponibile in nessun campionato.');
+        setSchedinaMatches([]);
+        return;
       }
+      filtered = allFiltered;
+      setUsedMatchIds(new Set());
+    }
+    
+    let available = filtered.filter(m => !usedMatchIds.has(m.id));
+    
+    if (available.length === 0) {
+      setUsedMatchIds(new Set());
+      showAlert('info', '🔄 Tutte le partite sono state consumate. CARD ricalcolate automaticamente.');
+      available = filtered;
+    }
+    
+    const scoredMatches = available.map(m => {
+      const homeMG = getTeamMultigolV2(matches, m.casa);
+      const awayMG = getTeamMultigolV2(matches, m.ospiti);
+      const homeUO = getTeamUnderOver(matches, m.casa);
+      const awayUO = getTeamUnderOver(matches, m.ospiti);
+      const pct12Under45 = get12Under45(matches, m.casa, m.ospiti);
+      
+      const homeRange = getMostFrequentGoalRange(m.casa, matches);
+      const awayRange = getMostFrequentGoalRange(m.ospiti, matches);
+      
+      const stats = computeMatchStats(m, matches);
+      let freeCombo = { label: 'N/A', pct: 0 };
+      if (!stats.error) {
+        freeCombo = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
+      }
+      
+      const allUO = { ...homeUO, ...awayUO };
+      let bestPct = 0;
+      let bestBet = '';
+      Object.entries(allUO).forEach(([key, val]) => {
+        if (val > bestPct) {
+          bestPct = val;
+          bestBet = key;
+        }
+      });
+      
+      const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + freeCombo.pct) / 4);
+      return { ...m, score, homeRange, awayRange, pct12Under45, bestBet, bestPct, freeCombo };
     });
     
-    const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + freeCombo.pct) / 4);
-    return { ...m, score, homeRange, awayRange, pct12Under45, bestBet, bestPct, freeCombo };
-  });
-  
-  // Ordina per punteggio decrescente e seleziona le prime N
-  scoredMatches.sort((a, b) => b.score - a.score);
-  const selected = scoredMatches.slice(0, numMatches);
-  
-  // Aggiorna le partite utilizzate
-  const newUsed = new Set(usedMatchIds);
-  selected.forEach(m => newUsed.add(m.id));
-  setUsedMatchIds(newUsed);
-  
-  // Imposta le partite selezionate
-  setSchedinaMatches(selected);
-  setSchedinaSelections({});
-};
+    scoredMatches.sort((a, b) => b.score - a.score);
+    const selected = scoredMatches.slice(0, numMatches);
+    
+    const newUsed = new Set(usedMatchIds);
+    selected.forEach(m => newUsed.add(m.id));
+    setUsedMatchIds(newUsed);
+    
+    setSchedinaMatches(selected);
+    setSchedinaSelections({});
+  };
   
   const resetSchedina = () => {
     setSchedinaMatches([]);
