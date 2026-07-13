@@ -7,7 +7,6 @@
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 <style>
   :root {
     --bg: #0f1419;
@@ -945,46 +944,6 @@
   }
   .color-picker-row { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
   .color-picker-row input[type="color"] { width: 60px; height: 40px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
-  .debug-columns {
-    background: var(--surface);
-    padding: 12px;
-    border-radius: 8px;
-    margin: 12px 0;
-    font-family: monospace;
-    font-size: 11px;
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid var(--border);
-  }
-  .debug-columns h4 { margin-bottom: 8px; color: var(--accent); }
-  .debug-columns code { display: inline-block; background: var(--card); padding: 2px 6px; border-radius: 4px; margin: 2px; }
-  
-  .scraped-matches-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .scraped-matches-table th {
-    background: var(--surface);
-    color: var(--text-muted);
-    padding: 8px 6px;
-    text-align: left;
-    border-bottom: 2px solid var(--border);
-    font-weight: 600;
-    font-size: 11px;
-  }
-  .scraped-matches-table td {
-    padding: 6px 6px;
-    border-bottom: 1px solid var(--border);
-  }
-  .scraped-matches-table tr:hover td { background: var(--card); }
-  
-  /* Stili per la tabella Storico - senza colori */
-  .history-table td {
-    padding: 6px 12px;
-    text-align: center;
-    color: var(--text);
-  }
   
   @media (max-width: 768px) {
     .match-tab, .match-tab-history { min-width: 100%; max-width: 100%; }
@@ -1015,7 +974,7 @@ const THEMES = {
 };
 
 const MAIN_TABS = ['Palinsesto','Statistiche','Storico','Schedina AI','API KEY','Impostazioni'];
-const SETTINGS_TABS = ['Temi','API KEY','Dati Locali','Importa Campionato','Web Scraping'];
+const SETTINGS_TABS = ['Temi','API KEY','Dati Locali','Importa Campionato'];
 
 const CHAMPIONSHIP_COLORS = {
   'Allsvenskan': '#e74c3c',
@@ -1072,7 +1031,6 @@ const CITTÀ_PER_CAMPIONATO = {
   'FIFA World Cup 2026': 'New York'
 };
 
-// Mappa campionati -> ID SofaScore (predefiniti)
 const SOFASCORE_LEAGUE_IDS = {
   'Allsvenskan': 40,
   'Eliteserien': 20,
@@ -1090,7 +1048,6 @@ const SOFASCORE_LEAGUE_IDS = {
   'Swiss Super League': 215
 };
 
-// Funzioni per campionati SofaScore personalizzati
 const getCustomSofaLeagues = () => {
   try {
     return JSON.parse(localStorage.getItem('ft_sofaleagues') || '[]');
@@ -1474,13 +1431,42 @@ const fetchSofaScoreMatches = async (leagueId, seasonId) => {
     
     if (!targetSeasonId) throw new Error('Nessuna stagione disponibile');
     
-    const matchesRes = await fetch(
-      `https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/season/${targetSeasonId}/events/round/all`
-    );
-    if (!matchesRes.ok) throw new Error('Errore nel recupero partite');
-    const matchesData = await matchesRes.json();
+    console.log(`📅 Stagione selezionata: ${targetSeasonId}`);
     
-    return matchesData.events || [];
+    let allEvents = [];
+    let round = 1;
+    let hasMore = true;
+    
+    while (hasMore && round <= 40) {
+      try {
+        const url = `https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/season/${targetSeasonId}/events/round/${round}`;
+        console.log(`🔍 Cerco round ${round}...`);
+        
+        const res = await fetch(url);
+        if (!res.ok) {
+          if (res.status === 404) {
+            hasMore = false;
+            break;
+          }
+          throw new Error(`HTTP ${res.status}`);
+        }
+        
+        const data = await res.json();
+        if (data.events && data.events.length > 0) {
+          allEvents = [...allEvents, ...data.events];
+          console.log(`✅ Round ${round}: ${data.events.length} partite`);
+        }
+        round++;
+        await new Promise(r => setTimeout(r, 100));
+      } catch (e) {
+        console.warn(`Round ${round} fallito:`, e.message);
+        hasMore = false;
+      }
+    }
+    
+    console.log(`📊 Totale partite trovate: ${allEvents.length}`);
+    return allEvents;
+    
   } catch (e) {
     console.error('Errore fetch SofaScore:', e);
     return [];
@@ -2516,365 +2502,6 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
   );
 };
 
-// ---------- COMPONENTE WEB SCRAPING ----------
-const WebScraping = ({ setChampionships, setMatches, championships, matches, showAlert }) => {
-  const [url, setUrl] = useState('');
-  const [proxyUrl, setProxyUrl] = useState('https://api.allorigins.win/raw?url=');
-  const [userAgent, setUserAgent] = useState('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-  const [selectors, setSelectors] = useState({
-    container: '#sched_all tbody tr',
-    data: 'td[data-stat="date"]',
-    ora: 'td[data-stat="time"]',
-    casa: 'td[data-stat="home_team"] a',
-    ospite: 'td[data-stat="away_team"] a',
-    risultato: 'td[data-stat="score"]',
-    campionato: 'h1[itemprop="name"]'
-  });
-  const [scrapedMatches, setScrapedMatches] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [champName, setChampName] = useState('');
-  const [htmlContent, setHtmlContent] = useState(null);
-
-  const processHtml = (html) => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-
-    const champEl = doc.querySelector(selectors.campionato);
-    const detectedChamp = champEl ? champEl.textContent.trim() : 'Scraped League';
-    setChampName(detectedChamp);
-
-    const rows = doc.querySelectorAll(selectors.container);
-    if (rows.length === 0) {
-      showAlert('error', 'Nessuna partita trovata. Verifica i selettori.');
-      return;
-    }
-
-    const matchesData = [];
-    rows.forEach(row => {
-      const dataEl = row.querySelector(selectors.data);
-      const oraEl = row.querySelector(selectors.ora);
-      const casaEl = row.querySelector(selectors.casa);
-      const ospiteEl = row.querySelector(selectors.ospite);
-      const risultatoEl = row.querySelector(selectors.risultato);
-
-      const data = dataEl ? dataEl.textContent.trim() : '';
-      const ora = oraEl ? oraEl.textContent.trim() : '';
-      const casa = casaEl ? casaEl.textContent.trim() : '';
-      const ospite = ospiteEl ? ospiteEl.textContent.trim() : '';
-      const risultato = risultatoEl ? risultatoEl.textContent.trim() : '';
-
-      if (!casa || !ospite) return;
-
-      let golCasa = 0, golOspite = 0, stato = 'Futura';
-      if (risultato && risultato.includes('-')) {
-        const parts = risultato.split('-');
-        if (parts.length === 2) {
-          golCasa = parseInt(parts[0].trim()) || 0;
-          golOspite = parseInt(parts[1].trim()) || 0;
-          stato = 'Giocata';
-        }
-      }
-
-      let dataStr = '';
-      if (data) {
-        const d = new Date(data);
-        if (!isNaN(d.getTime())) {
-          dataStr = d.toISOString().slice(0, 10);
-        } else {
-          const parts = data.split('/');
-          if (parts.length === 3) {
-            const day = parseInt(parts[0]), month = parseInt(parts[1])-1, year = parseInt(parts[2]);
-            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-              const d2 = new Date(year, month, day);
-              if (!isNaN(d2.getTime())) dataStr = d2.toISOString().slice(0, 10);
-            }
-          }
-        }
-      }
-
-      matchesData.push({
-        id: Math.random().toString(36).slice(2),
-        campionato: detectedChamp,
-        round: 'N/A',
-        data: dataStr || new Date().toISOString().slice(0, 10),
-        ora: ora || 'TBD',
-        casa,
-        ospiti: ospite,
-        stato,
-        golCasa,
-        golOspite
-      });
-    });
-
-    if (matchesData.length === 0) {
-      showAlert('error', 'Nessuna partita valida estratta. Verifica i selettori.');
-      return;
-    }
-
-    setScrapedMatches(matchesData);
-    showAlert('success', `✅ Estratte ${matchesData.length} partite. Controlla l'anteprima.`);
-  };
-
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    setLoading(true);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const html = e.target.result;
-        setHtmlContent(html);
-        processHtml(html);
-      } catch (err) {
-        showAlert('error', 'Errore nella lettura del file: ' + err.message);
-      }
-      setLoading(false);
-    };
-    reader.onerror = () => {
-      showAlert('error', 'Errore nella lettura del file.');
-      setLoading(false);
-    };
-    reader.readAsText(file);
-  };
-
-  const scrapeMatches = async () => {
-    if (!url) {
-      showAlert('error', 'Inserisci un URL valido per lo scraping online. In alternativa, usa il caricamento file locale.');
-      return;
-    }
-    setLoading(true);
-    setScrapedMatches([]);
-    setChampName('');
-
-    try {
-      const fullUrl = `${proxyUrl}${encodeURIComponent(url)}`;
-      const response = await fetch(fullUrl, {
-        headers: { 'User-Agent': userAgent }
-      });
-      
-      if (!response.ok) {
-        let msg = `HTTP error! status: ${response.status}`;
-        if (response.status === 520) {
-          msg += ' - Il proxy non riesce a contattare il sito. Prova a cambiare proxy o carica il file HTML manualmente.';
-        } else if (response.status === 403) {
-          msg += ' - Il sito blocca l\'accesso. Prova a cambiare User-Agent o usa il caricamento file locale.';
-        }
-        throw new Error(msg);
-      }
-
-      const html = await response.text();
-      setHtmlContent(html);
-      processHtml(html);
-    } catch (e) {
-      console.error(e);
-      showAlert('error', 'Errore durante lo scraping: ' + e.message);
-    }
-    setLoading(false);
-  };
-
-  const importScrapedMatches = () => {
-    if (scrapedMatches.length === 0) {
-      showAlert('error', 'Nessuna partita da importare.');
-      return;
-    }
-
-    const champExists = championships.some(c => c.name === champName);
-    if (!champExists) {
-      setChampionships(prev => [...prev, { name: champName, importedAt: new Date().toISOString() }]);
-    }
-
-    const existingKeys = new Set(matches.map(m => `${m.campionato}|${m.data}|${m.ora}|${m.casa}|${m.ospiti}`));
-    const newMatches = scrapedMatches.filter(m => {
-      const key = `${m.campionato}|${m.data}|${m.ora}|${m.casa}|${m.ospiti}`;
-      return !existingKeys.has(key);
-    });
-
-    if (newMatches.length === 0) {
-      showAlert('info', 'ℹ️ Tutte le partite sono già presenti.');
-      return;
-    }
-
-    setMatches(prev => [...prev, ...newMatches]);
-    showAlert('success', `✅ Importate ${newMatches.length} nuove partite da ${champName}`);
-    setScrapedMatches([]);
-    setUrl('');
-    setHtmlContent(null);
-  };
-
-  const proxyPresets = [
-    { label: 'AllOrigins (raw)', value: 'https://api.allorigins.win/raw?url=' },
-    { label: 'CORS Proxy.io', value: 'https://corsproxy.io/?' },
-    { label: 'CORS Anywhere (potrebbe chiedere attivazione)', value: 'https://cors-anywhere.herokuapp.com/' },
-  ];
-
-  return (
-    <div>
-      <h3 style={{marginBottom:'12px'}}>🌐 Web Scraping - Importa partite da siti web o file HTML</h3>
-      <div className="card">
-        <div className="alert alert-info">
-          <b>💡 Suggerimento:</b> Se il sito blocca i proxy (es. FBref), puoi salvare la pagina web come file HTML e caricarla qui sotto.
-          <br/>I selettori preimpostati sono ottimizzati per <b>FBref</b>.
-        </div>
-
-        <div style={{marginBottom:'16px', padding:'12px', background:'var(--surface)', borderRadius:'8px', border:'1px solid var(--border)'}}>
-          <label style={{fontWeight:'bold', display:'block', marginBottom:'6px'}}>📂 Carica file HTML locale</label>
-          <input
-            type="file"
-            accept=".html,.htm"
-            onChange={handleFileUpload}
-            style={{padding:'6px'}}
-          />
-          <span style={{fontSize:'12px', color:'var(--text-muted)', marginLeft:'8px'}}>
-            Seleziona il file scaricato da FBref (es. K League 1 Scores & Fixtures _ FBref.com.html)
-          </span>
-        </div>
-
-        <hr style={{borderColor:'var(--border)', margin:'12px 0'}}/>
-
-        <div className="form-group">
-          <label>URL della pagina (alternativa)</label>
-          <input
-            type="url"
-            value={url}
-            onChange={e => setUrl(e.target.value)}
-            placeholder="https://www.worldfootball.net/schedule/ita-serie-a-2025-2026/"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Proxy CORS (cambia se il default non funziona)</label>
-          <select value={proxyUrl} onChange={e => setProxyUrl(e.target.value)} style={{marginBottom:'6px'}}>
-            {proxyPresets.map(p => (
-              <option key={p.value} value={p.value}>{p.label}</option>
-            ))}
-            <option value="custom">Personalizzato</option>
-          </select>
-          {proxyUrl === 'custom' && (
-            <input
-              type="text"
-              value={proxyUrl}
-              onChange={e => setProxyUrl(e.target.value)}
-              placeholder="https://mio-proxy.com/?url="
-            />
-          )}
-        </div>
-
-        <div className="form-group">
-          <label>User-Agent (personalizzabile)</label>
-          <input
-            type="text"
-            value={userAgent}
-            onChange={e => setUserAgent(e.target.value)}
-            placeholder="Mozilla/5.0 ..."
-          />
-        </div>
-
-        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
-          <div className="form-group">
-            <label>Container (selettore righe)</label>
-            <input
-              value={selectors.container}
-              onChange={e => setSelectors({...selectors, container: e.target.value})}
-              placeholder="#sched_all tbody tr"
-            />
-          </div>
-          <div className="form-group">
-            <label>Campionato (selettore titolo)</label>
-            <input
-              value={selectors.campionato}
-              onChange={e => setSelectors({...selectors, campionato: e.target.value})}
-              placeholder="h1[itemprop='name']"
-            />
-          </div>
-          <div className="form-group">
-            <label>Data</label>
-            <input
-              value={selectors.data}
-              onChange={e => setSelectors({...selectors, data: e.target.value})}
-              placeholder="td[data-stat='date']"
-            />
-          </div>
-          <div className="form-group">
-            <label>Ora</label>
-            <input
-              value={selectors.ora}
-              onChange={e => setSelectors({...selectors, ora: e.target.value})}
-              placeholder="td[data-stat='time']"
-            />
-          </div>
-          <div className="form-group">
-            <label>Casa</label>
-            <input
-              value={selectors.casa}
-              onChange={e => setSelectors({...selectors, casa: e.target.value})}
-              placeholder="td[data-stat='home_team'] a"
-            />
-          </div>
-          <div className="form-group">
-            <label>Ospite</label>
-            <input
-              value={selectors.ospite}
-              onChange={e => setSelectors({...selectors, ospite: e.target.value})}
-              placeholder="td[data-stat='away_team'] a"
-            />
-          </div>
-          <div className="form-group">
-            <label>Risultato (opzionale, es. "2-1")</label>
-            <input
-              value={selectors.risultato}
-              onChange={e => setSelectors({...selectors, risultato: e.target.value})}
-              placeholder="td[data-stat='score']"
-            />
-          </div>
-        </div>
-
-        <button className="btn" onClick={scrapeMatches} disabled={loading}>
-          {loading ? '⏳ Caricamento...' : '🔍 Estrai da URL'}
-        </button>
-      </div>
-
-      {scrapedMatches.length > 0 && (
-        <div className="card">
-          <h4 style={{marginBottom:'8px'}}>📋 Anteprima partite trovate ({scrapedMatches.length})</h4>
-          <p style={{fontSize:'13px', color:'var(--text-muted)', marginBottom:'8px'}}>
-            Campionato rilevato: <b>{champName}</b>
-          </p>
-          <div className="standings-table-wrap">
-            <table className="scraped-matches-table">
-              <thead>
-                <tr>
-                  <th>Data</th>
-                  <th>Ora</th>
-                  <th>Casa</th>
-                  <th>Ospite</th>
-                  <th>Risultato</th>
-                  <th>Stato</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scrapedMatches.map(m => (
-                  <tr key={m.id}>
-                    <td>{formatDateEU(m.data)}</td>
-                    <td>{m.ora}</td>
-                    <td>{m.casa}</td>
-                    <td>{m.ospiti}</td>
-                    <td>{m.stato === 'Giocata' ? `${m.golCasa}-${m.golOspite}` : '-'}</td>
-                    <td>{m.stato}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div style={{marginTop:'12px', display:'flex', gap:'8px'}}>
-            <button className="btn" onClick={importScrapedMatches}>📥 Importa nel database</button>
-            <button className="btn btn-secondary" onClick={() => setScrapedMatches([])}>🗑️ Cancella anteprima</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
 // ---------- COMPONENTE GESTIONE SOFASCORE ----------
 const SofaScoreManager = ({ onImport, loading }) => {
   const [customLeagues, setCustomLeagues] = useState(getCustomSofaLeagues);
@@ -2975,7 +2602,11 @@ const SofaScoreManager = ({ onImport, loading }) => {
   ];
 
   return (
-    <div className="card">
+    <div className="card" style={{ 
+      maxHeight: 'none', 
+      height: 'auto',
+      transition: 'height 0.3s ease'
+    }}>
       <h4 style={{marginBottom:'12px'}}>🌐 Gestione Campionati SofaScore</h4>
       
       <div className="sub-tabs" style={{marginBottom:'12px'}}>
@@ -3007,7 +2638,11 @@ const SofaScoreManager = ({ onImport, loading }) => {
             <button className="btn" onClick={addCustomLeague}>➕ Aggiungi</button>
           </div>
           
-          <div style={{maxHeight:'300px', overflowY:'auto'}}>
+          <div style={{ 
+            maxHeight: '500px', 
+            overflowY: 'auto',
+            transition: 'max-height 0.3s ease'
+          }}>
             {allLeagues.length === 0 ? (
               <p style={{color:'var(--text-muted)', textAlign:'center', padding:'20px'}}>
                 Nessun campionato configurato.
@@ -3069,12 +2704,14 @@ const SofaScoreManager = ({ onImport, loading }) => {
             )}
           </div>
           
-          <div style={{marginTop:'8px', fontSize:'12px', color:'var(--text-muted)'}}>
+          <div style={{marginTop:'12px', fontSize:'12px', color:'var(--text-muted)', padding:'8px', background:'var(--surface)', borderRadius:'6px'}}>
             💡 Trova l'ID di un campionato nell'URL di SofaScore: 
-            <code style={{background:'var(--surface)', padding:'2px 6px', borderRadius:'4px', margin:'0 4px'}}>
+            <code style={{background:'var(--card)', padding:'2px 6px', borderRadius:'4px', margin:'0 4px'}}>
               sofascore.com/.../allsvenskan/40
             </code>
             → ID è <b>40</b>
+            <br/>
+            <span style={{fontSize:'11px'}}>📊 Totale campionati: <b>{allLeagues.length}</b> (Predefiniti: {Object.keys(SOFASCORE_LEAGUE_IDS).length} | Personalizzati: {customLeagues.length})</span>
           </div>
         </div>
       )}
@@ -3096,7 +2733,7 @@ const SofaScoreManager = ({ onImport, loading }) => {
           </div>
           
           {searchResults.length > 0 && (
-            <div style={{maxHeight:'250px', overflowY:'auto'}}>
+            <div style={{maxHeight:'300px', overflowY:'auto'}}>
               <table className="standings-table" style={{fontSize:'13px'}}>
                 <thead>
                   <tr>
@@ -3147,7 +2784,7 @@ const SofaScoreManager = ({ onImport, loading }) => {
             </p>
           )}
           
-          <div style={{marginTop:'8px', fontSize:'12px', color:'var(--text-muted)'}}>
+          <div style={{marginTop:'12px', fontSize:'12px', color:'var(--text-muted)', padding:'8px', background:'var(--surface)', borderRadius:'6px'}}>
             💡 Cerca il nome del campionato in italiano o inglese (es. "Serie A", "Premier League").
           </div>
         </div>
@@ -3187,130 +2824,6 @@ const askGroq = async (prompt, key) => {
   }
 };
 
-const fetchFootballData = async (endpoint, key) => {
-  if (!key) return null;
-  try {
-    const r = await fetch(`https://api.football-data.org/v4/${endpoint}`, {
-      headers: { 'X-Auth-Token': key }
-    });
-    return await r.json();
-  } catch(e) { return null; }
-};
-
-const downloadAllFootballDataCompetitions = async (apiKey, setMatches, setChampionships, showAlert, championships, matches) => {
-  if (!apiKey) {
-    showAlert('error', '❌ API Key Football-data.org non configurata!');
-    return;
-  }
-  
-  showAlert('info', '📥 Scarico tutti i campionati da Football-data.org...');
-  
-  try {
-    const competitionsData = await fetchFootballData('competitions', apiKey);
-    if (!competitionsData || !competitionsData.competitions) {
-      showAlert('error', '❌ Errore nel recupero dei campionati');
-      return;
-    }
-
-    const competitions = competitionsData.competitions;
-    const newChampionships = [];
-    const newMatches = [];
-    const existingChampNames = new Set(championships.map(c => c.name));
-
-    const worldCupExists = competitions.some(c => c.code === 'WC') || 
-                           championships.some(c => c.name === 'FIFA World Cup 2026');
-
-    if (!worldCupExists) {
-      competitions.push({
-        id: 'WC',
-        name: 'FIFA World Cup 2026',
-        code: 'WC',
-        type: 'CUP',
-        area: { name: 'World' }
-      });
-    }
-
-    for (const comp of competitions) {
-      if (existingChampNames.has(comp.name)) {
-        console.log(`⏭️ Campionato "${comp.name}" già presente, salto.`);
-        continue;
-      }
-
-      const compId = comp.code === 'WC' ? 'WC' : comp.id;
-
-      try {
-        const matchesData = await fetchFootballData(`competitions/${compId}/matches`, apiKey);
-        if (!matchesData || !matchesData.matches) {
-          console.warn(`⚠️ Nessuna partita per ${comp.name}`);
-          continue;
-        }
-
-        const futureMatches = matchesData.matches.filter(m => 
-          m.status === 'SCHEDULED' || m.status === 'TIMED' || m.status === 'LIVE' || m.status === 'IN_PLAY'
-        );
-
-        if (futureMatches.length === 0) {
-          console.log(`ℹ️ Nessuna partita futura per ${comp.name}`);
-          continue;
-        }
-
-        newChampionships.push({
-          name: comp.name,
-          code: comp.code,
-          importedAt: new Date().toISOString()
-        });
-
-        const existingMatchKeys = new Set(matches.map(m => 
-          `${m.campionato}|${m.data}|${m.ora}|${m.casa}|${m.ospiti}`
-        ));
-
-        futureMatches.forEach(m => {
-          const homeTeam = m.homeTeam?.name || m.homeTeam?.shortName || 'Home';
-          const awayTeam = m.awayTeam?.name || m.awayTeam?.shortName || 'Away';
-          const matchDate = new Date(m.utcDate);
-          const dataStr = matchDate.toISOString().slice(0, 10);
-          const oraStr = matchDate.toTimeString().slice(0, 5);
-
-          const key = `${comp.name}|${dataStr}|${oraStr}|${homeTeam}|${awayTeam}`;
-          if (existingMatchKeys.has(key)) return;
-          existingMatchKeys.add(key);
-
-          newMatches.push({
-            id: Math.random().toString(36).slice(2),
-            campionato: comp.name,
-            round: m.matchday || 'N/A',
-            data: dataStr,
-            ora: oraStr,
-            casa: homeTeam,
-            ospiti: awayTeam,
-            stato: 'Futura',
-            golCasa: m.score?.fullTime?.home ?? 0,
-            golOspite: m.score?.fullTime?.away ?? 0,
-            citta: getCittaFromChampionship(comp.name)
-          });
-        });
-
-        await new Promise(resolve => setTimeout(resolve, 500));
-      } catch (err) {
-        console.warn(`Errore campionato ${comp.name}:`, err);
-      }
-    }
-
-    if (newChampionships.length === 0 && newMatches.length === 0) {
-      showAlert('success', '✅ Nessun nuovo campionato o partita da aggiungere.');
-      return;
-    }
-
-    setChampionships(prev => [...prev, ...newChampionships]);
-    setMatches(prev => [...prev, ...newMatches]);
-
-    showAlert('success', `✅ Scaricati ${newMatches.length} nuove partite da ${newChampionships.length} nuovi campionati!`);
-
-  } catch (e) {
-    showAlert('error', '❌ Errore download Football-data.org: ' + e.message);
-  }
-};
-
 function App() {
   const initial = loadState();
   const [tab, setTab] = useState('Palinsesto');
@@ -3323,7 +2836,6 @@ function App() {
   const [selectedChamp, setSelectedChamp] = useState('Tutti');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
-  const [debugColumns, setDebugColumns] = useState(null);
   const [weatherCache, setWeatherCache] = useState({});
   
   const [numMatches, setNumMatches] = useState(3);
@@ -3344,77 +2856,6 @@ function App() {
   
   const [statsSubTab, setStatsSubTab] = useState('Classifica');
   
-  const [availableCompetitions, setAvailableCompetitions] = useState([]);
-  const [selectedCompetition, setSelectedCompetition] = useState(null);
-  const [loadingCompetitions, setLoadingCompetitions] = useState(false);
-  
-  // ---------- FUNZIONE DI IMPORT JSON ----------
-  const importJSON = async (file) => {
-    setLoading(true);
-    try {
-      const text = await file.text();
-      const data = JSON.parse(text);
-      if (!Array.isArray(data)) {
-        showAlert('error', 'Il file JSON deve contenere un array di partite.');
-        setLoading(false);
-        return;
-      }
-      if (data.length > 0 && (!data[0].casa || !data[0].ospiti)) {
-        showAlert('error', 'Struttura JSON non valida: mancano campi "casa" o "ospiti".');
-        setLoading(false);
-        return;
-      }
-
-      const champName = data[0]?.campionato || 'Imported League';
-
-      let leaguesAdded = 0;
-      const allLeagues = new Set(data.map(m => m.campionato || champName));
-      allLeagues.forEach(name => {
-        if (!championships.some(c => c.name === name)) {
-          setChampionships(prev => [...prev, { name, importedAt: new Date().toISOString() }]);
-          leaguesAdded++;
-        }
-      });
-
-      const existingKeys = new Set(matches.map(m => 
-        `${m.campionato}|${m.data}|${m.ora}|${m.casa}|${m.ospiti}`
-      ));
-      
-      const matchesToAdd = data.filter(m => {
-        const key = `${m.campionato || champName}|${m.data}|${m.ora}|${m.casa}|${m.ospiti}`;
-        return !existingKeys.has(key);
-      }).map(m => ({
-        ...m,
-        campionato: m.campionato || champName,
-        id: Math.random().toString(36).slice(2),
-        round: m.round || 'N/A',
-        citta: m.citta || getCittaFromChampionship(m.campionato || champName)
-      }));
-
-      if (matchesToAdd.length === 0) {
-        if (leaguesAdded > 0) {
-          showAlert('success', `✅ Aggiunti ${leaguesAdded} nuovi campionati! (Nessuna nuova partita)`);
-        } else {
-          showAlert('info', 'ℹ️ Nessuna nuova partita da aggiungere.');
-        }
-        setLoading(false);
-        return;
-      }
-
-      setMatches(prev => [...prev, ...matchesToAdd]);
-      
-      let msg = `✅ Importate ${matchesToAdd.length} partite!`;
-      if (leaguesAdded > 0) {
-        msg += ` Aggiunti ${leaguesAdded} nuovi campionati: ${Array.from(allLeagues).join(', ')}`;
-      }
-      showAlert('success', msg);
-
-    } catch (e) {
-      showAlert('error', 'Errore durante l\'importazione JSON: ' + e.message);
-    }
-    setLoading(false);
-  };
-
   // ---------- FUNZIONE IMPORT DA SOFASCORE ----------
   const importFromSofaScore = async (champName) => {
     let leagueId = SOFASCORE_LEAGUE_IDS[champName];
@@ -3436,15 +2877,19 @@ function App() {
     try {
       const events = await fetchSofaScoreMatches(leagueId);
       
-      if (events.length === 0) {
-        showAlert('error', '❌ Nessuna partita trovata.');
+      if (!events || events.length === 0) {
+        showAlert('error', `❌ Nessuna partita trovata per ${champName}. Verifica che il campionato abbia partite nella stagione corrente.`);
         setLoading(false);
         return;
       }
       
+      // Aggiungi il campionato alla lista
       const champExists = championships.some(c => c.name === champName);
       if (!champExists) {
-        setChampionships(prev => [...prev, { name: champName, importedAt: new Date().toISOString() }]);
+        setChampionships(prev => [...prev, { 
+          name: champName, 
+          importedAt: new Date().toISOString() 
+        }]);
       }
       
       const existingKeys = new Set(matches.map(m => 
@@ -3490,12 +2935,138 @@ function App() {
       }
       
       setMatches(prev => [...prev, ...newMatches]);
+      setSelectedChamp(champName);
+      setTab('Palinsesto');
+      
       showAlert('success', `✅ Importate ${newMatches.length} partite da ${champName}!`);
       
     } catch (e) {
+      console.error('Errore importazione:', e);
       showAlert('error', '❌ Errore durante l\'importazione: ' + e.message);
     }
     setLoading(false);
+  };
+
+  // ---------- FUNZIONE IMPORT TUTTI ----------
+  const importAllFromSofaScore = async () => {
+    // Raccogli tutti i campionati disponibili (predefiniti + personalizzati)
+    const allLeagues = [
+      ...Object.keys(SOFASCORE_LEAGUE_IDS),
+      ...getCustomSofaLeagues().map(l => l.name)
+    ];
+    
+    // Filtra quelli già importati
+    const importedNames = new Set(championships.map(c => c.name));
+    const leaguesToImport = allLeagues.filter(name => !importedNames.has(name));
+    
+    if (leaguesToImport.length === 0) {
+      showAlert('info', 'ℹ️ Tutti i campionati disponibili sono già stati importati.');
+      return;
+    }
+    
+    const confirmed = confirm(
+      `📥 Importare tutti i ${leaguesToImport.length} campionati non ancora importati?\n\n` +
+      `${leaguesToImport.join(', ')}`
+    );
+    
+    if (!confirmed) return;
+    
+    setLoading(true);
+    showAlert('info', `📥 Importazione di ${leaguesToImport.length} campionati...`);
+    
+    let successCount = 0;
+    let failCount = 0;
+    let totalMatches = 0;
+    
+    for (const champName of leaguesToImport) {
+      try {
+        const leagueId = SOFASCORE_LEAGUE_IDS[champName] || 
+                         getCustomSofaLeagues().find(l => l.name === champName)?.id;
+        
+        if (!leagueId) {
+          failCount++;
+          continue;
+        }
+        
+        const events = await fetchSofaScoreMatches(leagueId);
+        
+        if (!events || events.length === 0) {
+          failCount++;
+          continue;
+        }
+        
+        // Aggiungi il campionato
+        setChampionships(prev => [...prev, { 
+          name: champName, 
+          importedAt: new Date().toISOString() 
+        }]);
+        
+        const existingKeys = new Set(matches.map(m => 
+          `${m.campionato}|${m.data}|${m.ora}|${m.casa}|${m.ospiti}`
+        ));
+        
+        const newMatches = [];
+        events.forEach(event => {
+          const dt = new Date(event.startTimestamp * 1000);
+          const dataStr = dt.toISOString().slice(0, 10);
+          const oraStr = dt.toTimeString().slice(0, 5);
+          
+          const homeTeam = event.homeTeam?.name || 'Home';
+          const awayTeam = event.awayTeam?.name || 'Away';
+          
+          const key = `${champName}|${dataStr}|${oraStr}|${homeTeam}|${awayTeam}`;
+          if (existingKeys.has(key)) return;
+          existingKeys.add(key);
+          
+          const isFinished = event.status?.type === 'finished' || event.status?.code === 100;
+          const homeScore = event.homeScore?.current || event.homeScore?.normaltime || 0;
+          const awayScore = event.awayScore?.current || event.awayScore?.normaltime || 0;
+          
+          newMatches.push({
+            id: Math.random().toString(36).slice(2),
+            campionato: champName,
+            round: event.roundInfo?.round || 'N/A',
+            data: dataStr,
+            ora: oraStr,
+            casa: homeTeam,
+            ospiti: awayTeam,
+            stato: isFinished ? 'Giocata' : 'Futura',
+            golCasa: isFinished ? homeScore : 0,
+            golOspite: isFinished ? awayScore : 0,
+            citta: getCittaFromChampionship(champName)
+          });
+        });
+        
+        if (newMatches.length > 0) {
+          setMatches(prev => [...prev, ...newMatches]);
+          totalMatches += newMatches.length;
+          successCount++;
+        } else {
+          // Se non ci sono nuove partite, rimuovi il campionato appena aggiunto
+          setChampionships(prev => prev.filter(c => c.name !== champName));
+          failCount++;
+        }
+        
+        await new Promise(r => setTimeout(r, 300));
+        
+      } catch (e) {
+        console.error(`Errore importando ${champName}:`, e);
+        failCount++;
+      }
+    }
+    
+    setLoading(false);
+    
+    if (successCount > 0) {
+      showAlert('success', 
+        `✅ Importati ${successCount} campionati!\n` +
+        `📊 ${totalMatches} partite totali importate.\n` +
+        (failCount > 0 ? `⚠️ ${failCount} campionati falliti.` : '')
+      );
+      setSelectedChamp('Tutti');
+    } else if (failCount > 0) {
+      showAlert('error', `❌ Nessun campionato importato. ${failCount} falliti.`);
+    }
   };
 
   // ---------- FUNZIONI DELL'APP ----------
@@ -3709,150 +3280,22 @@ function App() {
     setTab('Statistiche');
   };
   
-  const importXLSX = async (file) => {
-    setLoading(true);
-    setDebugColumns(null);
-    try {
-      const buffer = await file.arrayBuffer();
-      const wb = XLSX.read(buffer, { type:'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
-      
-      if (rows.length < 2) {
-        showAlert('error', ' Il file è vuoto o non contiene dati validi');
-        setLoading(false);
-        return;
-      }
-      
-      const headers = rows[0].map(h => String(h).trim());
-      setDebugColumns(headers);
-      
-      const colMap = {};
-      headers.forEach((h, idx) => {
-        const normalized = h.toLowerCase().replace(/\s+/g, '');
-        colMap[normalized] = idx;
-      });
-      
-      const requiredCols = ['campionato', 'casa', 'ospite'];
-      const missing = requiredCols.filter(c => !(c in colMap));
-      
-      if (missing.length > 0) {
-        showAlert('error', `❌ Colonne mancanti: ${missing.join(', ')}. Colonne trovate: ${headers.join(', ')}`);
-        setLoading(false);
-        return;
-      }
-      
-      const newMatches = [];
-      const champSet = new Set(championships.map(c => c.name));
-      
-      for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        if (!row || row.length === 0) continue;
-        
-        const getCol = (names) => {
-          for (const name of names) {
-            const normalized = name.toLowerCase().replace(/\s+/g, '');
-            if (colMap[normalized] !== undefined && row[colMap[normalized]] !== undefined && row[colMap[normalized]] !== '') {
-              return row[colMap[normalized]];
-            }
-          }
-          return null;
-        };
-        
-        const campionato = getCol(['Campionato', 'campionato']);
-        const round = getCol(['Round', 'round', 'Giornata', 'giornata']) || 'N/A';
-        const data = getCol(['Data', 'data']);
-        const ora = getCol(['Ora', 'ora', 'Time', 'time']);
-        const casa = getCol(['Casa', 'casa', 'Home', 'home']);
-        const ospiti = getCol(['Ospite', 'ospite', 'Ospiti', 'ospiti', 'Away', 'away']);
-        const statoRaw = getCol(['Stato', 'stato', 'Status', 'status']) || 'Futura';
-        const golCasaRaw = getCol(['GolCasa', 'golcasa']);
-        const golOspiteRaw = getCol(['GolOspite', 'golospite']);
-        const citta = getCol(['Città', 'citta', 'City', 'city']);
-        
-        if (!campionato || !casa || !ospiti) continue;
-        
-        const stato = String(statoRaw).toLowerCase().includes('gioc') ? 'Giocata' : 'Futura';
-        
-        let golCasa = 0, golOspite = 0;
-        if (stato === 'Giocata') {
-          golCasa = parseInt(golCasaRaw) || 0;
-          golOspite = parseInt(golOspiteRaw) || 0;
-        }
-        
-        let dataStr = '';
-        if (data instanceof Date) {
-          dataStr = data.toISOString().slice(0, 10);
-        } else if (data) {
-          const dataString = String(data).trim();
-          if (dataString.match(/^\d{4}-\d{2}-\d{2}/)) {
-            dataStr = dataString.slice(0, 10);
-          } else if (dataString.match(/^\d{2}\/\d{2}\/\d{4}/)) {
-            const [d, m, y] = dataString.split('/');
-            dataStr = `${y}-${m}-${d}`;
-          } else {
-            dataStr = new Date(dataString).toISOString().slice(0, 10);
-          }
-        } else {
-          continue;
-        }
-        
-        let oraStr = 'TBD';
-        if (ora) {
-          const oraString = String(ora);
-          oraStr = oraString.split('(')[0].trim().slice(0, 5);
-          if (!oraStr.match(/^\d{2}:\d{2}$/)) oraStr = 'TBD';
-        }
-        
-        champSet.add(campionato);
-        
-        newMatches.push({
-          id: Math.random().toString(36).slice(2),
-          campionato, round, data: dataStr, ora: oraStr,
-          casa, ospiti, stato, golCasa, golOspite,
-          citta: citta || getCittaFromChampionship(campionato)
-        });
-      }
-      
-      if (newMatches.length === 0) {
-        showAlert('error', `❌ Nessuna partita valida trovata. Colonne rilevate: ${headers.join(', ')}`);
-        setLoading(false);
-        return;
-      }
-      
-      const newChamps = [...championships];
-      champSet.forEach(name => {
-        if (!newChamps.find(c => c.name === name)) newChamps.push({ name, importedAt: new Date().toISOString() });
-      });
-      
-      setChampionships(newChamps);
-      const allMatches = [...matches, ...newMatches];
-      setMatches(allMatches);
-      showAlert('success', `✅ Caricate ${newMatches.length} partite!`);
-      
-      setDebugColumns(null);
-    } catch(e) {
-      console.error('Errore importazione:', e);
-      showAlert('error', '❌ Errore: ' + e.message);
-    }
-    setLoading(false);
-  };
-  
   const testApiKey = async (name) => {
     const key = tempKeys[name];
     if (!key) return;
     try {
       if (name === 'GROQ') {
-        const r = await fetch('https://api.groq.com/openai/v1/models', { headers: { 'Authorization': `Bearer ${key}` } });
+        const r = await fetch('https://api.groq.com/openai/v1/models', { 
+          headers: { 'Authorization': `Bearer ${key}` } 
+        });
         setApiTestResult({ ...apiTestResult, [name]: r.ok ? 'OK' : 'FAIL' });
       } else if (name === 'OpenWeatherMap') {
         const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Rome&appid=${key}`);
         setApiTestResult({ ...apiTestResult, [name]: r.ok ? 'OK' : 'FAIL' });
-      } else if (name === 'Football-data') {
-        const r = await fetch('https://api.football-data.org/v4/competitions', { headers: { 'X-Auth-Token': key } });
-        setApiTestResult({ ...apiTestResult, [name]: r.ok ? 'OK' : 'FAIL' });
       } else if (name === 'API-Football') {
-        const r = await fetch('https://v3.football.api-sports.io/teams?search=Arsenal', { headers: { 'x-apisports-key': key } });
+        const r = await fetch('https://v3.football.api-sports.io/teams?search=Arsenal', { 
+          headers: { 'x-apisports-key': key } 
+        });
         setApiTestResult({ ...apiTestResult, [name]: r.ok ? 'OK' : 'FAIL' });
       }
     } catch(e) {
@@ -3860,113 +3303,7 @@ function App() {
     }
   };
   
-  const loadCompetitionsList = async () => {
-    const key = apiKeys['Football-data'];
-    if (!key) {
-      showAlert('error', '❌ Inserisci prima la chiave Football-data e premi Conferma.');
-      return;
-    }
-    setLoadingCompetitions(true);
-    try {
-      const data = await fetchFootballData('competitions', key);
-      if (data && data.competitions) {
-        setAvailableCompetitions(data.competitions);
-        setSelectedCompetition(null);
-        showAlert('success', `✅ Caricati ${data.competitions.length} campionati.`);
-      } else {
-        showAlert('error', '❌ Nessun campionato trovato.');
-      }
-    } catch(e) {
-      showAlert('error', '❌ Errore nel caricamento della lista: ' + e.message);
-    }
-    setLoadingCompetitions(false);
-  };
-  
-  const importSingleCompetition = async (compId, compName) => {
-    const key = apiKeys['Football-data'];
-    if (!key) {
-      showAlert('error', '❌ Chiave Football-data non configurata.');
-      return;
-    }
-    if (!compId) {
-      showAlert('error', '❌ ID campionato non valido.');
-      return;
-    }
-  
-    showAlert('info', `📥 Importando "${compName}"...`);
-  
-    try {
-      const matchesData = await fetchFootballData(`competitions/${compId}/matches`, key);
-      if (!matchesData || !matchesData.matches) {
-        showAlert('error', '❌ Nessuna partita trovata per questo campionato.');
-        return;
-      }
-  
-      const futureMatches = matchesData.matches.filter(m =>
-        m.status === 'SCHEDULED' || m.status === 'TIMED' || m.status === 'LIVE' || m.status === 'IN_PLAY'
-      );
-  
-      if (futureMatches.length === 0) {
-        showAlert('info', `ℹ️ Nessuna partita futura per "${compName}".`);
-        return;
-      }
-  
-      if (championships.some(c => c.name === compName)) {
-        showAlert('info', `ℹ️ Il campionato "${compName}" è già presente.`);
-        return;
-      }
-  
-      const newMatches = [];
-      const existingMatchKeys = new Set(matches.map(m =>
-        `${m.campionato}|${m.data}|${m.ora}|${m.casa}|${m.ospiti}`
-      ));
-  
-      futureMatches.forEach(m => {
-        const homeTeam = m.homeTeam?.name || m.homeTeam?.shortName || 'Home';
-        const awayTeam = m.awayTeam?.name || m.awayTeam?.shortName || 'Away';
-        const matchDate = new Date(m.utcDate);
-        const dataStr = matchDate.toISOString().slice(0, 10);
-        const oraStr = matchDate.toTimeString().slice(0, 5);
-  
-        const key = `${compName}|${dataStr}|${oraStr}|${homeTeam}|${awayTeam}`;
-        if (existingMatchKeys.has(key)) return;
-        existingMatchKeys.add(key);
-  
-        newMatches.push({
-          id: Math.random().toString(36).slice(2),
-          campionato: compName,
-          round: m.matchday || 'N/A',
-          data: dataStr,
-          ora: oraStr,
-          casa: homeTeam,
-          ospiti: awayTeam,
-          stato: 'Futura',
-          golCasa: m.score?.fullTime?.home ?? 0,
-          golOspite: m.score?.fullTime?.away ?? 0,
-          citta: getCittaFromChampionship(compName)
-        });
-      });
-  
-      if (newMatches.length === 0) {
-        showAlert('info', 'ℹ️ Nessuna nuova partita da aggiungere.');
-        return;
-      }
-  
-      setChampionships(prev => [...prev, { name: compName, code: '', importedAt: new Date().toISOString() }]);
-      setMatches(prev => [...prev, ...newMatches]);
-      showAlert('success', `✅ Importate ${newMatches.length} partite per "${compName}"!`);
-  
-    } catch(e) {
-      showAlert('error', '❌ Errore durante l\'importazione: ' + e.message);
-    }
-  };
-  
   const confirmApiKey = async (name) => {
-    if (name === 'Football-data' && tempKeys[name]) {
-      setApiKeys({ ...apiKeys, [name]: tempKeys[name] });
-      showAlert('success', `✅ ${name} salvata! Ora puoi caricare la lista dei campionati.`);
-      return;
-    }
     setApiKeys({ ...apiKeys, [name]: tempKeys[name] });
     showAlert('success', `✅ ${name} salvata!`);
   };
@@ -4003,7 +3340,17 @@ function App() {
   };
   
   const clearAllChampionships = () => {
-    if (window.confirm('⚠️ Sei sicuro di voler eliminare TUTTI i campionati e le partite associate? Questa operazione è irreversibile.')) {
+    if (championships.length === 0) {
+      showAlert('info', 'ℹ️ Non ci sono campionati da eliminare.');
+      return;
+    }
+    
+    const totalMatches = matches.length;
+    if (window.confirm(
+      `⚠️ Sei sicuro di voler eliminare TUTTI i ${championships.length} campionati ` +
+      `e tutte le ${totalMatches} partite associate?\n\n` +
+      `Questa operazione è irreversibile.`
+    )) {
       setChampionships([]);
       setMatches([]);
       showAlert('success', '🗑️ Tutti i campionati e le partite sono stati cancellati.');
@@ -4216,7 +3563,7 @@ ${matchData}`;
             </div>
             <h2 style={{marginBottom:'14px'}}>📅 Palinsesto - Prossimi 6 Giorni</h2>
             {filterNext6Days(filteredMatches('Futura')).length === 0 ? (
-              <div className="empty-state">Nessuna partita nei prossimi 6 giorni. Importa un campionato o configura API Football-data.org.</div>
+              <div className="empty-state">Nessuna partita nei prossimi 6 giorni. Importa un campionato dalla sezione Impostazioni.</div>
             ) : (
               <div className="matches-grid">
                 {filterNext6Days(filteredMatches('Futura')).map(m => {
@@ -4443,87 +3790,7 @@ ${matchData}`;
           <div>
             <h2 style={{marginBottom:'14px'}}>🔑 Gestione API Key</h2>
             <div className="alert alert-info">
-              💡 <b>Football-data.org</b> per scaricare i campionati. <b>GROQ</b> per l'AI. <b>OpenWeatherMap</b> per il meteo. <b>API-Football</b> per infortuni e statistiche avanzate.
-            </div>
-            
-            <div className="card">
-              <h3>⚽ Football-data.org</h3>
-              <div className="form-group" style={{marginTop:'10px'}}>
-                <label>API Key</label>
-                <input type="password" value={tempKeys['Football-data'] || ''}
-                  onChange={e => setTempKeys({ ...tempKeys, 'Football-data': e.target.value })}
-                  placeholder="Inserisci la tua chiave" />
-              </div>
-              <div style={{display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'12px'}}>
-                <button className="btn btn-secondary" onClick={() => testApiKey('Football-data')}>🧪 Test</button>
-                <button className="btn" onClick={() => confirmApiKey('Football-data')}>💾 Salva Chiave</button>
-                {apiTestResult['Football-data'] && <span style={{padding:'10px', color: apiTestResult['Football-data']==='OK' ? 'var(--win)' : 'var(--lose)'}}><b>Test: {apiTestResult['Football-data']}</b></span>}
-                {apiKeys['Football-data'] && <span style={{padding:'10px', color:'var(--win)'}}>✅ Configurata</span>}
-              </div>
-
-              {apiKeys['Football-data'] && (
-                <div style={{borderTop:'1px solid var(--border)', paddingTop:'12px'}}>
-                  <div style={{display:'flex', gap:'10px', flexWrap:'wrap', alignItems:'center'}}>
-                    <button className="btn btn-secondary" onClick={loadCompetitionsList} disabled={loadingCompetitions}>
-                      {loadingCompetitions ? '⏳ Caricamento...' : '📋 Carica lista campionati'}
-                    </button>
-                    <button className="btn" onClick={() => {
-                      if (availableCompetitions.length === 0) {
-                        showAlert('info', 'Prima carica la lista dei campionati.');
-                        return;
-                      }
-                      downloadAllFootballDataCompetitions(
-                        apiKeys['Football-data'],
-                        setMatches,
-                        setChampionships,
-                        showAlert,
-                        championships,
-                        matches
-                      );
-                    }}>📥 Importa tutti</button>
-                  </div>
-
-                  {availableCompetitions.length > 0 && (
-                    <div style={{marginTop:'10px', display:'flex', gap:'10px', flexWrap:'wrap', alignItems:'flex-end'}}>
-                      <div style={{flex:1, minWidth:'200px'}}>
-                        <label style={{display:'block', fontSize:'13px', color:'var(--text-muted)', marginBottom:'4px'}}>
-                          Seleziona campionato
-                        </label>
-                        <select
-                          value={selectedCompetition?.id || ''}
-                          onChange={e => {
-                            const id = e.target.value;
-                            const comp = availableCompetitions.find(c => String(c.id) === id);
-                            setSelectedCompetition(comp || null);
-                          }}
-                          style={{width:'100%', padding:'8px 12px', background:'var(--surface)', border:'1px solid var(--border)', color:'var(--text)', borderRadius:'6px'}}
-                        >
-                          <option value="">-- Scegli un campionato --</option>
-                          {availableCompetitions.map(comp => (
-                            <option key={comp.id} value={comp.id}>
-                              {comp.name} ({comp.area?.name || 'Mondo'})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <button
-                        className="btn"
-                        disabled={!selectedCompetition}
-                        onClick={() => {
-                          if (!selectedCompetition) {
-                            showAlert('error', '❌ Seleziona un campionato valido.');
-                            return;
-                          }
-                          importSingleCompetition(selectedCompetition.id, selectedCompetition.name);
-                        }}
-                        style={!selectedCompetition ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
-                      >
-                        📥 Importa selezionato
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
+              💡 <b>GROQ</b> per l'AI. <b>OpenWeatherMap</b> per il meteo. <b>API-Football</b> per infortuni e statistiche avanzate.
             </div>
 
             {['GROQ', 'OpenWeatherMap', 'API-Football'].map(name => (
@@ -4623,7 +3890,7 @@ ${matchData}`;
             
             {settingsTab === 'Importa Campionato' && (
               <div>
-                <h3 style={{marginBottom:'12px'}}>📥 Importa Campionato da XLSX, JSON o SofaScore</h3>
+                <h3 style={{marginBottom:'12px'}}>📥 Importa Campionato</h3>
                 
                 <SofaScoreManager 
                   onImport={importFromSofaScore} 
@@ -4632,85 +3899,69 @@ ${matchData}`;
                 
                 <hr style={{borderColor:'var(--border)', margin:'20px 0'}}/>
                 
-                <div className="card">
-                  <div className="alert alert-info">
-                    <b>XLSX:</b> Il file deve avere colonne: <b>Campionato | Round | Data | Ora | Casa | Risultato | Ospite | Stato | Gol Casa | Gol Ospite | Città</b><br/>
-                    <b>JSON:</b> Il file deve essere un array di oggetti con campi: <b>campionato, data, ora, casa, ospiti, stato, golCasa, golOspite, citta</b>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', margin:'20px 0 12px', flexWrap:'wrap', gap:'10px'}}>
+                  <h3 style={{margin:0}}>📋 Campionati Importati</h3>
+                  <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
+                    <button 
+                      className="btn" 
+                      style={{background: 'var(--accent)', color: '#000'}}
+                      onClick={importAllFromSofaScore}
+                      disabled={loading}
+                    >
+                      📥 Importa Tutti
+                    </button>
+                    <button 
+                      className="btn btn-danger btn-sm" 
+                      onClick={clearAllChampionships}
+                    >
+                      🗑️ Elimina Tutti
+                    </button>
                   </div>
-                  
-                  <div className="form-group">
-                    <label>📄 Carica file JSON (generato da script Python)</label>
-                    <input type="file" accept=".json" onChange={e => e.target.files[0] && importJSON(e.target.files[0])} />
-                  </div>
-                  
-                  <hr style={{borderColor:'var(--border)', margin:'12px 0'}}/>
-                  
-                  <div className="form-group">
-                    <label>📊 Carica file XLSX (Excel)</label>
-                    <input type="file" accept=".xlsx,.xls" onChange={e => e.target.files[0] && importXLSX(e.target.files[0])} />
-                  </div>
-                  
-                  {debugColumns && (
-                    <div className="debug-columns">
-                      <h4>🔍 Colonne rilevate nel file XLSX:</h4>
-                      <div>
-                        {debugColumns.map((col, idx) => (
-                          <code key={idx}>{col}</code>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
                 
-                <h3 style={{margin:'20px 0 12px'}}>
-                  📋 Campionati Importati
-                  <button 
-                    className="btn btn-danger btn-sm" 
-                    style={{marginLeft:'12px'}} 
-                    onClick={clearAllChampionships}
-                  >
-                    🗑️ Elimina tutti
-                  </button>
-                </h3>
                 {championships.length === 0 ? (
                   <div className="empty-state">Nessun campionato importato.</div>
                 ) : (
                   <div className="champ-list">
-                    {championships.map(c => (
-                      <div key={c.name} className="champ-item" style={{borderLeft: `4px solid ${getChampColor(c.name)}`, paddingLeft:'12px'}}>
-                        <div>
-                          <b>{c.name}</b>
-                          <div style={{fontSize:'11px', color:'var(--text-muted)'}}>
-                            {matches.filter(m => m.campionato === c.name).length} partite
+                    {championships.map(c => {
+                      const totalMatches = matches.filter(m => m.campionato === c.name).length;
+                      const futureMatches = matches.filter(m => m.campionato === c.name && m.stato === 'Futura').length;
+                      const playedMatches = matches.filter(m => m.campionato === c.name && m.stato === 'Giocata').length;
+                      
+                      return (
+                        <div key={c.name} className="champ-item" style={{borderLeft: `4px solid ${getChampColor(c.name)}`, paddingLeft:'12px'}}>
+                          <div>
+                            <b>{c.name}</b>
+                            <div style={{fontSize:'11px', color:'var(--text-muted)'}}>
+                              {totalMatches} partite ({futureMatches} future, {playedMatches} giocate)
+                              <span style={{marginLeft:'8px', fontSize:'10px', color:'var(--text-muted)'}}>
+                                📅 {new Date(c.importedAt).toLocaleDateString()}
+                              </span>
+                            </div>
                           </div>
+                          <button 
+                            className="btn btn-danger btn-sm" 
+                            onClick={() => {
+                              if (confirm(`Eliminare ${c.name} e tutte le sue partite?`)) {
+                                setChampionships(championships.filter(x => x.name !== c.name));
+                                setMatches(matches.filter(m => m.campionato !== c.name));
+                              }
+                            }}
+                          >
+                            🗑️ Elimina
+                          </button>
                         </div>
-                        <button className="btn btn-danger btn-sm" onClick={() => {
-                          if (confirm(`Eliminare ${c.name} e tutte le sue partite?`)) {
-                            setChampionships(championships.filter(x => x.name !== c.name));
-                            setMatches(matches.filter(m => m.campionato !== c.name));
-                          }
-                        }}>🗑️ Elimina</button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
-            )}
-            
-            {settingsTab === 'Web Scraping' && (
-              <WebScraping 
-                setChampionships={setChampionships}
-                setMatches={setMatches}
-                championships={championships}
-                matches={matches}
-                showAlert={showAlert}
-              />
             )}
           </div>
         )}
         
         <div style={{textAlign:'center', padding:'20px', color:'var(--text-muted)', fontSize:'12px'}}>
-          GesssAI-Pro v1.0 • Dati: {matches.length} partite in {championships.length} campionati
+          GesssAI-Pro v2.0 • Dati: {matches.length} partite in {championships.length} campionati
         </div>
       </div>
     </div>
