@@ -19,9 +19,9 @@
     --accent: #f39c12;
     --accent2: #e67e22;
     --border: #30363d;
-    --win: #2ecc71;
-    --draw: #f1c40f;
-    --lose: #e74c3c;
+    --win: #6fcf97;
+    --draw: #f2c94c;
+    --lose: #eb5757;
     --tab-active: #f39c12;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
@@ -125,6 +125,19 @@
     border-radius: 20px;
     border: 2px solid var(--accent2);
   }
+  .weather-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    margin-top: 4px;
+  }
+  .weather-badge .weather-icon { font-size: 16px; }
+  .weather-badge .weather-temp { font-weight: bold; color: var(--accent); }
   .schedina-controls {
     display: flex;
     flex-wrap: wrap;
@@ -189,9 +202,7 @@
     font-weight: bold;
     cursor: pointer;
   }
-  .schedina-controls .btn-generate:hover {
-    background: var(--accent2);
-  }
+  .schedina-controls .btn-generate:hover { background: var(--accent2); }
   .schedina-controls .btn-reset-cards {
     background: var(--surface);
     color: var(--text);
@@ -316,9 +327,7 @@
     display: flex;
     justify-content: space-between;
   }
-  .schedina-list .entry:last-child {
-    border-bottom: none;
-  }
+  .schedina-list .entry:last-child { border-bottom: none; }
   .schedina-list .entry .remove-btn {
     color: var(--lose);
     cursor: pointer;
@@ -452,9 +461,7 @@
     cursor: pointer;
     transition: background 0.2s;
   }
-  .bet-item:hover {
-    background: var(--card);
-  }
+  .bet-item:hover { background: var(--card); }
   .bet-item .bet-label {
     color: var(--text-muted);
     font-size: 10px;
@@ -525,20 +532,14 @@
     color: #000 !important;
     font-weight: bold;
   }
-  .standings-table tr:hover td {
-    background: var(--card);
-  }
+  .standings-table tr:hover td { background: var(--card); }
   .standings-table .pos {
     font-weight: bold;
     color: var(--accent);
     text-align: center;
   }
-  .standings-table .team-name {
-    font-weight: bold;
-  }
-  .standings-table .num {
-    text-align: center;
-  }
+  .standings-table .team-name { font-weight: bold; }
+  .standings-table .num { text-align: center; }
   .standings-table .points {
     font-weight: bold;
     color: var(--accent);
@@ -564,9 +565,7 @@
     color: #000;
     border-color: var(--accent);
   }
-  .detail-section {
-    margin-bottom: 20px;
-  }
+  .detail-section { margin-bottom: 20px; }
   .detail-section h4 {
     color: var(--accent);
     margin-bottom: 10px;
@@ -589,9 +588,7 @@
     flex: 1;
     cursor: pointer;
   }
-  .detail-stat-box:hover {
-    transform: scale(1.02);
-  }
+  .detail-stat-box:hover { transform: scale(1.02); }
   .detail-stat-box .label {
     display: block;
     font-size: 20px;
@@ -640,10 +637,7 @@
     gap: 8px;
     margin-bottom: 6px;
   }
-  .detail-row .detail-stat-box {
-    flex: 1;
-    min-width: 60px;
-  }
+  .detail-row .detail-stat-box { flex: 1; min-width: 60px; }
   .opponents-row {
     display: flex;
     flex-wrap: wrap;
@@ -666,9 +660,7 @@
     justify-content: space-between;
     align-items: center;
   }
-  .opponents-col .opp-item:last-child {
-    border-bottom: none;
-  }
+  .opponents-col .opp-item:last-child { border-bottom: none; }
   .opp-result-indicator {
     display: inline-block;
     width: 14px;
@@ -704,11 +696,7 @@
     grid-template-columns: 1fr 1.2fr;
     gap: 20px;
   }
-  @media (max-width: 768px) {
-    .stats-two-col {
-      grid-template-columns: 1fr;
-    }
-  }
+  @media (max-width: 768px) { .stats-two-col { grid-template-columns: 1fr; } }
   .stats-placeholder {
     text-align: center;
     padding: 40px;
@@ -762,11 +750,7 @@
     gap: 8px;
     margin-top: 6px;
   }
-  @media (max-width: 768px) {
-    .ai-analysis-box .consigli-grid {
-      grid-template-columns: 1fr;
-    }
-  }
+  @media (max-width: 768px) { .ai-analysis-box .consigli-grid { grid-template-columns: 1fr; } }
   .ai-analysis-box .consiglio-card {
     background: var(--card);
     padding: 8px;
@@ -830,9 +814,7 @@
     font-weight: bold;
     cursor: pointer;
   }
-  .ai-analysis-error .btn-go-key:hover {
-    background: var(--accent2);
-  }
+  .ai-analysis-error .btn-go-key:hover { background: var(--accent2); }
   .ai-result {
     background: var(--surface);
     padding: 16px;
@@ -850,11 +832,7 @@
     gap: 12px;
     margin-top: 10px;
   }
-  @media (max-width: 768px) {
-    .ai-result .consigli-grid {
-      grid-template-columns: 1fr;
-    }
-  }
+  @media (max-width: 768px) { .ai-result .consigli-grid { grid-template-columns: 1fr; } }
   .ai-result .consiglio-card {
     background: var(--card);
     padding: 12px;
@@ -981,16 +959,15 @@
   .debug-columns h4 { margin-bottom: 8px; color: var(--accent); }
   .debug-columns code { display: inline-block; background: var(--card); padding: 2px 6px; border-radius: 4px; margin: 2px; }
   
-  /* Stili per la tabella Scontri */
-  .history-table td {
-    padding: 6px 12px;
-    text-align: center;
-  }
-  .history-table .result-win { background: var(--win); color: #000; }
-  .history-table .result-draw { background: var(--draw); color: #000; }
-  .history-table .result-loss { background: var(--lose); color: #fff; }
-  
-  /* Stili per anteprima scraping */
+/* Stili per la tabella Storico - senza colori */
+.history-table td {
+  padding: 6px 12px;
+  text-align: center;
+}
+.history-table td {
+  color: var(--text);
+}
+
   .scraped-matches-table {
     width: 100%;
     border-collapse: collapse;
@@ -1009,9 +986,7 @@
     padding: 6px 6px;
     border-bottom: 1px solid var(--border);
   }
-  .scraped-matches-table tr:hover td {
-    background: var(--card);
-  }
+  .scraped-matches-table tr:hover td { background: var(--card); }
   
   @media (max-width: 768px) {
     .match-tab, .match-tab-history { min-width: 100%; max-width: 100%; }
@@ -1073,6 +1048,50 @@ const CHAMPIONSHIP_COLORS = {
   'Liga Portugal Betclic': '#1abc9c'
 };
 
+const CITTÀ_PER_CAMPIONATO = {
+  'Serie A': 'Roma',
+  'Premier League': 'Londra',
+  'Bundesliga': 'Berlino',
+  'Ligue 1': 'Parigi',
+  'La Liga': 'Madrid',
+  'Eredivisie': 'Amsterdam',
+  'Primeira Liga': 'Lisbona',
+  'Allsvenskan': 'Stoccolma',
+  'Eliteserien': 'Oslo',
+  'Danish Superliga': 'Copenaghen',
+  'Pro League': 'Bruxelles',
+  'Championship': 'Londra',
+  'Liga MX': 'Città del Messico',
+  'Brasileirão': 'Brasilia',
+  'J1 League': 'Tokyo',
+  'K League 1': 'Seul',
+  'Swiss Super League': 'Berna',
+  'Austrian Bundesliga': 'Vienna',
+  'Chinese Super League': 'Pechino',
+  'Premier Division': 'Dublino',
+  'Besta deild': 'Reykjavik',
+  'Liga Portugal Betclic': 'Lisbona',
+  'FIFA World Cup 2026': 'New York'
+};
+
+// Mappa campionati -> ID SofaScore
+const SOFASCORE_LEAGUE_IDS = {
+  'Allsvenskan': 40,
+  'Eliteserien': 20,
+  'Veikkausliiga': 41,
+  'Danish Superliga': 39,
+  'Premier Division': 192,
+  'Chinese Super League': 649,
+  'Pro League': 38,
+  'Austrian Bundesliga': 45,
+  'K League 1': 410,
+  'J1 League': 196,
+  'Besta deild': 188,
+  'Liga Portugal Betclic': 238,
+  'Russian Premier League': 203,
+  'Swiss Super League': 215
+};
+
 const getChampColor = (champName) => {
   if (!champName) return '#95a5a6';
   for (const [key, color] of Object.entries(CHAMPIONSHIP_COLORS)) {
@@ -1086,6 +1105,14 @@ const getChampColor = (champName) => {
   }
   const hue = Math.abs(hash) % 360;
   return `hsl(${hue}, 65%, 50%)`;
+};
+
+const getCittaFromChampionship = (champName) => {
+  if (!champName) return null;
+  for (const [key, city] of Object.entries(CITTÀ_PER_CAMPIONATO)) {
+    if (champName.toLowerCase().includes(key.toLowerCase())) return city;
+  }
+  return null;
 };
 
 const formatDateEU = (dateStr) => {
@@ -1193,7 +1220,7 @@ const calcTeamMG = (matches, teamName) => {
   return `${(scored/played.length).toFixed(1)}-${(conceded/played.length).toFixed(1)}`;
 };
 
-// Funzione per ottenere la fascia più frequente (usata per il secondo consiglio)
+// Funzione che restituisce la fascia più frequente, ma con etichetta "Over 1,5" al posto di "2-4"
 const getMostFrequentGoalRange = (teamName, allMatches) => {
   const matches = allMatches.filter(m => m.stato === 'Giocata' && (m.casa === teamName || m.ospiti === teamName));
   if (matches.length === 0) return { label: 'N/A', pct: 0 };
@@ -1226,9 +1253,9 @@ const getMostFrequentGoalRange = (teamName, allMatches) => {
     label = '0-2';
     rangePct = goals.filter(g => g <= 2).length / total * 100;
   } else if (maxKey === '2') {
-    label = '1-3';
-    rangePct = goals.filter(g => g >= 1 && g <= 3).length / total * 100;
-  } else { // ge3
+    label = 'Over 1,5';
+    rangePct = goals.filter(g => g >= 2 && g <= 4).length / total * 100;
+  } else {
     label = 'Over 1,5';
     rangePct = goals.filter(g => g >= 2).length / total * 100;
   }
@@ -1244,7 +1271,6 @@ const getBestFreeCombo = (stats, homeMG, awayMG, mgTot) => {
   const over15 = underOver[0].over;
   const under35 = underOver[2].under;
   
-  // Array di tutte le possibili giocate (singole e combo)
   const candidates = [];
   
   // Singole
@@ -1256,17 +1282,20 @@ const getBestFreeCombo = (stats, homeMG, awayMG, mgTot) => {
   
   // Multigol Totale
   for (const [label, pct] of Object.entries(mgTot)) {
-    candidates.push({ label: `MG Tot ${label}`, pct });
+    let displayLabel = label === '2-4' ? 'Over 1,5' : label;
+    candidates.push({ label: `MG Tot ${displayLabel}`, pct });
   }
   
   // Multigol Casa
   for (const [label, pct] of Object.entries(homeMG)) {
-    candidates.push({ label: `MG Casa ${label}`, pct });
+    let displayLabel = label === '2-4' ? 'Over 1,5' : label;
+    candidates.push({ label: `MG Casa ${displayLabel}`, pct });
   }
   
   // Multigol Ospite
   for (const [label, pct] of Object.entries(awayMG)) {
-    candidates.push({ label: `MG Ospite ${label}`, pct });
+    let displayLabel = label === '2-4' ? 'Over 1,5' : label;
+    candidates.push({ label: `MG Ospite ${displayLabel}`, pct });
   }
   
   // DC + Over 1.5
@@ -1281,27 +1310,26 @@ const getBestFreeCombo = (stats, homeMG, awayMG, mgTot) => {
   
   // DC + Multigol Totale
   for (const [mgLabel, mgPct] of Object.entries(mgTot)) {
-    candidates.push({ label: `1X+MG Tot ${mgLabel}`, pct: (p1X + mgPct) / 2 });
-    candidates.push({ label: `12+MG Tot ${mgLabel}`, pct: (p12 + mgPct) / 2 });
-    candidates.push({ label: `X2+MG Tot ${mgLabel}`, pct: (pX2 + mgPct) / 2 });
+    let displayLabel = mgLabel === '2-4' ? 'Over 1,5' : mgLabel;
+    candidates.push({ label: `1X+MG Tot ${displayLabel}`, pct: (p1X + mgPct) / 2 });
+    candidates.push({ label: `12+MG Tot ${displayLabel}`, pct: (p12 + mgPct) / 2 });
+    candidates.push({ label: `X2+MG Tot ${displayLabel}`, pct: (pX2 + mgPct) / 2 });
   }
   
-  // Multigol Casa + Multigol Ospite (combiniamo tutte le coppie)
+  // Multigol Casa + Multigol Ospite
   for (const [homeLabel, homePct] of Object.entries(homeMG)) {
     for (const [awayLabel, awayPct] of Object.entries(awayMG)) {
+      let displayHome = homeLabel === '2-4' ? 'Over 1,5' : homeLabel;
+      let displayAway = awayLabel === '2-4' ? 'Over 1,5' : awayLabel;
       candidates.push({
-        label: `MG Casa ${homeLabel} + MG Ospite ${awayLabel}`,
+        label: `MG Casa ${displayHome} + MG Ospite ${displayAway}`,
         pct: (homePct + awayPct) / 2
       });
     }
   }
   
-  // Scegli il candidato con la percentuale più alta
   let best = candidates.reduce((a, b) => a.pct > b.pct ? a : b);
-  
-  // Arrotonda la percentuale
   best.pct = Math.round(best.pct);
-  
   return best;
 };
 
@@ -1430,6 +1458,38 @@ const get12Under45 = (allMatches, homeTeam, awayTeam) => {
 };
 
 // ============================================================
+// FUNZIONI SOFASCORE API
+// ============================================================
+const fetchSofaScoreMatches = async (leagueId, seasonId) => {
+  try {
+    // Prima ottieni le stagioni disponibili
+    const seasonsRes = await fetch(
+      `https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/seasons`
+    );
+    if (!seasonsRes.ok) throw new Error('Errore nel recupero stagioni');
+    const seasonsData = await seasonsRes.json();
+    
+    let targetSeasonId = seasonId;
+    if (!targetSeasonId && seasonsData.seasons && seasonsData.seasons.length > 0) {
+      targetSeasonId = seasonsData.seasons[0].id;
+    }
+    
+    if (!targetSeasonId) throw new Error('Nessuna stagione disponibile');
+    
+    const matchesRes = await fetch(
+      `https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/season/${targetSeasonId}/events/round/all`
+    );
+    if (!matchesRes.ok) throw new Error('Errore nel recupero partite');
+    const matchesData = await matchesRes.json();
+    
+    return matchesData.events || [];
+  } catch (e) {
+    console.error('Errore fetch SofaScore:', e);
+    return [];
+  }
+};
+
+// ============================================================
 // COMPONENTI
 // ============================================================
 const Standings = ({ matches, filterChampionship, highlightTeams = [] }) => {
@@ -1546,7 +1606,33 @@ const Standings = ({ matches, filterChampionship, highlightTeams = [] }) => {
   );
 };
 
-const MatchTab = ({ match, allMatches, onSelect, addToSchedina }) => {
+const WeatherBadge = ({ weatherData }) => {
+  if (!weatherData) return null;
+  const iconMap = {
+    'clear sky': '☀️',
+    'few clouds': '🌤️',
+    'scattered clouds': '⛅',
+    'broken clouds': '☁️',
+    'overcast clouds': '☁️',
+    'light rain': '🌦️',
+    'moderate rain': '🌧️',
+    'heavy rain': '🌧️',
+    'rain': '🌧️',
+    'snow': '❄️',
+    'thunderstorm': '⛈️',
+  };
+  const icon = iconMap[weatherData.weather] || '🌡️';
+  return (
+    <div className="weather-badge">
+      <span className="weather-icon">{icon}</span>
+      <span className="weather-temp">{Math.round(weatherData.temp)}°C</span>
+      {weatherData.rain > 0 && <span>💧{weatherData.rain}mm</span>}
+      {weatherData.wind_speed > 5 && <span>💨{Math.round(weatherData.wind_speed)}m/s</span>}
+    </div>
+  );
+};
+
+const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) => {
   const homeForm = calcFormAndStats(allMatches, match.casa);
   const awayForm = calcFormAndStats(allMatches, match.ospiti);
   const champColor = getChampColor(match.campionato);
@@ -1566,11 +1652,9 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina }) => {
   const awayUO = getTeamUnderOver(allMatches, match.ospiti);
   const pct12Under45 = get12Under45(allMatches, match.casa, match.ospiti);
   
-  // Calcolo combinata (secondo consiglio)
   const homeRange = getMostFrequentGoalRange(match.casa, allMatches);
   const awayRange = getMostFrequentGoalRange(match.ospiti, allMatches);
   
-  // Calcolo migliore "Libera"
   const stats = computeMatchStats(match, allMatches);
   let freeCombo = { label: 'N/A', pct: 0 };
   if (!stats.error) {
@@ -1616,6 +1700,7 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina }) => {
       <div className="tab-header" style={{background: champColor}}>📊 {match.campionato}</div>
       <div className="match-info">{match.campionato} - Giornata: {match.round}</div>
       <div className="match-info">📅 {formatDateEU(match.data)} - ⏰ {match.ora || 'TBD'}</div>
+      {weatherData && <div className="match-info"><WeatherBadge weatherData={weatherData} /></div>}
       
       <div className="teams-row">
         <div className="team">
@@ -1730,9 +1815,12 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
   const mgAway = Object.values(stats.awayMG);
   const mgTot = Object.values(stats.mgTot);
   
+  const getDisplayLabel = (label) => label === '2-4' ? 'Over 1,5' : label;
+  
   const renderStatBox = (label, value, groupValues = null, onClickLabel = null) => {
     const cls = getColorClass(value, groupValues);
     const isBomb = value >= 90;
+    const displayLabel = getDisplayLabel(label);
     const handleClick = () => {
       if (onClickLabel) {
         const text = `${onClickLabel}: ${Math.round(value)}% (${match.casa} vs ${match.ospiti})`;
@@ -1741,7 +1829,7 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
     };
     return (
       <div className={`detail-stat-box ${cls}`} onClick={handleClick}>
-        <span className="label">{label}</span>
+        <span className="label">{displayLabel}</span>
         <span className="value">
           {Math.round(value)}% {isBomb && <span className="bomb-icon">💣</span>}
         </span>
@@ -1903,7 +1991,7 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
             </div>
             <div className="detail-row" style={{marginBottom:'4px'}}>
               {renderStatBox('1-3', stats.homeMG['1-3'], mgHome, `Casa 1-3`)}
-              {renderStatBox('2-4', stats.homeMG['2-4'], mgHome, `Casa 2-4`)}
+              {renderStatBox('2-4', stats.homeMG['2-4'], mgHome, `Casa Over 1,5`)}
             </div>
           </div>
           <div>
@@ -1914,7 +2002,7 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
             </div>
             <div className="detail-row" style={{marginBottom:'4px'}}>
               {renderStatBox('1-3', stats.awayMG['1-3'], mgAway, `Ospite 1-3`)}
-              {renderStatBox('2-4', stats.awayMG['2-4'], mgAway, `Ospite 2-4`)}
+              {renderStatBox('2-4', stats.awayMG['2-4'], mgAway, `Ospite Over 1,5`)}
             </div>
           </div>
         </div>
@@ -1926,13 +2014,14 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
           {Object.entries(stats.mgTot).map(([label, val]) => {
             const cls = getColorClass(val, mgTot);
             const isBomb = val >= 90;
+            const displayLabel = getDisplayLabel(label);
             const handleClick = () => {
-              const text = `MG Totale ${label}: ${Math.round(val)}% (${match.casa} vs ${match.ospiti})`;
+              const text = `MG Totale ${displayLabel}: ${Math.round(val)}% (${match.casa} vs ${match.ospiti})`;
               addToSchedina(text);
             };
             return (
               <div key={label} className={`detail-stat-box ${cls}`} style={{flex:'1', minWidth:'80px'}} onClick={handleClick}>
-                <span className="label">{label}</span>
+                <span className="label">{displayLabel}</span>
                 <span className="value">
                   {Math.round(val)}% {isBomb && <span className="bomb-icon">💣</span>}
                 </span>
@@ -1949,10 +2038,97 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
   );
 };
 
-const AIAnalysis = ({ match, allMatches, apiKey, setTab }) => {
+// ============================================================
+// COMPONENTE AIAnalysis
+// ============================================================
+const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [weatherData, setWeatherData] = useState(null);
+  const [injuriesData, setInjuriesData] = useState(null);
+  const [standingsData, setStandingsData] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  const fetchWeather = async (city, matchDate) => {
+    const apiKey = apiKeys['OpenWeatherMap'];
+    if (!apiKey || !city) return null;
+    try {
+      const r = await fetch(
+        `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&units=metric&appid=${apiKey}`
+      );
+      if (!r.ok) return null;
+      const data = await r.json();
+      const matchDay = new Date(matchDate);
+      matchDay.setHours(0,0,0,0);
+      const forecasts = data.list.filter(item => {
+        const dt = new Date(item.dt * 1000);
+        dt.setHours(0,0,0,0);
+        return dt.getTime() === matchDay.getTime();
+      });
+      if (forecasts.length === 0) return null;
+      const forecast = forecasts[0];
+      return {
+        temp: forecast.main.temp,
+        temp_min: forecast.main.temp_min,
+        temp_max: forecast.main.temp_max,
+        weather: forecast.weather[0].description,
+        wind_speed: forecast.wind.speed,
+        rain: forecast.rain ? forecast.rain['3h'] : 0,
+        snow: forecast.snow ? forecast.snow['3h'] : 0,
+      };
+    } catch (e) { return null; }
+  };
+  
+  const fetchInjuries = async (teamName) => {
+    const apiKey = apiKeys['API-Football'];
+    if (!apiKey) return null;
+    try {
+      const r = await fetch(`https://v3.football.api-sports.io/injuries?team=${encodeURIComponent(teamName)}`, {
+        headers: { 'x-apisports-key': apiKey }
+      });
+      if (!r.ok) return null;
+      const data = await r.json();
+      return data.response || [];
+    } catch (e) { return null; }
+  };
+  
+  const getStandings = (teamName, championship) => {
+    const matchesFiltered = allMatches.filter(m => m.campionato === championship && m.stato === 'Giocata');
+    if (matchesFiltered.length === 0) return null;
+    const teamStats = {};
+    const addGame = (team, isHome, golFatti, golSubiti) => {
+      if (!teamStats[team]) {
+        teamStats[team] = { pg: 0, punti: 0, v: 0, p: 0, s: 0, gf: 0, gs: 0 };
+      }
+      const t = teamStats[team];
+      t.pg++;
+      t.gf += golFatti;
+      t.gs += golSubiti;
+      if (golFatti > golSubiti) {
+        t.v++;
+        t.punti += 3;
+      } else if (golFatti === golSubiti) {
+        t.p++;
+        t.punti += 1;
+      } else {
+        t.s++;
+      }
+    };
+    matchesFiltered.forEach(m => {
+      addGame(m.casa, true, m.golCasa, m.golOspite);
+      addGame(m.ospiti, false, m.golOspite, m.golCasa);
+    });
+    const sorted = Object.entries(teamStats)
+      .sort((a, b) => {
+        if (b[1].punti !== a[1].punti) return b[1].punti - a[1].punti;
+        if (b[1].gf - b[1].gs !== a[1].gf - a[1].gs) return (b[1].gf - b[1].gs) - (a[1].gf - a[1].gs);
+        return b[1].gf - a[1].gf;
+      })
+      .map(([name, stats], index) => ({ pos: index + 1, name, ...stats }));
+    const teamPos = sorted.find(s => s.name === teamName);
+    return teamPos ? { pos: teamPos.pos, punti: teamPos.punti, pg: teamPos.pg } : null;
+  };
   
   useEffect(() => {
     if (!match) return;
@@ -1961,7 +2137,10 @@ const AIAnalysis = ({ match, allMatches, apiKey, setTab }) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setAnalysis(parsed);
+        setAnalysis(parsed.analysis || null);
+        setWeatherData(parsed.weatherData || null);
+        setInjuriesData(parsed.injuriesData || null);
+        setStandingsData(parsed.standingsData || null);
         setError(null);
         return;
       } catch (e) {}
@@ -1969,9 +2148,9 @@ const AIAnalysis = ({ match, allMatches, apiKey, setTab }) => {
     generateAnalysis();
   }, [match]);
   
-  const generateAnalysis = async () => {
+  const generateAnalysis = async (forceRefresh = false) => {
     if (!match) return;
-    if (!apiKey) {
+    if (!apiKeys['GROQ']) {
       setError('🔑 Chiave API GROQ non configurata');
       setLoading(false);
       return;
@@ -1979,94 +2158,140 @@ const AIAnalysis = ({ match, allMatches, apiKey, setTab }) => {
     
     setLoading(true);
     setError(null);
+    setIsRefreshing(true);
     
     try {
       const stats = computeMatchStats(match, allMatches);
       if (stats.error) {
         setError(stats.error);
         setLoading(false);
+        setIsRefreshing(false);
         return;
       }
-      
       const homeForm = calcFormAndStats(allMatches, match.casa);
       const awayForm = calcFormAndStats(allMatches, match.ospiti);
       const homeMG = calcTeamMG(allMatches, match.casa);
       const awayMG = calcTeamMG(allMatches, match.ospiti);
-      
       const pct12Under45 = get12Under45(allMatches, match.casa, match.ospiti);
       const is12Under45Good = pct12Under45 >= 70;
       
-      // Calcola la migliore libera per fornire un suggerimento all'AI
-      const bestFree = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
+      const city = getCittaFromChampionship(match.campionato);
+      let weather = null;
+      if (city && apiKeys['OpenWeatherMap']) {
+        weather = await fetchWeather(city, match.data);
+        setWeatherData(weather);
+      }
       
-      const prompt = `Analizza i seguenti dati pre-match e genera un'analisi dettagliata.
-Rispondi ESCLUSIVAMENTE in formato JSON valido, con questa struttura:
+      let injuries = null;
+      if (apiKeys['API-Football']) {
+        const injHome = await fetchInjuries(match.casa);
+        const injAway = await fetchInjuries(match.ospiti);
+        if (injHome || injAway) {
+          injuries = { home: injHome || [], away: injAway || [] };
+        }
+        setInjuriesData(injuries);
+      }
+      
+      const standingHome = getStandings(match.casa, match.campionato);
+      const standingAway = getStandings(match.ospiti, match.campionato);
+      const standings = { home: standingHome, away: standingAway };
+      setStandingsData(standings);
+      
+      let meteoSection = '';
+      if (weather) {
+        meteoSection = `
+🌤️ Condizioni meteo previste per ${city} il giorno della partita:
+- Temperatura: ${weather.temp}°C (min ${weather.temp_min}°C, max ${weather.temp_max}°C)
+- Condizioni: ${weather.weather}
+- Vento: ${weather.wind_speed} m/s
+- Pioggia: ${weather.rain ? weather.rain + ' mm' : 'nessuna'}
+- Neve: ${weather.snow ? weather.snow + ' mm' : 'nessuna'}
+
+💡 Impatto sul gioco:
+${weather.rain > 0 ? '🔴 Pioggia: campo scivoloso, favorisce il gioco corto e i contrasti.' : '✅ Meteo favorevole per un calcio spettacolare.'}
+${weather.wind_speed > 5 ? '💨 Vento forte: può influenzare i lanci lunghi e i calci piazzati.' : ''}
+${weather.temp > 30 ? '🔥 Caldo intenso: potrebbe affaticare i giocatori, favorendo le sostituzioni.' : ''}
+${weather.temp < 5 ? '❄️ Freddo: potrebbe rallentare il gioco, favorire il possesso palla.' : ''}
+`;
+      } else {
+        meteoSection = 'Dati meteo non disponibili.';
+      }
+      
+      let injuriesSection = '';
+      if (injuries && (injuries.home.length > 0 || injuries.away.length > 0)) {
+        injuriesSection = '⚠️ Infortuni e squalifiche:\n';
+        if (injuries.home.length > 0) {
+          injuriesSection += `  ${match.casa}: ${injuries.home.map(i => `${i.player.name} (${i.status})`).join(', ')}\n`;
+        }
+        if (injuries.away.length > 0) {
+          injuriesSection += `  ${match.ospiti}: ${injuries.away.map(i => `${i.player.name} (${i.status})`).join(', ')}\n`;
+        }
+      } else {
+        injuriesSection = 'Nessuna informazione su infortuni/squalifiche.';
+      }
+      
+      let standingsSection = '';
+      if (standings.home) {
+        standingsSection = `🏆 Classifica in campionato:\n- ${match.casa}: ${standings.home.pos}° posto (${standings.home.punti} punti, ${standings.home.pg} partite)\n- ${match.ospiti}: ${standings.away ? standings.away.pos + '° posto (' + standings.away.punti + ' punti, ' + standings.away.pg + ' partite)' : 'N/A'}`;
+      } else {
+        standingsSection = 'Classifica non disponibile.';
+      }
+      
+      const prompt = `Analizza la partita ${match.casa} vs ${match.ospiti} (${match.campionato} - Giornata: ${match.round}) del ${match.data} alle ${match.ora}.
+
+Dati statistici:
+- Forma Casa (ultime 5): ${homeForm.form} (${homeForm.pct}%)
+- Forma Ospite: ${awayForm.form} (${awayForm.pct}%)
+- Differenza forma: ${Math.abs(homeForm.pct - awayForm.pct)}%
+- Media Gol Casa: ${homeMG} - Media Gol Ospite: ${awayMG}
+- 1X2: 1=${Math.round(stats.p1)}% X=${Math.round(stats.pX)}% 2=${Math.round(stats.p2)}%
+- Doppia Chance: 1X=${Math.round(stats.p1X)}% 12=${Math.round(stats.p12)}% X2=${Math.round(stats.pX2)}%
+- Under/Over 1.5: U=${Math.round(stats.underOver[0].under)}% O=${Math.round(stats.underOver[0].over)}%
+- Under/Over 2.5: U=${Math.round(stats.underOver[1].under)}% O=${Math.round(stats.underOver[1].over)}%
+- Under/Over 3.5: U=${Math.round(stats.underOver[2].under)}% O=${Math.round(stats.underOver[2].over)}%
+- Under/Over 4.5: U=${Math.round(stats.underOver[3].under)}% O=${Math.round(stats.underOver[3].over)}%
+- Multigol Casa: 0-1=${Math.round(stats.homeMG['0-1'])}% 0-2=${Math.round(stats.homeMG['0-2'])}% 1-3=${Math.round(stats.homeMG['1-3'])}% Over 1,5=${Math.round(stats.homeMG['2-4'])}%
+- Multigol Ospite: 0-1=${Math.round(stats.awayMG['0-1'])}% 0-2=${Math.round(stats.awayMG['0-2'])}% 1-3=${Math.round(stats.awayMG['1-3'])}% Over 1,5=${Math.round(stats.awayMG['2-4'])}%
+- Multigol Totale: 1-4=${Math.round(stats.mgTot['1-4'])}% Over 1,5=${Math.round(stats.mgTot['2-4'])}% 2-5=${Math.round(stats.mgTot['2-5'])}% 3-6=${Math.round(stats.mgTot['3-6'])}%
+
+${meteoSection}
+
+${injuriesSection}
+
+${standingsSection}
+
+Sulla base di questi dati, genera un'analisi dettagliata in formato JSON con la seguente struttura:
 {
-  "panoramica": "Testo analisi stato di forma",
-  "impatto_assenze": "Testo su infortuni e squalifiche (se non disponibili, indica 'Nessuna informazione')",
-  "fattore_meteo_campo": "Testo su come il meteo e il campo influiscono (se non disponibili, indica 'Nessuna informazione')",
-  "chiavi_tattiche": "Testo sull'analisi tattica",
+  "panoramica": "Analisi dello stato di forma e probabile andamento",
+  "impatto_assenze": "Valutazione degli assenti e impatto sulla squadra",
+  "fattore_meteo_campo": "Come il meteo e il campo potrebbero influenzare il gioco",
+  "chiavi_tattiche": "Aspetti tattici da tenere d'occhio",
   "pronostico": {
     "esito_1X2": "1, X o 2",
     "percentuale_sicurezza": 75,
     "12+under_4_5": "${is12Under45Good ? 'Sì' : 'No'}",
     "12+under_4_5_pct": ${Math.round(pct12Under45)},
-    "motivazione_sintetica": "Una frase di riepilogo"
+    "motivazione_sintetica": "Frase riepilogativa"
   },
   "consigli": [
-    {
-      "tipo": "singola",
-      "giocata": "Over 1.5",
-      "percentuale": 68
-    },
-    {
-      "tipo": "combinata",
-      "giocata": "2 + Under 4.5",
-      "percentuale": 55
-    },
-    {
-      "tipo": "libera",
-      "giocata": "${bestFree.label}",
-      "percentuale": ${bestFree.pct}
-    }
+    { "tipo": "singola", "giocata": "Over 1.5", "percentuale": 68 },
+    { "tipo": "combinata", "giocata": "2 + Under 4.5", "percentuale": 55 },
+    { "tipo": "libera", "giocata": "1X+Over1.5", "percentuale": 72 }
   ],
   "indice_rischio_match": 5
 }
 
-Per il consiglio "libera", usa la combo che ritieni migliore tra tutte le opzioni disponibili (DC, Over, Under, DC+Over, DC+Under, DC+MG Tot, MG Tot, MG Casa, MG Ospite, MG Casa+MG Ospite). 
-Il calcolo automatico suggerisce "${bestFree.label}" con ${bestFree.pct}%, ma se ritieni ce ne sia una migliore, usa quella. 
+Sii preciso e utilizza le percentuali calcolate. Per il consiglio "libera", scegli tra le combo approvate (DC, Over, Under, DC+Over, DC+Under, DC+MG Tot, MG Tot, MG Casa, MG Ospite, MG Casa+MG Ospite).`;
 
-Dati partita:
-Partita: ${match.casa} vs ${match.ospiti}
-Campionato: ${match.campionato} - Giornata: ${match.round}
-Data: ${match.data} - Ora: ${match.ora}
-Forma Casa: ${homeForm.form} (${homeForm.pct}%)
-Forma Ospite: ${awayForm.form} (${awayForm.pct}%)
-Differenza forma: ${Math.abs(homeForm.pct - awayForm.pct)}%
-Media Gol Casa: ${homeMG} - Media Gol Ospite: ${awayMG}
-1X2: 1=${Math.round(stats.p1)}% X=${Math.round(stats.pX)}% 2=${Math.round(stats.p2)}%
-Doppia Chance: 1X=${Math.round(stats.p1X)}% 12=${Math.round(stats.p12)}% X2=${Math.round(stats.pX2)}%
-Under/Over 1.5: U=${Math.round(stats.underOver[0].under)}% O=${Math.round(stats.underOver[0].over)}%
-Under/Over 2.5: U=${Math.round(stats.underOver[1].under)}% O=${Math.round(stats.underOver[1].over)}%
-Under/Over 3.5: U=${Math.round(stats.underOver[2].under)}% O=${Math.round(stats.underOver[2].over)}%
-Under/Over 4.5: U=${Math.round(stats.underOver[3].under)}% O=${Math.round(stats.underOver[3].over)}%
-Multigol Casa: 0-1=${Math.round(stats.homeMG['0-1'])}% 0-2=${Math.round(stats.homeMG['0-2'])}% 1-3=${Math.round(stats.homeMG['1-3'])}% 2-4=${Math.round(stats.homeMG['2-4'])}%
-Multigol Ospite: 0-1=${Math.round(stats.awayMG['0-1'])}% 0-2=${Math.round(stats.awayMG['0-2'])}% 1-3=${Math.round(stats.awayMG['1-3'])}% 2-4=${Math.round(stats.awayMG['2-4'])}%
-Multigol Totale: 1-4=${Math.round(stats.mgTot['1-4'])}% 2-4=${Math.round(stats.mgTot['2-4'])}% 2-5=${Math.round(stats.mgTot['2-5'])}% 3-6=${Math.round(stats.mgTot['3-6'])}%
-
-Genera i 3 consigli (singola, combinata, libera) con percentuali realistiche. La libera deve essere una delle combinazioni approvate.`;
-      
-      const res = await askGroq(prompt, apiKey);
-      
+      const res = await askGroq(prompt, apiKeys['GROQ']);
       let jsonStr = res;
       const jsonMatch = res.match(/```(?:json)?\s*([\s\S]*?)```/);
       if (jsonMatch) jsonStr = jsonMatch[1];
       const parsed = JSON.parse(jsonStr.trim());
       
-      // Fallback: se la libera non è valida, usa quella calcolata
       if (parsed.consigli && parsed.consigli.length === 3) {
+        const bestFree = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
         const libera = parsed.consigli[2];
-        // Verifica che la giocata sia tra quelle approvate (controllo approssimativo)
         const validKeywords = ['1X','12','X2','Over','Under','MG','Multigol','Casa','Ospite','DC'];
         const isValid = validKeywords.some(k => libera.giocata.includes(k));
         if (!isValid) {
@@ -2075,13 +2300,14 @@ Genera i 3 consigli (singola, combinata, libera) con percentuali realistiche. La
         }
       }
       
-      if (parsed.pronostico) {
-        parsed.pronostico['12+under_4_5'] = is12Under45Good ? 'Sì' : 'No';
-        parsed.pronostico['12+under_4_5_pct'] = Math.round(pct12Under45);
-      }
-      
       const storageKey = `ft_ai_${match.id}`;
-      localStorage.setItem(storageKey, JSON.stringify(parsed));
+      const toStore = {
+        analysis: parsed,
+        weatherData: weather,
+        injuriesData: injuries,
+        standingsData: standings
+      };
+      localStorage.setItem(storageKey, JSON.stringify(toStore));
       
       setAnalysis(parsed);
       setError(null);
@@ -2090,13 +2316,14 @@ Genera i 3 consigli (singola, combinata, libera) con percentuali realistiche. La
       setError(e.message || 'Errore durante la generazione dell\'analisi');
     }
     setLoading(false);
+    setIsRefreshing(false);
   };
   
   const refreshAnalysis = () => {
     if (match) {
       const storageKey = `ft_ai_${match.id}`;
       localStorage.removeItem(storageKey);
-      generateAnalysis();
+      generateAnalysis(true);
     }
   };
   
@@ -2111,12 +2338,13 @@ Genera i 3 consigli (singola, combinata, libera) con percentuali realistiche. La
       <div className="ai-analysis-loading">
         ⏳ Generazione analisi AI...<br/>
         <span style={{fontSize:'12px', color:'var(--text-muted)'}}>Potrebbe richiedere alcuni secondi</span>
+        {isRefreshing && <div style={{marginTop:'8px'}}>🔄 Aggiornamento con meteo e infortuni</div>}
       </div>
     );
   }
   
   if (error) {
-    const isKeyError = error.includes('API GROQ') || error.includes('chiave');
+    const isKeyError = error.includes('GROQ') || error.includes('chiave');
     return (
       <div className="ai-analysis-error">
         <span>⚠️ {error}</span>
@@ -2145,8 +2373,17 @@ Genera i 3 consigli (singola, combinata, libera) con percentuali realistiche. La
   return (
     <div className="ai-analysis-box">
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'6px'}}>
-        <h3 style={{color: getChampColor(match.campionato), margin:0, fontSize:'16px'}}>🤖 Analisi AI Avanzata</h3>
-        <button className="btn-refresh" onClick={refreshAnalysis} title="Rigenera analisi">🔄</button>
+        <h3 style={{color: getChampColor(match.campionato), margin:0, fontSize:'16px'}}>
+          🤖 Analisi AI Avanzata
+          {weatherData && <span style={{marginLeft:'8px', fontSize:'14px'}}>🌤️</span>}
+          {injuriesData && <span style={{marginLeft:'4px', fontSize:'14px'}}>🏥</span>}
+        </h3>
+        <div>
+          <button className="btn-refresh" onClick={refreshAnalysis} title="Rigenera analisi con meteo aggiornato">
+            🌤️ Aggiorna Meteo
+          </button>
+          <button className="btn-refresh" onClick={refreshAnalysis} title="Rigenera analisi" style={{marginLeft:'6px'}}>🔄</button>
+        </div>
       </div>
       
       <h4>📋 Panoramica</h4>
@@ -2236,15 +2473,6 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
     );
   }
 
-  const getResult = (match, team) => {
-    const isHome = match.casa === team;
-    const teamGoals = isHome ? match.golCasa : match.golOspite;
-    const oppGoals = isHome ? match.golOspite : match.golCasa;
-    if (teamGoals > oppGoals) return 'win';
-    if (teamGoals === oppGoals) return 'draw';
-    return 'loss';
-  };
-
   const getOpponent = (match, team) => {
     return match.casa === team ? match.ospiti : match.casa;
   };
@@ -2263,11 +2491,9 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
           </thead>
           <tbody>
             {teamMatches.map(m => {
-              const result = getResult(m, teamName);
               const opponent = getOpponent(m, teamName);
-              const rowClass = result === 'win' ? 'result-win' : result === 'draw' ? 'result-draw' : 'result-loss';
               return (
-                <tr key={m.id} className={rowClass}>
+                <tr key={m.id}>
                   <td>{formatDateEU(m.data)}</td>
                   <td>{opponent}</td>
                   <td>{m.golCasa} - {m.golOspite}</td>
@@ -2481,7 +2707,6 @@ const WebScraping = ({ setChampionships, setMatches, championships, matches, sho
           <br/>I selettori preimpostati sono ottimizzati per <b>FBref</b>.
         </div>
 
-        {/* Sezione Caricamento File Locale */}
         <div style={{marginBottom:'16px', padding:'12px', background:'var(--surface)', borderRadius:'8px', border:'1px solid var(--border)'}}>
           <label style={{fontWeight:'bold', display:'block', marginBottom:'6px'}}>📂 Carica file HTML locale</label>
           <input
@@ -2497,7 +2722,6 @@ const WebScraping = ({ setChampionships, setMatches, championships, matches, sho
 
         <hr style={{borderColor:'var(--border)', margin:'12px 0'}}/>
 
-        {/* Sezione URL (alternativa) */}
         <div className="form-group">
           <label>URL della pagina (alternativa)</label>
           <input
@@ -2772,6 +2996,7 @@ const downloadAllFootballDataCompetitions = async (apiKey, setMatches, setChampi
             stato: 'Futura',
             golCasa: m.score?.fullTime?.home ?? 0,
             golOspite: m.score?.fullTime?.away ?? 0,
+            citta: getCittaFromChampionship(comp.name)
           });
         });
 
@@ -2809,6 +3034,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [debugColumns, setDebugColumns] = useState(null);
+  const [weatherCache, setWeatherCache] = useState({});
   
   const [numMatches, setNumMatches] = useState(3);
   const [schedinaChamp, setSchedinaChamp] = useState('Tutti');
@@ -2851,7 +3077,6 @@ function App() {
 
       const champName = data[0]?.campionato || 'Imported League';
 
-      // --- AGGIUNGI TUTTI I CAMPIONATI TROVATI ---
       let leaguesAdded = 0;
       const allLeagues = new Set(data.map(m => m.campionato || champName));
       allLeagues.forEach(name => {
@@ -2861,7 +3086,6 @@ function App() {
         }
       });
 
-      // --- FILTRA DUPLICATI ---
       const existingKeys = new Set(matches.map(m => 
         `${m.campionato}|${m.data}|${m.ora}|${m.casa}|${m.ospiti}`
       ));
@@ -2873,7 +3097,8 @@ function App() {
         ...m,
         campionato: m.campionato || champName,
         id: Math.random().toString(36).slice(2),
-        round: m.round || 'N/A'
+        round: m.round || 'N/A',
+        citta: m.citta || getCittaFromChampionship(m.campionato || champName)
       }));
 
       if (matchesToAdd.length === 0) {
@@ -2896,6 +3121,82 @@ function App() {
 
     } catch (e) {
       showAlert('error', 'Errore durante l\'importazione JSON: ' + e.message);
+    }
+    setLoading(false);
+  };
+
+  // ---------- FUNZIONE IMPORT DA SOFASCORE ----------
+  const importFromSofaScore = async (champName) => {
+    const leagueId = SOFASCORE_LEAGUE_IDS[champName];
+    if (!leagueId) {
+      showAlert('error', `❌ ID non trovato per ${champName}`);
+      return;
+    }
+    
+    setLoading(true);
+    showAlert('info', `📥 Scaricando ${champName} da SofaScore...`);
+    
+    try {
+      const events = await fetchSofaScoreMatches(leagueId);
+      
+      if (events.length === 0) {
+        showAlert('error', '❌ Nessuna partita trovata.');
+        setLoading(false);
+        return;
+      }
+      
+      const champExists = championships.some(c => c.name === champName);
+      if (!champExists) {
+        setChampionships(prev => [...prev, { name: champName, importedAt: new Date().toISOString() }]);
+      }
+      
+      const existingKeys = new Set(matches.map(m => 
+        `${m.campionato}|${m.data}|${m.ora}|${m.casa}|${m.ospiti}`
+      ));
+      
+      const newMatches = [];
+      events.forEach(event => {
+        const dt = new Date(event.startTimestamp * 1000);
+        const dataStr = dt.toISOString().slice(0, 10);
+        const oraStr = dt.toTimeString().slice(0, 5);
+        
+        const homeTeam = event.homeTeam?.name || 'Home';
+        const awayTeam = event.awayTeam?.name || 'Away';
+        
+        const key = `${champName}|${dataStr}|${oraStr}|${homeTeam}|${awayTeam}`;
+        if (existingKeys.has(key)) return;
+        existingKeys.add(key);
+        
+        const isFinished = event.status?.type === 'finished' || event.status?.code === 100;
+        const homeScore = event.homeScore?.current || event.homeScore?.normaltime || 0;
+        const awayScore = event.awayScore?.current || event.awayScore?.normaltime || 0;
+        
+        newMatches.push({
+          id: Math.random().toString(36).slice(2),
+          campionato: champName,
+          round: event.roundInfo?.round || 'N/A',
+          data: dataStr,
+          ora: oraStr,
+          casa: homeTeam,
+          ospiti: awayTeam,
+          stato: isFinished ? 'Giocata' : 'Futura',
+          golCasa: isFinished ? homeScore : 0,
+          golOspite: isFinished ? awayScore : 0,
+          citta: getCittaFromChampionship(champName)
+        });
+      });
+      
+      if (newMatches.length === 0) {
+        showAlert('info', 'ℹ️ Nessuna nuova partita da aggiungere.');
+        setLoading(false);
+        return;
+      }
+      
+      setMatches(prev => [...prev, ...newMatches]);
+      showAlert('success', `✅ Importate ${newMatches.length} partite da ${champName}!`);
+      
+    } catch (e) {
+      showAlert('error', '❌ Errore durante l\'importazione: ' + e.message);
     }
     setLoading(false);
   };
@@ -2972,7 +3273,6 @@ function App() {
       const homeRange = getMostFrequentGoalRange(m.casa, matches);
       const awayRange = getMostFrequentGoalRange(m.ospiti, matches);
       
-      // Calcola la migliore libera
       const stats = computeMatchStats(m, matches);
       let freeCombo = { label: 'N/A', pct: 0 };
       if (!stats.error) {
@@ -3034,7 +3334,7 @@ function App() {
     });
   };
   
-  const exportSchedinaImage = () => {
+  const exportSchedinaImage = async () => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const width = 600;
@@ -3067,12 +3367,27 @@ function App() {
     ctx.font = 'bold 16px Arial';
     ctx.fillText(`Totale: ${entries} giocate`, padding, 100 + entries * lineHeight + 10);
     
-    const imgData = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.href = imgData;
-    link.download = `schedina_${Date.now()}.png`;
-    link.click();
-    showAlert('success', '🖼️ Schedina esportata come immagine!');
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) {
+      showAlert('error', '❌ Impossibile creare l\'immagine.');
+      return;
+    }
+    
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'image/png': blob
+        })
+      ]);
+      showAlert('success', '🖼️ Immagine copiata negli appunti!');
+    } catch (err) {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `schedina_${Date.now()}.png`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      showAlert('success', '🖼️ Schedina esportata come immagine (download)!');
+    }
   };
   
   useEffect(() => {
@@ -3156,6 +3471,7 @@ function App() {
         const statoRaw = getCol(['Stato', 'stato', 'Status', 'status']) || 'Futura';
         const golCasaRaw = getCol(['GolCasa', 'golcasa']);
         const golOspiteRaw = getCol(['GolOspite', 'golospite']);
+        const citta = getCol(['Città', 'citta', 'City', 'city']);
         
         if (!campionato || !casa || !ospiti) continue;
         
@@ -3197,6 +3513,7 @@ function App() {
           id: Math.random().toString(36).slice(2),
           campionato, round, data: dataStr, ora: oraStr,
           casa, ospiti, stato, golCasa, golOspite,
+          citta: citta || getCittaFromChampionship(campionato)
         });
       }
       
@@ -3329,6 +3646,7 @@ function App() {
           stato: 'Futura',
           golCasa: m.score?.fullTime?.home ?? 0,
           golOspite: m.score?.fullTime?.away ?? 0,
+          citta: getCittaFromChampionship(compName)
         });
       });
   
@@ -3465,9 +3783,9 @@ Under/Over 1.5: U=${Math.round(stats.underOver[0].under)}% O=${Math.round(stats.
 Under/Over 2.5: U=${Math.round(stats.underOver[1].under)}% O=${Math.round(stats.underOver[1].over)}%
 Under/Over 3.5: U=${Math.round(stats.underOver[2].under)}% O=${Math.round(stats.underOver[2].over)}%
 Under/Over 4.5: U=${Math.round(stats.underOver[3].under)}% O=${Math.round(stats.underOver[3].over)}%
-Multigol Casa: 0-1=${Math.round(stats.homeMG['0-1'])}% 0-2=${Math.round(stats.homeMG['0-2'])}% 1-3=${Math.round(stats.homeMG['1-3'])}% 2-4=${Math.round(stats.homeMG['2-4'])}%
-Multigol Ospite: 0-1=${Math.round(stats.awayMG['0-1'])}% 0-2=${Math.round(stats.awayMG['0-2'])}% 1-3=${Math.round(stats.awayMG['1-3'])}% 2-4=${Math.round(stats.awayMG['2-4'])}%
-Multigol Totale: 1-4=${Math.round(stats.mgTot['1-4'])}% 2-4=${Math.round(stats.mgTot['2-4'])}% 2-5=${Math.round(stats.mgTot['2-5'])}% 3-6=${Math.round(stats.mgTot['3-6'])}%`;
+Multigol Casa: 0-1=${Math.round(stats.homeMG['0-1'])}% 0-2=${Math.round(stats.homeMG['0-2'])}% 1-3=${Math.round(stats.homeMG['1-3'])}% Over 1,5=${Math.round(stats.homeMG['2-4'])}%
+Multigol Ospite: 0-1=${Math.round(stats.awayMG['0-1'])}% 0-2=${Math.round(stats.awayMG['0-2'])}% 1-3=${Math.round(stats.awayMG['1-3'])}% Over 1,5=${Math.round(stats.awayMG['2-4'])}%
+Multigol Totale: 1-4=${Math.round(stats.mgTot['1-4'])}% Over 1,5=${Math.round(stats.mgTot['2-4'])}% 2-5=${Math.round(stats.mgTot['2-5'])}% 3-6=${Math.round(stats.mgTot['3-6'])}%`;
     });
     
     const fullPrompt = `Analizza i seguenti dati pre-match e per OGNI partita suggerisci 3 consigli di giocate con relative percentuali di probabilità.
@@ -3503,10 +3821,10 @@ Per il consiglio "libera", usa UNA delle seguenti tipologie (scegli la migliore 
 - Under 3.5
 - DC + Over 1.5
 - DC + Under 3.5
-- DC + Multigol Totale (1-4, 2-4, 2-5, 3-6)
-- Multigol Totale (1-4, 2-4, 2-5, 3-6)
-- Multigol Casa (0-1, 0-2, 1-3, 2-4)
-- Multigol Ospite (0-1, 0-2, 1-3, 2-4)
+- DC + Multigol Totale (1-4, Over 1,5, 2-5, 3-6)
+- Multigol Totale (1-4, Over 1,5, 2-5, 3-6)
+- Multigol Casa (0-1, 0-2, 1-3, Over 1,5)
+- Multigol Ospite (0-1, 0-2, 1-3, Over 1,5)
 - Multigol Casa + Multigol Ospite
 
 Le percentuali delle combo sono calcolate come media delle due giocate che le compongono.
@@ -3604,9 +3922,20 @@ ${matchData}`;
               <div className="empty-state">Nessuna partita nei prossimi 6 giorni. Importa un campionato o configura API Football-data.org.</div>
             ) : (
               <div className="matches-grid">
-                {filterNext6Days(filteredMatches('Futura')).map(m => (
-                  <MatchTab key={m.id} match={m} allMatches={matches} onSelect={selectMatch} addToSchedina={addToSchedina} />
-                ))}
+                {filterNext6Days(filteredMatches('Futura')).map(m => {
+                  const weatherKey = `${m.campionato}_${m.data}`;
+                  const weather = weatherCache[weatherKey] || null;
+                  return (
+                    <MatchTab 
+                      key={m.id} 
+                      match={m} 
+                      allMatches={matches} 
+                      onSelect={selectMatch} 
+                      addToSchedina={addToSchedina}
+                      weatherData={weather}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>
@@ -3648,7 +3977,7 @@ ${matchData}`;
                       <AIAnalysis 
                         match={selectedMatch} 
                         allMatches={matches} 
-                        apiKey={apiKeys.GROQ} 
+                        apiKeys={apiKeys}
                         setTab={setTab}
                       />
                     </>
@@ -3817,7 +4146,7 @@ ${matchData}`;
           <div>
             <h2 style={{marginBottom:'14px'}}>🔑 Gestione API Key</h2>
             <div className="alert alert-info">
-              💡 <b>Football-data.org</b> per scaricare i campionati. <b>GROQ</b> per l'AI. <b>OpenWeatherMap</b> opzionale.
+              💡 <b>Football-data.org</b> per scaricare i campionati. <b>GROQ</b> per l'AI. <b>OpenWeatherMap</b> per il meteo. <b>API-Football</b> per infortuni e statistiche avanzate.
             </div>
             
             <div className="card">
@@ -3997,11 +4326,11 @@ ${matchData}`;
             
             {settingsTab === 'Importa Campionato' && (
               <div>
-                <h3 style={{marginBottom:'12px'}}>📥 Importa Campionato da XLSX o JSON</h3>
+                <h3 style={{marginBottom:'12px'}}>📥 Importa Campionato da XLSX, JSON o SofaScore</h3>
                 <div className="card">
                   <div className="alert alert-info">
-                    <b>XLSX:</b> Il file deve avere colonne: <b>Campionato | Round | Data | Ora | Casa | Risultato | Ospite | Stato | Gol Casa | Gol Ospite</b><br/>
-                    <b>JSON:</b> Il file deve essere un array di oggetti con campi: <b>campionato, data, ora, casa, ospiti, stato, golCasa, golOspite</b>
+                    <b>XLSX:</b> Il file deve avere colonne: <b>Campionato | Round | Data | Ora | Casa | Risultato | Ospite | Stato | Gol Casa | Gol Ospite | Città</b><br/>
+                    <b>JSON:</b> Il file deve essere un array di oggetti con campi: <b>campionato, data, ora, casa, ospiti, stato, golCasa, golOspite, citta</b>
                   </div>
                   
                   <div className="form-group">
@@ -4026,6 +4355,28 @@ ${matchData}`;
                       </div>
                     </div>
                   )}
+                  
+                  <hr style={{borderColor:'var(--border)', margin:'12px 0'}}/>
+                  
+                  <div style={{paddingTop:'8px'}}>
+                    <h4>🌐 Importa da SofaScore API</h4>
+                    <p style={{fontSize:'13px', color:'var(--text-muted)', marginBottom:'8px'}}>
+                      Scarica direttamente le partite di un campionato usando le API di SofaScore (gratuite, senza chiave).
+                    </p>
+                    <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
+                      {Object.keys(SOFASCORE_LEAGUE_IDS).map(name => (
+                        <button
+                          key={name}
+                          className="btn btn-secondary"
+                          style={{fontSize:'12px', padding:'6px 12px'}}
+                          onClick={() => importFromSofaScore(name)}
+                          disabled={loading}
+                        >
+                          {name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
                 
                 <h3 style={{margin:'20px 0 12px'}}>
