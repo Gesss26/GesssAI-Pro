@@ -22,9 +22,66 @@
     --draw: #f2c94c;
     --lose: #eb5757;
     --tab-active: #f39c12;
+    
+    /* Colori percentuali */
+    --pct-rosso: #eb5757;
+    --pct-neutro: #8b949e;
+    --pct-verde: #6fcf97;
+    --pct-oro: #f39c12;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
   body { background: var(--bg); color: var(--text); min-height: 100vh; }
+  
+  /* CLASSI PER COLORI PERCENTUALI - APPLICABILI A QUALSIASI TESTO */
+  .pct-rosso {
+    color: var(--pct-rosso) !important;
+    font-weight: bold;
+  }
+  .pct-neutro {
+    color: var(--pct-neutro) !important;
+    font-weight: bold;
+  }
+  .pct-verde {
+    color: var(--pct-verde) !important;
+    font-weight: bold;
+  }
+  .pct-oro {
+    color: var(--pct-oro) !important;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(243, 156, 18, 0.3);
+  }
+
+  /* STILE PER GIOCATE */
+  .giocata-box {
+    background: var(--surface);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border-left: 4px solid var(--border);
+    font-size: 14px;
+  }
+  .giocata-box .label {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .giocata-box .value {
+    font-size: 18px;
+    margin-top: 2px;
+  }
+  .giocata-box .dettaglio {
+    font-size: 13px;
+    color: var(--text);
+    margin-top: 4px;
+  }
+  .giocata-box .sottovoce {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
   .header { 
     background: var(--banner); 
     padding: 16px 24px; 
@@ -462,13 +519,13 @@
   }
   .bet-item:hover { background: var(--card); }
   .bet-item .bet-label {
-    color: var(--text-muted);
     font-size: 10px;
     text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.3px;
   }
   .bet-item .bet-value {
     font-weight: bold;
-    color: var(--accent);
     font-size: 14px;
   }
   .match-tab-history {
@@ -609,7 +666,7 @@
     margin-left: 4px;
   }
   .detail-stat-box.flag-red { background: var(--lose); }
-  .detail-stat-box.flag-neutral { background: #6c757d; }
+  .detail-stat-box.flag-neutral { background: var(--pct-neutro); }
   .detail-stat-box.flag-green { background: var(--win); }
   .detail-stat-box.flag-gold { background: var(--accent); color: #000; }
   .detail-stat-box.flag-gold .label,
@@ -769,11 +826,9 @@
   .ai-analysis-box .consiglio-card .percentuale {
     font-size: 22px;
     font-weight: bold;
-    color: var(--accent);
     display: inline-block;
   }
   .ai-analysis-box .consiglio-card .percentuale.flag-bomb {
-    color: var(--accent);
     animation: bomb-glow 1s infinite alternate;
   }
   .ai-analysis-box .btn-refresh {
@@ -853,11 +908,9 @@
   .ai-result .consiglio-card .percentuale {
     font-size: 28px;
     font-weight: bold;
-    color: var(--accent);
     margin-top: 4px;
   }
   .ai-result .consiglio-card .percentuale.flag-bomb {
-    color: var(--accent);
     animation: bomb-glow 1s infinite alternate;
     display: inline-block;
   }
@@ -1046,6 +1099,30 @@ const SOFASCORE_LEAGUE_IDS = {
   'Liga Portugal Betclic': 238,
   'Russian Premier League': 203,
   'Swiss Super League': 215
+};
+
+// FUNZIONE PER DETERMINARE LA CLASSE IN BASE ALLA PERCENTUALE
+const getPercentualeClasse = (valore) => {
+  if (valore < 33) return 'pct-rosso';
+  if (valore < 66) return 'pct-neutro';
+  if (valore < 90) return 'pct-verde';
+  return 'pct-oro';
+};
+
+// FUNZIONE PER OTTENERE IL COLORE DELLA PERCENTUALE (usato per flag)
+const getPercentualeColore = (valore) => {
+  if (valore < 33) return '#eb5757';
+  if (valore < 66) return '#8b949e';
+  if (valore < 90) return '#6fcf97';
+  return '#f39c12';
+};
+
+// FUNZIONE PER OTTENERE LA FLAG CLASS IN BASE ALLA PERCENTUALE
+const getFlagClass = (valore) => {
+  if (valore < 33) return 'flag-red';
+  if (valore < 66) return 'flag-neutral';
+  if (valore < 90) return 'flag-green';
+  return 'flag-gold';
 };
 
 const getCustomSofaLeagues = () => {
@@ -1616,6 +1693,9 @@ const WeatherBadge = ({ weatherData }) => {
   );
 };
 
+// ============================================================
+// COMPONENTE MatchTab CON TUTTI I TESTI COLORATI
+// ============================================================
 const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) => {
   const homeForm = calcFormAndStats(allMatches, match.casa);
   const awayForm = calcFormAndStats(allMatches, match.ospiti);
@@ -1678,6 +1758,9 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
     addToSchedina(text);
   };
   
+  // Calcola media per il colore di COMBINATA
+  const mediaCombinata = Math.round((homeRange.pct + awayRange.pct) / 2);
+  
   return (
     <div className="match-tab" style={{borderLeftColor: champColor}} onClick={handleClick}>
       <div className="score-badge">{score}%</div>
@@ -1715,20 +1798,52 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
         📊 Differenza forma: <span>{diff}%</span>
       </div>
       
+      {/* BET ROW - TUTTI I TESTI COLORATI */}
       <div className="bet-row">
+        {/* 12+U4.5 */}
         <div className="bet-item" onClick={addBet1}>
-          <div className="bet-label">12+U4.5</div>
-          <div className="bet-value">{Math.round(pct12Under45)}%</div>
-        </div>
-        <div className="bet-item" style={{flex: 2}} onClick={addBet2}>
-          <div className="bet-label">Combinata</div>
-          <div className="bet-value" style={{fontSize: '12px'}}>
-            {match.casa} {homeRange.label} ({homeRange.pct}%) + {match.ospiti} {awayRange.label} ({awayRange.pct}%)
+          <div className="bet-label">
+            <span className={getPercentualeClasse(Math.round(pct12Under45))}>
+              12+U4.5
+            </span>
+          </div>
+          <div className="bet-value">
+            <span className={getPercentualeClasse(Math.round(pct12Under45))}>
+              {Math.round(pct12Under45)}%
+            </span>
           </div>
         </div>
+        
+        {/* COMBINATA */}
+        <div className="bet-item" style={{flex: 2}} onClick={addBet2}>
+          <div className="bet-label">
+            <span className={getPercentualeClasse(mediaCombinata)}>
+              COMBINATA
+            </span>
+          </div>
+          <div className="bet-value" style={{fontSize: '12px'}}>
+            <span className={getPercentualeClasse(homeRange.pct)}>
+              {match.casa} {homeRange.label} ({homeRange.pct}%)
+            </span>
+            {' + '}
+            <span className={getPercentualeClasse(awayRange.pct)}>
+              {match.ospiti} {awayRange.label} ({awayRange.pct}%)
+            </span>
+          </div>
+        </div>
+        
+        {/* LIBERA */}
         <div className="bet-item" onClick={addBet3}>
-          <div className="bet-label">Libera</div>
-          <div className="bet-value">{freeCombo.label} ({freeCombo.pct}%)</div>
+          <div className="bet-label">
+            <span className={getPercentualeClasse(freeCombo.pct)}>
+              LIBERA
+            </span>
+          </div>
+          <div className="bet-value">
+            <span className={getPercentualeClasse(freeCombo.pct)}>
+              {freeCombo.label} ({freeCombo.pct}%)
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -1768,6 +1883,9 @@ const MatchTabHistory = ({ match, onSelect }) => {
   );
 };
 
+// ============================================================
+// MatchDetail con colori
+// ============================================================
 const MatchDetail = ({ match, allMatches, addToSchedina }) => {
   const stats = computeMatchStats(match, allMatches);
   if (stats.error) {
@@ -1781,15 +1899,10 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
   const { homeGames, awayGames, totalGames } = stats;
   
   const getColorClass = (value, allValues = null) => {
-    let cls = '';
-    if (value >= 90) cls = 'flag-bomb';
-    else if (value >= 66.67) cls = 'flag-green';
-    else if (value >= 33.34) cls = 'flag-neutral';
-    else cls = 'flag-red';
-    if (allValues && value === Math.max(...allValues) && value < 90) {
-      cls = 'flag-gold';
-    }
-    return cls;
+    if (value >= 90) return 'flag-bomb';
+    if (value >= 66.67) return 'flag-green';
+    if (value >= 33.34) return 'flag-neutral';
+    return 'flag-red';
   };
   
   const fisse = [stats.p1, stats.pX, stats.p2];
@@ -1811,11 +1924,19 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
         addToSchedina(text);
       }
     };
+    const pctClass = getPercentualeClasse(value);
     return (
       <div className={`detail-stat-box ${cls}`} onClick={handleClick}>
-        <span className="label">{displayLabel}</span>
+        <span className="label">
+          <span className={pctClass} style={{color: 'inherit'}}>
+            {displayLabel}
+          </span>
+        </span>
         <span className="value">
-          {Math.round(value)}% {isBomb && <span className="bomb-icon">💣</span>}
+          <span className={pctClass} style={{color: 'inherit'}}>
+            {Math.round(value)}%
+          </span>
+          {isBomb && <span className="bomb-icon">💣</span>}
         </span>
       </div>
     );
@@ -2005,9 +2126,16 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
             };
             return (
               <div key={label} className={`detail-stat-box ${cls}`} style={{flex:'1', minWidth:'80px'}} onClick={handleClick}>
-                <span className="label">{displayLabel}</span>
+                <span className="label">
+                  <span className={getPercentualeClasse(val)} style={{color: 'inherit'}}>
+                    {displayLabel}
+                  </span>
+                </span>
                 <span className="value">
-                  {Math.round(val)}% {isBomb && <span className="bomb-icon">💣</span>}
+                  <span className={getPercentualeClasse(val)} style={{color: 'inherit'}}>
+                    {Math.round(val)}%
+                  </span>
+                  {isBomb && <span className="bomb-icon">💣</span>}
                 </span>
               </div>
             );
@@ -2399,7 +2527,9 @@ Sii preciso e utilizza le percentuali calcolate. Per il consiglio "libera", sceg
             {pronostico?.['12+under_4_5'] || 'No'}
             {pronostico?.['12+under_4_5_pct'] !== undefined && (
               <span style={{fontSize:'12px', color:'var(--text-muted)', marginLeft:'4px'}}>
-                ({pronostico['12+under_4_5_pct']}%)
+                (<span className={getPercentualeClasse(pronostico['12+under_4_5_pct'])}>
+                  {pronostico['12+under_4_5_pct']}%
+                </span>)
               </span>
             )}
           </div>
@@ -2416,6 +2546,7 @@ Sii preciso e utilizza le percentuali calcolate. Per il consiglio "libera", sceg
           <div className="consigli-grid">
             {consigli.map((c, idx) => {
               const isBomb = c.percentuale >= 90;
+              const pctClass = getPercentualeClasse(c.percentuale);
               return (
                 <div key={idx} className="consiglio-card" style={{borderColor: isBomb ? 'var(--accent)' : 'var(--border)'}}>
                   <div className="tipo">
@@ -2424,9 +2555,15 @@ Sii preciso e utilizza le percentuali calcolate. Per il consiglio "libera", sceg
                     {c.tipo === 'libera' && '⭐ Libera'}
                     {isBomb && ' 💣'}
                   </div>
-                  <div className="giocata">{c.giocata}</div>
+                  <div className="giocata">
+                    <span className={pctClass}>
+                      {c.giocata}
+                    </span>
+                  </div>
                   <div className={`percentuale ${isBomb ? 'flag-bomb' : ''}`}>
-                    {c.percentuale || 0}%
+                    <span className={pctClass} style={{color: isBomb ? 'var(--accent)' : 'var(--accent)'}}>
+                      {c.percentuale || 0}%
+                    </span>
                   </div>
                 </div>
               );
@@ -2444,6 +2581,9 @@ Sii preciso e utilizza le percentuali calcolate. Per il consiglio "libera", sceg
   );
 };
 
+// ============================================================
+// TeamMatchesHistory
+// ============================================================
 const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
   const teamMatches = allMatches
     .filter(m => m.campionato === championship && m.stato === 'Giocata' && (m.casa === teamName || m.ospiti === teamName))
@@ -2471,9 +2611,9 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
   };
   
   const getResultColor = (result) => {
-    if (result === 'win') return 'var(--win)';      // Verde
-    if (result === 'draw') return 'var(--draw)';    // Giallo
-    return 'var(--lose)';                           // Rosso
+    if (result === 'win') return 'var(--win)';
+    if (result === 'draw') return 'var(--draw)';
+    return 'var(--lose)';
   };
   
   const getResultLabel = (result) => {
@@ -2912,7 +3052,6 @@ function App() {
         return;
       }
       
-      // Aggiungi il campionato alla lista
       const champExists = championships.some(c => c.name === champName);
       if (!champExists) {
         setChampionships(prev => [...prev, { 
@@ -2978,13 +3117,11 @@ function App() {
 
   // ---------- FUNZIONE IMPORT TUTTI ----------
   const importAllFromSofaScore = async () => {
-    // Raccogli tutti i campionati disponibili (predefiniti + personalizzati)
     const allLeagues = [
       ...Object.keys(SOFASCORE_LEAGUE_IDS),
       ...getCustomSofaLeagues().map(l => l.name)
     ];
     
-    // Filtra quelli già importati
     const importedNames = new Set(championships.map(c => c.name));
     const leaguesToImport = allLeagues.filter(name => !importedNames.has(name));
     
@@ -3024,7 +3161,6 @@ function App() {
           continue;
         }
         
-        // Aggiungi il campionato
         setChampionships(prev => [...prev, { 
           name: champName, 
           importedAt: new Date().toISOString() 
@@ -3071,7 +3207,6 @@ function App() {
           totalMatches += newMatches.length;
           successCount++;
         } else {
-          // Se non ci sono nuove partite, rimuovi il campionato appena aggiunto
           setChampionships(prev => prev.filter(c => c.name !== champName));
           failCount++;
         }
@@ -3400,6 +3535,7 @@ function App() {
             <div className="consigli-grid">
               {consigli.map((c, ci) => {
                 const isBomb = c.percentuale >= 90;
+                const pctClass = getPercentualeClasse(c.percentuale);
                 return (
                   <div key={ci} className="consiglio-card" style={{borderColor: isBomb ? 'var(--accent)' : 'var(--border)'}}>
                     <div className="tipo">
@@ -3408,9 +3544,15 @@ function App() {
                       {c.tipo === 'libera' && '⭐ Libera'}
                       {isBomb && ' 💣'}
                     </div>
-                    <div className="giocata">{c.giocata || 'N/A'}</div>
+                    <div className="giocata">
+                      <span className={pctClass}>
+                        {c.giocata || 'N/A'}
+                      </span>
+                    </div>
                     <div className={`percentuale ${isBomb ? 'flag-bomb' : ''}`}>
-                      {c.percentuale || 0}%
+                      <span className={pctClass} style={{color: isBomb ? 'var(--accent)' : 'var(--accent)'}}>
+                        {c.percentuale || 0}%
+                      </span>
                     </div>
                   </div>
                 );
@@ -3794,14 +3936,27 @@ ${matchData}`;
                 <div className="empty-state" style={{padding:'20px'}}>Nessuna giocata ancora aggiunta.</div>
               ) : (
                 <div className="schedina-list">
-                  {schedinaEntries.map((entry, i) => (
-                    <div key={i} className="entry">
-                      <span>{i+1}. {entry}</span>
-                      <span className="remove-btn" onClick={() => {
-                        setSchedinaEntries(prev => prev.filter((_, idx) => idx !== i));
-                      }}>✖</span>
-                    </div>
-                  ))}
+                  {schedinaEntries.map((entry, i) => {
+                    // Estrai le percentuali dalla entry per colorarle
+                    const parts = entry.split(/(\d+%)/);
+                    return (
+                      <div key={i} className="entry">
+                        <span className="schedina-entry-text">
+                          {i+1}. {parts.map((part, idx) => {
+                            const pctMatch = part.match(/^(\d+)%$/);
+                            if (pctMatch) {
+                              const pct = parseInt(pctMatch[1]);
+                              return <span key={idx} className={getPercentualeClasse(pct)}>{part}</span>;
+                            }
+                            return <span key={idx}>{part}</span>;
+                          })}
+                        </span>
+                        <span className="remove-btn" onClick={() => {
+                          setSchedinaEntries(prev => prev.filter((_, idx) => idx !== i));
+                        }}>✖</span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               
