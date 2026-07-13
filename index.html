@@ -3711,80 +3711,109 @@ function App() {
   };
   
   const generateSchedina = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const maxDate = new Date(today);
-    maxDate.setDate(maxDate.getDate() + daysRange);
-    
-    let filtered = matches.filter(m => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Calcola la data massima in base a daysRange
+  // daysRange = 0 → solo oggi
+  // daysRange = 1 → oggi + 1 giorno (oggi e domani)
+  // daysRange = 2 → oggi + 2 giorni (oggi, domani e dopodomani)
+  const maxDate = new Date(today);
+  maxDate.setDate(maxDate.getDate() + daysRange);
+  
+  // Filtra le partite future in base al range di giorni selezionato
+  let filtered = matches.filter(m => {
+    if (m.stato !== 'Futura') return false;
+    if (!m.data) return false;
+    const matchDate = new Date(m.data);
+    if (isNaN(matchDate.getTime())) return false;
+    matchDate.setHours(0, 0, 0, 0);
+    // Filtra le partite che sono tra oggi e maxDate (incluso)
+    return matchDate >= today && matchDate <= maxDate;
+  });
+  
+  // Filtra ulteriormente per campionato se selezionato
+  if (schedinaChamp !== 'Tutti') {
+    filtered = filtered.filter(m => m.campionato === schedinaChamp);
+  }
+  
+  // Se non ci sono partite disponibili, resetta e riprova
+  if (filtered.length === 0) {
+    setUsedMatchIds(new Set());
+    showAlert('info', '🔄 Nessuna partita disponibile nel range selezionato. CARD ricalcolate automaticamente.');
+    // Richiama la funzione per provare con tutte le partite disponibili
+    const allFiltered = matches.filter(m => {
       if (m.stato !== 'Futura') return false;
       if (!m.data) return false;
       const matchDate = new Date(m.data);
       if (isNaN(matchDate.getTime())) return false;
       matchDate.setHours(0, 0, 0, 0);
-      return matchDate >= today && matchDate <= maxDate;
+      return matchDate >= today;
     });
-    
-    if (schedinaChamp !== 'Tutti') {
-      filtered = filtered.filter(m => m.campionato === schedinaChamp);
-    }
-    
-    if (filtered.length === 0) {
-      setUsedMatchIds(new Set());
-      showAlert('info', '🔄 Nessuna partita disponibile. CARD ricalcolate automaticamente.');
-      generateSchedina();
+    if (allFiltered.length === 0) {
+      showAlert('error', '❌ Nessuna partita futura disponibile in nessun campionato.');
+      setSchedinaMatches([]);
       return;
     }
+    // Usa tutte le partite future disponibili
+    filtered = allFiltered;
+    setUsedMatchIds(new Set());
+  }
+  
+  // Rimuovi le partite già utilizzate
+  let available = filtered.filter(m => !usedMatchIds.has(m.id));
+  
+  // Se tutte le partite sono state consumate, resetta
+  if (available.length === 0) {
+    setUsedMatchIds(new Set());
+    showAlert('info', '🔄 Tutte le partite sono state consumate. CARD ricalcolate automaticamente.');
+    available = filtered;
+  }
+  
+  // Calcola il punteggio per ogni partita disponibile
+  const scoredMatches = available.map(m => {
+    const homeMG = getTeamMultigolV2(matches, m.casa);
+    const awayMG = getTeamMultigolV2(matches, m.ospiti);
+    const homeUO = getTeamUnderOver(matches, m.casa);
+    const awayUO = getTeamUnderOver(matches, m.ospiti);
+    const pct12Under45 = get12Under45(matches, m.casa, m.ospiti);
     
-    let available = filtered.filter(m => !usedMatchIds.has(m.id));
+    const homeRange = getMostFrequentGoalRange(m.casa, matches);
+    const awayRange = getMostFrequentGoalRange(m.ospiti, matches);
     
-    if (available.length === 0) {
-      setUsedMatchIds(new Set());
-      showAlert('info', '🔄 Tutte le partite sono state consumate. CARD ricalcolate automaticamente.');
-      generateSchedina();
-      return;
+    const stats = computeMatchStats(m, matches);
+    let freeCombo = { label: 'N/A', pct: 0 };
+    if (!stats.error) {
+      freeCombo = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
     }
     
-    const scoredMatches = available.map(m => {
-      const homeMG = getTeamMultigolV2(matches, m.casa);
-      const awayMG = getTeamMultigolV2(matches, m.ospiti);
-      const homeUO = getTeamUnderOver(matches, m.casa);
-      const awayUO = getTeamUnderOver(matches, m.ospiti);
-      const pct12Under45 = get12Under45(matches, m.casa, m.ospiti);
-      
-      const homeRange = getMostFrequentGoalRange(m.casa, matches);
-      const awayRange = getMostFrequentGoalRange(m.ospiti, matches);
-      
-      const stats = computeMatchStats(m, matches);
-      let freeCombo = { label: 'N/A', pct: 0 };
-      if (!stats.error) {
-        freeCombo = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
+    const allUO = { ...homeUO, ...awayUO };
+    let bestPct = 0;
+    let bestBet = '';
+    Object.entries(allUO).forEach(([key, val]) => {
+      if (val > bestPct) {
+        bestPct = val;
+        bestBet = key;
       }
-      
-      const allUO = { ...homeUO, ...awayUO };
-      let bestPct = 0;
-      let bestBet = '';
-      Object.entries(allUO).forEach(([key, val]) => {
-        if (val > bestPct) {
-          bestPct = val;
-          bestBet = key;
-        }
-      });
-      
-      const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + freeCombo.pct) / 4);
-      return { ...m, score, homeRange, awayRange, pct12Under45, bestBet, bestPct, freeCombo };
     });
     
-    scoredMatches.sort((a, b) => b.score - a.score);
-    const selected = scoredMatches.slice(0, numMatches);
-    
-    const newUsed = new Set(usedMatchIds);
-    selected.forEach(m => newUsed.add(m.id));
-    setUsedMatchIds(newUsed);
-    
-    setSchedinaMatches(selected);
-    setSchedinaSelections({});
-  };
+    const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + freeCombo.pct) / 4);
+    return { ...m, score, homeRange, awayRange, pct12Under45, bestBet, bestPct, freeCombo };
+  });
+  
+  // Ordina per punteggio decrescente e seleziona le prime N
+  scoredMatches.sort((a, b) => b.score - a.score);
+  const selected = scoredMatches.slice(0, numMatches);
+  
+  // Aggiorna le partite utilizzate
+  const newUsed = new Set(usedMatchIds);
+  selected.forEach(m => newUsed.add(m.id));
+  setUsedMatchIds(newUsed);
+  
+  // Imposta le partite selezionate
+  setSchedinaMatches(selected);
+  setSchedinaSelections({});
+};
   
   const resetSchedina = () => {
     setSchedinaMatches([]);
@@ -3929,31 +3958,13 @@ function App() {
   };
   
   const saveLocal = () => {
-  const data = { 
-    championships, 
-    matches, 
-    apiKeys, 
-    theme, 
-    customTheme, 
-    exportedAt: new Date().toISOString() 
+    const data = { championships, matches, apiKeys, theme, customTheme, exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `gesssai-backup-${Date.now()}.json`; a.click();
+    showAlert('success', '💾 Backup scaricato!');
   };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  
-  // Formatta la data per il nome del file: GesssAI-backup-YYYY-MM-DD-HH-MM
-  const now = new Date();
-  const dateStr = now.getFullYear() + '-' + 
-                  String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-                  String(now.getDate()).padStart(2, '0') + '_' +
-                  String(now.getHours()).padStart(2, '0') + '-' +
-                  String(now.getMinutes()).padStart(2, '0');
-  
-  a.href = url; 
-  a.download = `GesssAI-backup-${dateStr}.json`; 
-  a.click();
-  showAlert('success', `💾 Backup GesssAI-backup-${dateStr}.json scaricato!`);
-};
   
   const loadLocal = (file) => {
     const reader = new FileReader();
