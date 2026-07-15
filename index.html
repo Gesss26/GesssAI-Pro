@@ -1410,7 +1410,7 @@ const THEMES = {
   'Calcio': { bg:'#1b5e20', surface:'#2e7d32', card:'#388e3c', banner:'#2e7d32', text:'#fff', textMuted:'#ffff00', accent:'#ffc107', accent2:'#ff9800', border:'#1b5e20', tabActive:'#ffc107' },
 };
 
-const MAIN_TABS = ['Home','Palinsesto','Statistiche','Storico','Schedina AI','Performance','API KEY','Impostazioni'];
+const MAIN_TABS = ['Home','Palinsesto','Statistiche','Analisi Custom','Schedina AI','Performance','Storico','API KEY','Impostazioni'];
 const SETTINGS_TABS = ['Temi','API KEY','Dati Locali','Importa Campionato'];
 
 const CHAMPIONSHIP_COLORS = {
@@ -2627,7 +2627,7 @@ const AnalisiMeteo = ({ matches, weatherCache }) => {
 };
 
 // ============================================================
-// COMPONENTE: AI ANALYSIS PROFESSIONALE
+// COMPONENTE: AI ANALYSIS PROFESSIONALE (COMPLETO)
 // ============================================================
 
 const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
@@ -3090,6 +3090,60 @@ Usa percentuali basate sui dati statistici forniti.`;
         }
       }
 
+      const generateAnalysisPrompt = (championship, homeTeam, awayTeam, matches) => {
+  const champMatches = matches.filter(m => m.campionato === championship && m.stato === 'Giocata');
+  if (champMatches.length < 4) return null;
+  
+  const homeForm = calcFormAndStats(champMatches, homeTeam);
+  const awayForm = calcFormAndStats(champMatches, awayTeam);
+  const homeMG = calcTeamMG(champMatches, homeTeam);
+  const awayMG = calcTeamMG(champMatches, awayTeam);
+  const homeMultigol = getTeamMultigolV2(champMatches, homeTeam);
+  const awayMultigol = getTeamMultigolV2(champMatches, awayTeam);
+  const homeUnderOver = getTeamUnderOver(champMatches, homeTeam);
+  const awayUnderOver = getTeamUnderOver(champMatches, awayTeam);
+  const fakeMatch = { casa: homeTeam, ospiti: awayTeam, campionato: championship };
+  const stats = computeMatchStats(fakeMatch, champMatches);
+  const pct12Under45 = get12Under45(champMatches, homeTeam, awayTeam);
+  const freeCombo = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
+
+  return `Sei un analista sportivo professionista. Analizza la partita ${homeTeam} vs ${awayTeam} (${championship}).
+
+DATI STATISTICI:
+${homeTeam}:
+- Forma ultime 5: ${homeForm.form} (${homeForm.pct}%)
+- Media gol: ${homeMG}
+- Multigol 1-3: ${Math.round(homeMultigol['1-3'])}%
+- Over 1.5: ${Math.round(homeUnderOver['Over 1.5']||0)}%
+
+${awayTeam}:
+- Forma ultime 5: ${awayForm.form} (${awayForm.pct}%)
+- Media gol: ${awayMG}
+- Multigol 1-3: ${Math.round(awayMultigol['1-3'])}%
+- Over 1.5: ${Math.round(awayUnderOver['Over 1.5']||0)}%
+
+3 GIOCATE CALCOLATE (dalle CARD):
+1. 12+U4.5 = ${Math.round(pct12Under45)}%
+2. COMBINATA = ${Math.round((homeMultigol['1-3'] + awayMultigol['1-3']) / 2)}%
+3. LIBERA = ${freeCombo.pct}% (${freeCombo.label})
+
+Genera un report professionale in formato JSON con questa struttura:
+{
+  "analisi_generale": "testo con analisi completa",
+  "pronostico": {
+    "esito_1X2": "1/X/2",
+    "percentuale_sicurezza": 75,
+    "motivazione": "testo"
+  },
+  "consigli_giocate": [
+    {"giocata": "12+U4.5", "percentuale": ${Math.round(pct12Under45)}},
+    {"giocata": "COMBINATA", "percentuale": ${Math.round((homeMultigol['1-3'] + awayMultigol['1-3']) / 2)}},
+    {"giocata": "LIBERA", "percentuale": ${freeCombo.pct}}
+  ],
+  "valutazione_giocata": "testo valutazione",
+  "indice_rischio": 5
+}`;
+};
       const storageKey = `ft_ai_${match.id}`;
       const toStore = {
         analysis: parsed,
@@ -3386,7 +3440,7 @@ Usa percentuali basate sui dati statistici forniti.`;
 };
 
 // ============================================================
-// COMPONENTI ORIGINALI
+// COMPONENTI ORIGINALI (MatchTab, MatchTabHistory, MatchDetail, TeamMatchesHistory)
 // ============================================================
 
 const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) => {
@@ -3654,161 +3708,6 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
           </tbody>
         </table>
       </div>
-    </div>
-  );
-};
-
-// ============================================================
-// COMPONENTE: SofaScoreManager
-// ============================================================
-
-const SofaScoreManager = ({ onImport, loading, matches, setMatches }) => {
-  const [customLeagues, setCustomLeagues] = useState(getCustomSofaLeagues);
-  const [newLeagueName, setNewLeagueName] = useState('');
-  const [newLeagueId, setNewLeagueId] = useState('');
-  const [selectedSeason, setSelectedSeason] = useState('26/27');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [searching, setSearching] = useState(false);
-  const [selectedTab, setSelectedTab] = useState('lista');
-  const [isChecking, setIsChecking] = useState(false);
-
-  const saveLeagues = (leagues) => { setCustomLeagues(leagues); saveCustomSofaLeagues(leagues); };
-  const removeLeague = (id, name) => {
-    const isDefault = Object.values(SOFASCORE_LEAGUE_IDS).includes(id);
-    const matchCount = matches ? matches.filter(m => m.campionato === name).length : 0;
-    if (matchCount > 0 && !confirm(`⚠️ Il campionato "${name}" ha ${matchCount} partite importate. Eliminarlo cancellerà anche le partite. Continuare?`)) return;
-    if (matchCount > 0) setMatches(prev => prev.filter(m => m.campionato !== name));
-    if (isDefault) { const blacklist = getBlacklist(); if (!blacklist.includes(id)) { blacklist.push(id); saveBlacklist(blacklist); } }
-    else { saveLeagues(customLeagues.filter(l => l.id !== id)); }
-  };
-
-  const checkLeagueHasMatches = async (leagueId, seasonYear) => {
-    try { const events = await fetchSofaScoreMatches(leagueId, seasonYear); return { hasMatches: events.length > 0, count: events.length }; }
-    catch (e) { return { hasMatches: false, count: 0, error: e.message }; }
-  };
-
-  const addAndImportLeague = async () => {
-    if (!newLeagueName.trim() || !newLeagueId.trim()) { alert('Inserisci sia il nome che l\'ID del campionato.'); return; }
-    const id = parseInt(newLeagueId);
-    if (isNaN(id) || id <= 0) { alert('L\'ID deve essere un numero positivo.'); return; }
-    const allLeagues = getVisibleLeagues(customLeagues);
-    if (allLeagues.some(l => l.id === id || l.name.toLowerCase() === newLeagueName.toLowerCase())) { alert('⚠️ Questo campionato o ID è già presente nella lista.'); return; }
-    setIsChecking(true);
-    const leagueName = newLeagueName.trim();
-    try {
-      const checkResult = await checkLeagueHasMatches(id, selectedSeason);
-      if (checkResult.error) { alert(`❌ Errore nel controllo: ${checkResult.error}`); setIsChecking(false); return; }
-      if (!checkResult.hasMatches) { alert(`❌ Nessuna partita trovata per "${leagueName}" (ID: ${id}) nella stagione ${selectedSeason}.`); setIsChecking(false); return; }
-      saveLeagues([...customLeagues, { name: leagueName, id: id }]);
-      await onImport(leagueName, selectedSeason);
-      setNewLeagueName(''); setNewLeagueId('');
-    } catch (e) { console.error('Errore:', e); alert(`❌ Errore durante l'aggiunta: ${e.message}`); }
-    setIsChecking(false);
-  };
-
-  const searchSofaLeagues = async () => {
-    if (!searchQuery.trim()) { alert('Inserisci un termine di ricerca.'); return; }
-    setSearching(true); setSearchResults([]);
-    try {
-      const response = await fetch(`https://api.sofascore.com/api/v1/search?q=${encodeURIComponent(searchQuery)}&type=tournament`);
-      if (!response.ok) throw new Error('Errore nella ricerca');
-      const data = await response.json();
-      if (data.results && data.results.length > 0) {
-        const footballTournaments = data.results.filter(r => r.sport?.id === 1 || r.sport?.slug === 'football');
-        setSearchResults(footballTournaments);
-        if (footballTournaments.length === 0) alert('Nessun campionato di calcio trovato.');
-      } else alert('Nessun risultato trovato.');
-    } catch (e) { console.error('Errore ricerca:', e); alert('Errore durante la ricerca.'); }
-    setSearching(false);
-  };
-
-  const addFromSearch = async (tournament) => {
-    const name = tournament.name, id = tournament.id;
-    const allLeagues = getVisibleLeagues(customLeagues);
-    if (allLeagues.some(l => l.id === id || l.name.toLowerCase() === name.toLowerCase())) { alert('⚠️ Questo campionato è già nella tua lista.'); return; }
-    setIsChecking(true);
-    try {
-      const checkResult = await checkLeagueHasMatches(id, selectedSeason);
-      if (checkResult.error) { alert(`❌ Errore nel controllo: ${checkResult.error}`); setIsChecking(false); return; }
-      if (!checkResult.hasMatches) { alert(`❌ Nessuna partita trovata per "${name}" (ID: ${id}) nella stagione ${selectedSeason}.`); setIsChecking(false); return; }
-      saveLeagues([...customLeagues, { name, id }]);
-      await onImport(name, selectedSeason);
-      setSearchResults(searchResults.filter(r => r.id !== id));
-    } catch (e) { console.error('Errore:', e); alert(`❌ Errore durante l'aggiunta: ${e.message}`); }
-    setIsChecking(false);
-  };
-
-  const allLeagues = getVisibleLeagues(customLeagues);
-
-  return (
-    <div className="card">
-      <h4 style={{marginBottom:'12px'}}>🌐 Gestione Campionati SofaScore</h4>
-      <div className="sub-tabs" style={{marginBottom:'12px'}}>
-        <button className={selectedTab === 'lista' ? 'active' : ''} onClick={() => setSelectedTab('lista')}>📋 Lista campionati ({allLeagues.length})</button>
-        <button className={selectedTab === 'cerca' ? 'active' : ''} onClick={() => setSelectedTab('cerca')}>🔍 Cerca e aggiungi</button>
-      </div>
-      {selectedTab === 'lista' && (
-        <div>
-          <div style={{display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'12px'}}>
-            <input type="text" value={newLeagueName} onChange={e => setNewLeagueName(e.target.value)} placeholder="Nome campionato" style={{flex:1, minWidth:'150px'}} />
-            <input type="number" value={newLeagueId} onChange={e => setNewLeagueId(e.target.value)} placeholder="ID SofaScore" style={{width:'120px'}} />
-            <select value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} style={{width:'120px', padding:'8px'}}>
-              <option value="26/27">26/27</option><option value="25/26">25/26</option><option value="24/25">24/25</option><option value="23/24">23/24</option>
-            </select>
-            <button className="btn" onClick={addAndImportLeague} disabled={isChecking || loading}>{isChecking ? '⏳ Controllo...' : '➕ Aggiungi e Importa'}</button>
-          </div>
-          <div style={{maxHeight:'300px', overflowY:'auto'}}>
-            {allLeagues.length === 0 ? <p style={{color:'var(--text-muted)', textAlign:'center', padding:'20px'}}>Nessun campionato configurato.</p> : (
-              <table className="standings-table" style={{fontSize:'13px'}}>
-                <thead><tr><th>Campionato</th><th style={{textAlign:'center'}}>ID</th><th style={{textAlign:'center'}}>Tipo</th><th style={{textAlign:'center'}}>Partite</th><th style={{textAlign:'center'}}>Azioni</th></tr></thead>
-                <tbody>
-                  {allLeagues.map(league => {
-                    const matchCount = matches ? matches.filter(m => m.campionato === league.name).length : 0;
-                    return <tr key={league.id} style={{borderBottom:'1px solid var(--border)'}}>
-                      <td style={{padding:'6px 8px'}}><span style={{color: league.isDefault ? 'var(--text)' : 'var(--accent)'}}>{league.isDefault ? '📌 ' : '⭐ '}{league.name}</span></td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>{league.id}</td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}><span style={{fontSize:'10px', padding:'2px 8px', borderRadius:'10px', background: league.isDefault ? 'var(--surface)' : 'var(--accent)', color: league.isDefault ? 'var(--text-muted)' : '#000'}}>{league.isDefault ? 'Predefinito' : 'Personalizzato'}</span></td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>{matchCount > 0 ? <span style={{color:'var(--win)', fontWeight:'bold'}}>{matchCount}</span> : <span style={{color:'var(--text-muted)'}}>0</span>}</td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>
-                        <select value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} style={{width:'80px', padding:'2px 4px', fontSize:'11px', marginRight:'4px'}}><option value="26/27">26/27</option><option value="25/26">25/26</option><option value="24/25">24/25</option><option value="23/24">23/24</option></select>
-                        <button className="btn btn-secondary" style={{fontSize:'11px', padding:'2px 8px', marginRight:'4px'}} onClick={() => onImport(league.name, selectedSeason)} disabled={loading}>📥 Importa</button>
-                        <button className="btn btn-danger" style={{fontSize:'11px', padding:'2px 8px'}} onClick={() => removeLeague(league.id, league.name)}>✖</button>
-                      </td>
-                    </tr>;
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-      )}
-      {selectedTab === 'cerca' && (
-        <div>
-          <div style={{display:'flex', gap:'8px', marginBottom:'12px'}}>
-            <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Cerca campionato" style={{flex:1}} onKeyDown={e => e.key === 'Enter' && searchSofaLeagues()} />
-            <button className="btn" onClick={searchSofaLeagues} disabled={searching || isChecking}>{searching ? '⏳ Cercando...' : '🔍 Cerca'}</button>
-          </div>
-          {searchResults.length > 0 && (
-            <div style={{maxHeight:'300px', overflowY:'auto'}}>
-              <table className="standings-table" style={{fontSize:'13px'}}>
-                <thead><tr><th>Campionato</th><th style={{textAlign:'center'}}>ID</th><th style={{textAlign:'center'}}>Categoria</th><th style={{textAlign:'center'}}>Azioni</th></tr></thead>
-                <tbody>
-                  {searchResults.map(t => {
-                    const allLeaguesList = getVisibleLeagues(customLeagues);
-                    const isAdded = allLeaguesList.some(l => l.id === t.id);
-                    return <tr key={t.id} style={{borderBottom:'1px solid var(--border)'}}>
-                      <td style={{padding:'6px 8px'}}>{t.name}</td><td style={{textAlign:'center', padding:'6px 8px'}}>{t.id}</td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>{t.category?.name || 'N/A'}</td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>{isAdded ? <span style={{color:'var(--win)'}}>✅ Già aggiunto</span> : <button className="btn btn-secondary" style={{fontSize:'11px', padding:'2px 10px'}} onClick={() => addFromSearch(t)} disabled={isChecking}>{isChecking ? '⏳...' : '➕ Aggiungi e Importa'}</button>}</td>
-                    </tr>;
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 };
@@ -4116,7 +4015,7 @@ const FootballDataManager = ({ apiKeys, matches, setMatches }) => {
 };
 
 // ============================================================
-// COMPONENTE: SportsAPIPro Manager (VERSIONE CORRETTA)
+// COMPONENTE: SportsAPIPro Manager (AGGIORNATO 2026)
 // ============================================================
 
 const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setChampionships }) => {
@@ -4135,7 +4034,6 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
     setImportedLeagues(saved);
   }, []);
 
-  // TEST API Key
   const testApiKey = async () => {
     const key = apiKeys['SportsAPIPro'];
     if (!key) {
@@ -4145,19 +4043,15 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
     setLoading(true);
     setStatusMessage({ type: 'info', text: '🔄 Test della chiave API in corso...' });
     try {
-      const r = await fetch('https://api.sportsapipro.com/v2/football/live', {
+      const r = await fetch('https://api.sportsapipro.com/v1/sports', {
         headers: { 
-          'x-api-key': key,
-          'Accept': 'application/json'
+          'X-API-Key': key,
+          'Content-Type': 'application/json'
         }
       });
       
       if (r.status === 200) {
-        const data = await r.json();
-        setStatusMessage({ 
-          type: 'success', 
-          text: `✅ API Key valida! Connessione stabilita. Partite live: ${data.count || 0}.` 
-        });
+        setStatusMessage({ type: 'success', text: `✅ API Key valida! Connessione stabilita con SportsAPIPro.` });
       } else if (r.status === 401) {
         setStatusMessage({ type: 'error', text: '❌ API Key non valida! Verifica la chiave inserita.' });
       } else if (r.status === 429) {
@@ -4171,79 +4065,6 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
     setLoading(false);
   };
 
-  // LISTA TORNEI - per trovare l'ID corretto
-  const listTournaments = async () => {
-    const key = apiKeys['SportsAPIPro'];
-    if (!key) {
-      setStatusMessage({ type: 'error', text: '❌ Configura prima la API Key di SportsAPIPro!' });
-      return;
-    }
-    
-    setLoading(true);
-    setStatusMessage({ type: 'info', text: '📋 Recupero lista tornei...' });
-    setSearchResults([]);
-    
-    try {
-      const r = await fetch(
-        'https://api.sportsapipro.com/v2/football/tournaments?limit=200',
-        { 
-          headers: { 
-            'x-api-key': key,
-            'Accept': 'application/json'
-          } 
-        }
-      );
-      
-      if (!r.ok) {
-        throw new Error(`HTTP ${r.status}`);
-      }
-      
-      const data = await r.json();
-      let tournaments = data.data || data.tournaments || data.results || [];
-      
-      if (tournaments.length === 0) {
-        setStatusMessage({ type: 'error', text: '❌ Nessun torneo trovato.' });
-        setLoading(false);
-        return;
-      }
-      
-      // Cerca Veikkausliiga nella lista
-      const veikkausliiga = tournaments.find(t => 
-        t.name?.toLowerCase().includes('veikkausliiga') ||
-        t.name?.toLowerCase().includes('finland') ||
-        t.country?.toLowerCase().includes('finland') ||
-        t.country_name?.toLowerCase().includes('finland')
-      );
-      
-      if (veikkausliiga) {
-        setStatusMessage({ 
-          type: 'success', 
-          text: `✅ Trovata Veikkausliiga! ID: ${veikkausliiga.id || veikkausliiga.tournament_id} - ${veikkausliiga.name}` 
-        });
-        setSearchResults([veikkausliiga]);
-        // Imposta automaticamente nome e ID
-        setLeagueName(veikkausliiga.name);
-        setLeagueId(String(veikkausliiga.id || veikkausliiga.tournament_id));
-      } else {
-        // Mostra i primi 10 tornei
-        const topTournaments = tournaments.slice(0, 15).map(t => 
-          `${t.id || t.tournament_id}: ${t.name} (${t.country || t.country_name || 'N/A'})`
-        ).join('\n');
-        
-        setStatusMessage({ 
-          type: 'info', 
-          text: `ℹ️ Veikkausliiga non trovata. Ecco alcuni campionati disponibili:\n${topTournaments}\n\nCerca "Veikkausliiga" nella lista o usa l'ID manualmente.` 
-        });
-        setSearchResults(tournaments.slice(0, 30));
-      }
-    } catch (e) {
-      console.error('Errore lista tornei:', e);
-      setStatusMessage({ type: 'error', text: `❌ Errore: ${e.message}` });
-    }
-    setLoading(false);
-  };
-
-  // CERCA campionato
   const searchLeague = async () => {
     if (!searchQuery.trim()) {
       setStatusMessage({ type: 'error', text: '❌ Inserisci un termine di ricerca.' });
@@ -4262,13 +4083,8 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
     
     try {
       const r = await fetch(
-        `https://api.sportsapipro.com/v2/football/tournaments?search=${encodeURIComponent(searchQuery)}`,
-        { 
-          headers: { 
-            'x-api-key': key,
-            'Accept': 'application/json'
-          } 
-        }
+        `https://api.sportsapipro.com/v1/competitions?search=${encodeURIComponent(searchQuery)}`,
+        { headers: { 'X-API-Key': key } }
       );
       
       if (!r.ok) {
@@ -4281,7 +4097,7 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
       }
       
       const data = await r.json();
-      let results = data.data || data.results || data.tournaments || [];
+      let results = data.data || data.results || data.competitions || [];
       
       if (results.length > 0) {
         setSearchResults(results);
@@ -4290,6 +4106,26 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
           text: `✅ Trovati ${results.length} campionati per "${searchQuery}".` 
         });
       } else {
+        const id = parseInt(searchQuery);
+        if (!isNaN(id) && id > 0) {
+          const idR = await fetch(
+            `https://api.sportsapipro.com/v1/competitions/${id}`,
+            { headers: { 'X-API-Key': key } }
+          );
+          if (idR.ok) {
+            const idData = await idR.json();
+            const comp = idData.data || idData.competition;
+            if (comp) {
+              setSearchResults([comp]);
+              setStatusMessage({ 
+                type: 'success', 
+                text: `✅ Trovato campionato con ID ${id}: ${comp.name || comp.title || 'Sconosciuto'}` 
+              });
+              setSearching(false);
+              return;
+            }
+          }
+        }
         setStatusMessage({ type: 'error', text: `❌ Nessun campionato trovato per "${searchQuery}".` });
       }
     } catch (e) {
@@ -4299,7 +4135,6 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
     setSearching(false);
   };
 
-  // AGGIUNGI E IMPORTA campionato
   const addAndImportLeague = async () => {
     if (!leagueName.trim() || !leagueId.trim()) {
       setStatusMessage({ type: 'error', text: '❌ Inserisci sia il Nome che l\'ID del campionato!' });
@@ -4327,27 +4162,22 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
     setStatusMessage({ type: 'info', text: `🔍 Controllo partite per "${leagueName}" (ID: ${id})...` });
     
     try {
-      const response = await fetch(
-        `https://api.sportsapipro.com/v2/football/fixtures?tournament_id=${id}&season=${season}`,
-        { 
-          headers: { 
-            'x-api-key': key,
-            'Accept': 'application/json'
-          } 
-        }
+      const checkResponse = await fetch(
+        `https://api.sportsapipro.com/v1/fixtures?competition_id=${id}&season=${season}`,
+        { headers: { 'X-API-Key': key } }
       );
       
-      if (!response.ok) {
-        if (response.status === 404) {
+      if (!checkResponse.ok) {
+        if (checkResponse.status === 404) {
           setStatusMessage({ type: 'error', text: `❌ Campionato "${leagueName}" (ID: ${id}) non trovato.` });
           setLoading(false);
           return;
         }
-        throw new Error(`HTTP ${response.status}`);
+        throw new Error(`HTTP ${checkResponse.status}`);
       }
       
-      const data = await response.json();
-      const matchesData = data.data || data.fixtures || data.matches || data.events || [];
+      const checkData = await checkResponse.json();
+      const matchesData = checkData.data || checkData.fixtures || checkData.matches || [];
       
       if (!matchesData || matchesData.length === 0) {
         setStatusMessage({ type: 'error', text: `❌ Nessuna partita trovata per "${leagueName}" (ID: ${id}) nella stagione ${season}.` });
@@ -4358,22 +4188,22 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
       setStatusMessage({ type: 'info', text: `📥 Importando ${leagueName} (stagione ${season})...` });
       
       const newMatches = matchesData.map(m => {
-        const isFinished = m.status === 'FT' || m.status === 'FINISHED' || m.status === 'Finished' || m.status === 'fulltime';
+        const isFinished = m.status === 'FT' || m.status === 'FINISHED' || m.status === 'Finished';
         const homeScore = isFinished ? (m.home_score || m.score?.home || m.goals?.home || 0) : 0;
         const awayScore = isFinished ? (m.away_score || m.score?.away || m.goals?.away || 0) : 0;
         
-        const matchDate = new Date(m.date || m.utcDate || m.datetime || m.start_date || Date.now());
+        const matchDate = new Date(m.date || m.utcDate || m.datetime || Date.now());
         const dataStr = matchDate.toISOString().slice(0, 10);
         const oraStr = matchDate.toTimeString().slice(0, 5);
         
         return {
           id: `sp_${m.id || Math.random().toString(36).slice(2)}`,
           campionato: leagueName,
-          round: m.round || m.matchday || m.round_info?.round || 'N/A',
+          round: m.round || m.matchday || 'N/A',
           data: dataStr,
           ora: oraStr,
-          casa: m.home_team || m.homeTeam || m.team_home || m.home || 'Home',
-          ospiti: m.away_team || m.awayTeam || m.team_away || m.away || 'Away',
+          casa: m.home_team || m.homeTeam || m.team_home || 'Home',
+          ospiti: m.away_team || m.awayTeam || m.team_away || 'Away',
           stato: isFinished ? 'Giocata' : 'Futura',
           golCasa: homeScore,
           golOspite: awayScore,
@@ -4423,8 +4253,8 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
   };
 
   const addFromSearch = async (league) => {
-    const name = league.name || league.tournament_name || league.title || 'Unknown';
-    const id = league.id || league.tournament_id;
+    const name = league.name || league.league_name || league.title || 'Unknown';
+    const id = league.id || league.league_id;
     
     if (!id) {
       setStatusMessage({ type: 'error', text: '❌ ID campionato non valido.' });
@@ -4509,7 +4339,7 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
         <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px'}}>
           💡 Ottieni la chiave su: <a href="https://sportsapipro.com" target="_blank" style={{color: 'var(--accent)'}}>sportsapipro.com</a>
           <br/>
-          📊 API V2 - 25 sport, 100+ endpoint, 15,000+ competizioni
+          📊 Copre 15,000+ competizioni, 20+ sport, 100 richieste/giorno gratis
         </div>
       </div>
       
@@ -4534,15 +4364,48 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
           >
             {searching ? '⏳...' : '🔍 Cerca'}
           </button>
-          <button 
-            className="btn btn-secondary" 
-            onClick={listTournaments} 
-            disabled={loading}
-            style={{fontSize: '13px', padding: '8px 16px', background: '#8b5cf6', color: '#fff'}}
-          >
-            📋 Lista Tornei
-          </button>
         </div>
+        
+        {searchResults.length > 0 && (
+          <div style={{marginTop: '8px', maxHeight: '200px', overflowY: 'auto', background: 'var(--surface)', borderRadius: '6px', padding: '6px'}}>
+            {searchResults.map((league, idx) => (
+              <div 
+                key={idx} 
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '6px 10px',
+                  borderBottom: '1px solid var(--border)',
+                  cursor: 'pointer',
+                  transition: 'background 0.2s'
+                }}
+                onClick={() => addFromSearch(league)}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--card)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <div>
+                  <span style={{fontWeight: 'bold', color: '#8b5cf6'}}>
+                    {league.name || league.league_name || league.title || 'Unknown'}
+                  </span>
+                  <span style={{fontSize: '11px', color: 'var(--text-muted)', marginLeft: '8px'}}>
+                    ID: {league.id || league.league_id}
+                  </span>
+                </div>
+                <button 
+                  className="btn btn-secondary" 
+                  style={{fontSize: '11px', padding: '2px 12px'}}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    addFromSearch(league);
+                  }}
+                >
+                  ➕ Aggiungi
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       
       <div style={{borderTop: '1px solid var(--border)', paddingTop: '12px'}}>
@@ -4564,12 +4427,9 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
               type="number" 
               value={leagueId} 
               onChange={e => setLeagueId(e.target.value)}
-              placeholder="ID (es. 41)"
+              placeholder="ID (es. 41 per Veikkausliiga)"
               style={{width: '100%'}}
             />
-            <div style={{fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px'}}>
-              💡 ID Veikkausliiga: usa "Lista Tornei"
-            </div>
           </div>
           <div style={{flex: 1, minWidth: '100px'}}>
             <label style={{display: 'block', marginBottom: '4px', fontSize: '11px', color: 'var(--text-muted)'}}>
@@ -4588,6 +4448,9 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
               <option value="2021">2021</option>
               <option value="2020">2020</option>
             </select>
+            <div style={{fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px'}}>
+              ℹ️ Per Veikkausliiga 2026 usa 2026
+            </div>
           </div>
           <div style={{flex: 1, minWidth: '100px'}}>
             <button 
@@ -4602,8 +4465,6 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
         </div>
         <div style={{fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px'}}>
           💡 Inserisci NOME e ID del campionato. Il sistema controllerà se ci sono partite prima di importare.
-          <br/>
-          🔑 Per Veikkausliiga, clicca su "📋 Lista Tornei" e trova l'ID corretto.
         </div>
       </div>
       
@@ -4650,16 +4511,169 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
       )}
       
       <div style={{marginTop: '12px', fontSize: '11px', color: 'var(--text-muted)', borderTop: '1px solid var(--border)', paddingTop: '10px'}}>
-        💡 <b>Veikkausliiga 2026</b> è in corso da aprile 2026.
+        💡 <b>Veikkausliiga 2026</b> è in corso da aprile 2026. Usa l'ID <b>41</b> e stagione <b>2026</b>.
         <br/>
         📅 Per campionati nordici (Finlandia, Svezia, Norvegia) usa l'anno corrente (2026).
         <br/>
-        🔑 <b>API V2 Football:</b> https://api.sportsapipro.com/v2/football
+        🏆 <b>ID utili:</b> Veikkausliiga (41), Allsvenskan (40), Eliteserien (42), Besta deild (43)
         <br/>
         📊 100 richieste/giorno gratis con la versione base.
-        <br/>
-        🏆 <b>Come trovare Veikkausliiga:</b> Clicca su "📋 Lista Tornei" e cerca "Veikkausliiga" nella lista.
       </div>
+    </div>
+  );
+};
+
+// ============================================================
+// SofaScoreManager
+// ============================================================
+
+const SofaScoreManager = ({ onImport, loading, matches, setMatches }) => {
+  const [customLeagues, setCustomLeagues] = useState(getCustomSofaLeagues);
+  const [newLeagueName, setNewLeagueName] = useState('');
+  const [newLeagueId, setNewLeagueId] = useState('');
+  const [selectedSeason, setSelectedSeason] = useState('26/27');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [selectedTab, setSelectedTab] = useState('lista');
+  const [isChecking, setIsChecking] = useState(false);
+
+  const saveLeagues = (leagues) => { setCustomLeagues(leagues); saveCustomSofaLeagues(leagues); };
+  const removeLeague = (id, name) => {
+    const isDefault = Object.values(SOFASCORE_LEAGUE_IDS).includes(id);
+    const matchCount = matches ? matches.filter(m => m.campionato === name).length : 0;
+    if (matchCount > 0 && !confirm(`⚠️ Il campionato "${name}" ha ${matchCount} partite importate. Eliminarlo cancellerà anche le partite. Continuare?`)) return;
+    if (matchCount > 0) setMatches(prev => prev.filter(m => m.campionato !== name));
+    if (isDefault) { const blacklist = getBlacklist(); if (!blacklist.includes(id)) { blacklist.push(id); saveBlacklist(blacklist); } }
+    else { saveLeagues(customLeagues.filter(l => l.id !== id)); }
+  };
+
+  const checkLeagueHasMatches = async (leagueId, seasonYear) => {
+    try { const events = await fetchSofaScoreMatches(leagueId, seasonYear); return { hasMatches: events.length > 0, count: events.length }; }
+    catch (e) { return { hasMatches: false, count: 0, error: e.message }; }
+  };
+
+  const addAndImportLeague = async () => {
+    if (!newLeagueName.trim() || !newLeagueId.trim()) { alert('Inserisci sia il nome che l\'ID del campionato.'); return; }
+    const id = parseInt(newLeagueId);
+    if (isNaN(id) || id <= 0) { alert('L\'ID deve essere un numero positivo.'); return; }
+    const allLeagues = getVisibleLeagues(customLeagues);
+    if (allLeagues.some(l => l.id === id || l.name.toLowerCase() === newLeagueName.toLowerCase())) { alert('⚠️ Questo campionato o ID è già presente nella lista.'); return; }
+    setIsChecking(true);
+    const leagueName = newLeagueName.trim();
+    try {
+      const checkResult = await checkLeagueHasMatches(id, selectedSeason);
+      if (checkResult.error) { alert(`❌ Errore nel controllo: ${checkResult.error}`); setIsChecking(false); return; }
+      if (!checkResult.hasMatches) { alert(`❌ Nessuna partita trovata per "${leagueName}" (ID: ${id}) nella stagione ${selectedSeason}.`); setIsChecking(false); return; }
+      saveLeagues([...customLeagues, { name: leagueName, id: id }]);
+      await onImport(leagueName, selectedSeason);
+      setNewLeagueName(''); setNewLeagueId('');
+    } catch (e) { console.error('Errore:', e); alert(`❌ Errore durante l'aggiunta: ${e.message}`); }
+    setIsChecking(false);
+  };
+
+  const searchSofaLeagues = async () => {
+    if (!searchQuery.trim()) { alert('Inserisci un termine di ricerca.'); return; }
+    setSearching(true); setSearchResults([]);
+    try {
+      const response = await fetch(`https://api.sofascore.com/api/v1/search?q=${encodeURIComponent(searchQuery)}&type=tournament`);
+      if (!response.ok) throw new Error('Errore nella ricerca');
+      const data = await response.json();
+      if (data.results && data.results.length > 0) {
+        const footballTournaments = data.results.filter(r => r.sport?.id === 1 || r.sport?.slug === 'football');
+        setSearchResults(footballTournaments);
+        if (footballTournaments.length === 0) alert('Nessun campionato di calcio trovato.');
+      } else alert('Nessun risultato trovato.');
+    } catch (e) { console.error('Errore ricerca:', e); alert('Errore durante la ricerca.'); }
+    setSearching(false);
+  };
+
+  const addFromSearch = async (tournament) => {
+    const name = tournament.name, id = tournament.id;
+    const allLeagues = getVisibleLeagues(customLeagues);
+    if (allLeagues.some(l => l.id === id || l.name.toLowerCase() === name.toLowerCase())) { alert('⚠️ Questo campionato è già nella tua lista.'); return; }
+    setIsChecking(true);
+    try {
+      const checkResult = await checkLeagueHasMatches(id, selectedSeason);
+      if (checkResult.error) { alert(`❌ Errore nel controllo: ${checkResult.error}`); setIsChecking(false); return; }
+      if (!checkResult.hasMatches) { alert(`❌ Nessuna partita trovata per "${name}" (ID: ${id}) nella stagione ${selectedSeason}.`); setIsChecking(false); return; }
+      saveLeagues([...customLeagues, { name, id }]);
+      await onImport(name, selectedSeason);
+      setSearchResults(searchResults.filter(r => r.id !== id));
+    } catch (e) { console.error('Errore:', e); alert(`❌ Errore durante l'aggiunta: ${e.message}`); }
+    setIsChecking(false);
+  };
+
+  const allLeagues = getVisibleLeagues(customLeagues);
+
+  return (
+    <div className="card">
+      <h4 style={{marginBottom:'12px'}}>🌐 Gestione Campionati SofaScore</h4>
+      <div className="sub-tabs" style={{marginBottom:'12px'}}>
+        <button className={selectedTab === 'lista' ? 'active' : ''} onClick={() => setSelectedTab('lista')}>📋 Lista campionati ({allLeagues.length})</button>
+        <button className={selectedTab === 'cerca' ? 'active' : ''} onClick={() => setSelectedTab('cerca')}>🔍 Cerca e aggiungi</button>
+      </div>
+      {selectedTab === 'lista' && (
+        <div>
+          <div style={{display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'12px'}}>
+            <input type="text" value={newLeagueName} onChange={e => setNewLeagueName(e.target.value)} placeholder="Nome campionato" style={{flex:1, minWidth:'150px'}} />
+            <input type="number" value={newLeagueId} onChange={e => setNewLeagueId(e.target.value)} placeholder="ID SofaScore" style={{width:'120px'}} />
+            <select value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} style={{width:'120px', padding:'8px'}}>
+              <option value="26/27">26/27</option><option value="25/26">25/26</option><option value="24/25">24/25</option><option value="23/24">23/24</option>
+            </select>
+            <button className="btn" onClick={addAndImportLeague} disabled={isChecking || loading}>{isChecking ? '⏳ Controllo...' : '➕ Aggiungi e Importa'}</button>
+          </div>
+          <div style={{maxHeight:'300px', overflowY:'auto'}}>
+            {allLeagues.length === 0 ? <p style={{color:'var(--text-muted)', textAlign:'center', padding:'20px'}}>Nessun campionato configurato.</p> : (
+              <table className="standings-table" style={{fontSize:'13px'}}>
+                <thead><tr><th>Campionato</th><th style={{textAlign:'center'}}>ID</th><th style={{textAlign:'center'}}>Tipo</th><th style={{textAlign:'center'}}>Partite</th><th style={{textAlign:'center'}}>Azioni</th></tr></thead>
+                <tbody>
+                  {allLeagues.map(league => {
+                    const matchCount = matches ? matches.filter(m => m.campionato === league.name).length : 0;
+                    return <tr key={league.id} style={{borderBottom:'1px solid var(--border)'}}>
+                      <td style={{padding:'6px 8px'}}><span style={{color: league.isDefault ? 'var(--text)' : 'var(--accent)'}}>{league.isDefault ? '📌 ' : '⭐ '}{league.name}</span></td>
+                      <td style={{textAlign:'center', padding:'6px 8px'}}>{league.id}</td>
+                      <td style={{textAlign:'center', padding:'6px 8px'}}><span style={{fontSize:'10px', padding:'2px 8px', borderRadius:'10px', background: league.isDefault ? 'var(--surface)' : 'var(--accent)', color: league.isDefault ? 'var(--text-muted)' : '#000'}}>{league.isDefault ? 'Predefinito' : 'Personalizzato'}</span></td>
+                      <td style={{textAlign:'center', padding:'6px 8px'}}>{matchCount > 0 ? <span style={{color:'var(--win)', fontWeight:'bold'}}>{matchCount}</span> : <span style={{color:'var(--text-muted)'}}>0</span>}</td>
+                      <td style={{textAlign:'center', padding:'6px 8px'}}>
+                        <select value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} style={{width:'80px', padding:'2px 4px', fontSize:'11px', marginRight:'4px'}}><option value="26/27">26/27</option><option value="25/26">25/26</option><option value="24/25">24/25</option><option value="23/24">23/24</option></select>
+                        <button className="btn btn-secondary" style={{fontSize:'11px', padding:'2px 8px', marginRight:'4px'}} onClick={() => onImport(league.name, selectedSeason)} disabled={loading}>📥 Importa</button>
+                        <button className="btn btn-danger" style={{fontSize:'11px', padding:'2px 8px'}} onClick={() => removeLeague(league.id, league.name)}>✖</button>
+                      </td>
+                    </tr>;
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
+      {selectedTab === 'cerca' && (
+        <div>
+          <div style={{display:'flex', gap:'8px', marginBottom:'12px'}}>
+            <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Cerca campionato" style={{flex:1}} onKeyDown={e => e.key === 'Enter' && searchSofaLeagues()} />
+            <button className="btn" onClick={searchSofaLeagues} disabled={searching || isChecking}>{searching ? '⏳ Cercando...' : '🔍 Cerca'}</button>
+          </div>
+          {searchResults.length > 0 && (
+            <div style={{maxHeight:'300px', overflowY:'auto'}}>
+              <table className="standings-table" style={{fontSize:'13px'}}>
+                <thead><tr><th>Campionato</th><th style={{textAlign:'center'}}>ID</th><th style={{textAlign:'center'}}>Categoria</th><th style={{textAlign:'center'}}>Azioni</th></tr></thead>
+                <tbody>
+                  {searchResults.map(t => {
+                    const allLeaguesList = getVisibleLeagues(customLeagues);
+                    const isAdded = allLeaguesList.some(l => l.id === t.id);
+                    return <tr key={t.id} style={{borderBottom:'1px solid var(--border)'}}>
+                      <td style={{padding:'6px 8px'}}>{t.name}</td><td style={{textAlign:'center', padding:'6px 8px'}}>{t.id}</td>
+                      <td style={{textAlign:'center', padding:'6px 8px'}}>{t.category?.name || 'N/A'}</td>
+                      <td style={{textAlign:'center', padding:'6px 8px'}}>{isAdded ? <span style={{color:'var(--win)'}}>✅ Già aggiunto</span> : <button className="btn btn-secondary" style={{fontSize:'11px', padding:'2px 10px'}} onClick={() => addFromSearch(t)} disabled={isChecking}>{isChecking ? '⏳...' : '➕ Aggiungi e Importa'}</button>}</td>
+                    </tr>;
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -4791,8 +4805,6 @@ const StoricoSchedine = ({ schedineHistory, setSchedineHistory }) => {
 
 function App() {
   const initial = loadState();
-  const currentYear = new Date().getFullYear();
-  
   const [tab, setTab] = useState('Home');
   const [settingsTab, setSettingsTab] = useState('Temi');
   const [championships, setChampionships] = useState(initial.championships);
@@ -4825,10 +4837,7 @@ function App() {
   
   const [statsSubTab, setStatsSubTab] = useState('Classifica');
 
-  // ============================================================
-  // FUNZIONI PRINCIPALI
-  // ============================================================
-
+  // Funzioni principali
   const importFromSofaScore = async (champName, seasonYear = '26/27') => {
     let leagueId = SOFASCORE_LEAGUE_IDS[champName];
     if (!leagueId) { const customLeagues = getCustomSofaLeagues(); const found = customLeagues.find(l => l.name === champName); if (found) leagueId = found.id; }
@@ -5078,8 +5087,8 @@ function App() {
         });
         setApiTestResult({ ...apiTestResult, [name]: r.status === 200 ? 'OK' : 'FAIL' });
       } else if (name === 'SportsAPIPro') {
-        const r = await fetch('https://api.sportsapipro.com/v2/football/live', {
-          headers: { 'x-api-key': key }
+        const r = await fetch('https://api.sportsapipro.com/v1/sports', {
+          headers: { 'X-API-Key': key }
         });
         setApiTestResult({ ...apiTestResult, [name]: r.status === 200 ? 'OK' : 'FAIL' });
       }
@@ -5229,7 +5238,7 @@ ${matchData}`;
             <span style={{color:'#f39c12'}}>P</span><span style={{color:'#2ecc71'}}>r</span>
             <span style={{color:'#e67e22'}}>o</span>
           </div>
-          <div className="subtitle">Statistiche & Trading Scommesse v3.0 - {currentYear}</div>
+          <div className="subtitle">Statistiche & Trading Scommesse v3.0 - 2026</div>
         </div>
         <Clock />
       </div>
@@ -5322,38 +5331,71 @@ ${matchData}`;
         )}
 
         {/* ===== PALINSESTO ===== */}
-        {tab === 'Palinsesto' && (
-          <div>
-            <div className="form-group" style={{maxWidth: '300px', marginBottom: '12px'}}>
-              <label>Filtra per Campionato</label>
-              <select value={selectedChamp} onChange={e => setSelectedChamp(e.target.value)}>
-                <option value="Tutti">Tutti</option>
-                {championships.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-              </select>
-            </div>
-            <h2 style={{marginBottom:'14px'}}>📅 Palinsesto - Prossimi 6 Giorni</h2>
-            {filterNext6Days(filteredMatches('Futura')).length === 0 ? (
-              <div className="empty-state">Nessuna partita nei prossimi 6 giorni. Importa un campionato dalla sezione Impostazioni.</div>
-            ) : (
-              <div className="matches-grid">
-                {filterNext6Days(filteredMatches('Futura')).map(m => {
-                  const weatherKey = `${m.campionato}_${m.data}`;
-                  const weather = weatherCache[weatherKey] || null;
-                  return (
-                    <MatchTab 
-                      key={m.id} 
-                      match={m} 
-                      allMatches={matches} 
-                      onSelect={selectMatch} 
-                      addToSchedina={addToSchedina}
-                      weatherData={weather}
-                    />
-                  );
-                })}
-              </div>
-            )}
+{tab === 'Palinsesto' && (
+  <div>
+    <div style={{display: 'flex', gap: '12px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center'}}>
+      <div className="form-group" style={{maxWidth: '300px', marginBottom: '0', flex: '1'}}>
+        <label>Filtra per Campionato</label>
+        <select value={selectedChamp} onChange={e => setSelectedChamp(e.target.value)}>
+          <option value="Tutti">Tutti</option>
+          {championships.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+        </select>
+      </div>
+      <div className="form-group" style={{maxWidth: '200px', marginBottom: '0', flex: '1'}}>
+        <label>Range Giorni</label>
+        <select value={daysRange} onChange={e => setDaysRange(parseInt(e.target.value))}>
+          <option value="0">Oggi (0)</option>
+          <option value="1">Oggi - Domani (0-1)</option>
+          <option value="2">Oggi - Dopodomani (0-2)</option>
+          <option value="3">Oggi - +3 giorni (0-3)</option>
+          <option value="4">Oggi - +4 giorni (0-4)</option>
+          <option value="5">Oggi - +5 giorni (0-5)</option>
+          <option value="6">Oggi - +6 giorni (0-6)</option>
+        </select>
+      </div>
+    </div>
+    <h2 style={{marginBottom:'14px'}}>📅 Palinsesto - Prossimi {daysRange + 1} Giorni</h2>
+    {(() => {
+      try {
+        const futureMatches = filteredMatches('Futura');
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const maxDate = new Date(today); maxDate.setDate(maxDate.getDate() + daysRange);
+        const filteredByDays = futureMatches.filter(m => {
+          if (!m.data) return false;
+          const matchDate = new Date(m.data);
+          if (isNaN(matchDate.getTime())) return false;
+          matchDate.setHours(0, 0, 0, 0);
+          return matchDate >= today && matchDate <= maxDate;
+        }).sort((a, b) => new Date(a.data + ' ' + a.ora) - new Date(b.data + ' ' + b.ora));
+        
+        if (!filteredByDays || filteredByDays.length === 0) {
+          return <div className="empty-state">Nessuna partita nei prossimi {daysRange + 1} giorni. Importa un campionato dalla sezione Impostazioni.</div>;
+        }
+        return (
+          <div className="matches-grid">
+            {filteredByDays.map(m => {
+              const weatherKey = `${m.campionato}_${m.data}`;
+              const weather = weatherCache[weatherKey] || null;
+              return (
+                <MatchTab 
+                  key={m.id} 
+                  match={m} 
+                  allMatches={matches} 
+                  onSelect={selectMatch} 
+                  addToSchedina={addToSchedina}
+                  weatherData={weather}
+                />
+              );
+            })}
           </div>
-        )}
+        );
+      } catch (e) {
+        console.error('Errore rendering Palinsesto:', e);
+        return <div className="empty-state">Errore nel caricamento delle partite. Ricarica la pagina.</div>;
+      }
+    })()}
+  </div>
+)}
 
         {/* ===== STATISTICHE ===== */}
         {tab === 'Statistiche' && (
@@ -5830,14 +5872,210 @@ ${matchData}`;
             )}
           </div>
         )}
-
+{/* ===== ANALISI CUSTOM ===== */}
+{tab === 'Analisi Custom' && (
+  <AnalisiCustom matches={matches} apiKeys={apiKeys} setTab={setTab} showAlert={showAlert} />
+)}
         <div style={{textAlign:'center', padding:'20px', color:'var(--text-muted)', fontSize:'12px'}}>
-          GesssAI-Pro v3.0 - {currentYear} • Dati: {matches.length} partite in {championships.length} campionati • Schedine: {schedineHistory.length}
+          GesssAI-Pro v3.0 - 2026 • Dati: {matches.length} partite in {championships.length} campionati • Schedine: {schedineHistory.length}
         </div>
       </div>
     </div>
   );
 }
+
+const AnalisiCustom = ({ matches, apiKeys, setTab, showAlert }) => {
+  const [leagueId, setLeagueId] = useState('');
+  const [seasonYear, setSeasonYear] = useState('26/27');
+  const [checking, setChecking] = useState(false);
+  const [leagueName, setLeagueName] = useState(null);
+  const [leagueFound, setLeagueFound] = useState(false);
+  const [teams, setTeams] = useState([]);
+  const [homeTeam, setHomeTeam] = useState('');
+  const [awayTeam, setAwayTeam] = useState('');
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [generating, setGenerating] = useState(false);
+
+  const checkLeague = async () => {
+    if (!leagueId.trim()) { showAlert('error', '❌ Inserisci un ID.'); return; }
+    const id = parseInt(leagueId);
+    if (isNaN(id) || id <= 0) { showAlert('error', '❌ ID non valido.'); return; }
+    setChecking(true);
+    setLeagueFound(false);
+    setLeagueName(null);
+    setTeams([]);
+    setHomeTeam('');
+    setAwayTeam('');
+    setAnalysisResult(null);
+    try {
+      const teamsData = await fetchSofaScoreTeams(id, seasonYear);
+      if (teamsData && teamsData.length > 0) {
+        setTeams(teamsData);
+        setLeagueFound(true);
+        const champMatch = matches.find(m => {
+          const isInChamp = teamsData.some(t => t.name === m.casa || t.name === m.ospiti);
+          return isInChamp && m.campionato;
+        });
+        if (champMatch) {
+          setLeagueName(champMatch.campionato);
+        } else {
+          setLeagueName(`Campionato ID ${id}`);
+        }
+        showAlert('success', `✅ Trovate ${teamsData.length} squadre!`);
+      } else {
+        setLeagueFound(false);
+        setLeagueName(`ID ${id} non trovato`);
+        showAlert('error', `❌ Nessuna squadra per l'ID ${id}.`);
+      }
+    } catch (e) {
+      showAlert('error', `❌ Errore: ${e.message}`);
+    }
+    setChecking(false);
+  };
+
+  const generateAnalysis = async () => {
+    if (!homeTeam || !awayTeam) { showAlert('error', '❌ Seleziona entrambe le squadre.'); return; }
+    if (homeTeam === awayTeam) { showAlert('error', '❌ Squadre diverse.'); return; }
+    if (!leagueName) { showAlert('error', '❌ Verifica il campionato.'); return; }
+    if (!apiKeys['GROQ']) { showAlert('error', '❌ Configura GROQ.'); setTab('API KEY'); return; }
+
+    setGenerating(true);
+    setAnalysisResult(null);
+    showAlert('info', `🧠 Generando analisi per ${homeTeam} vs ${awayTeam}...`);
+
+    try {
+      const prompt = generateAnalysisPrompt(leagueName, homeTeam, awayTeam, matches);
+      if (!prompt) { showAlert('error', '❌ Poche partite giocate.'); setGenerating(false); return; }
+      const response = await askGroq(prompt, apiKeys['GROQ']);
+      let jsonStr = response;
+      const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (jsonMatch) jsonStr = jsonMatch[1];
+      try {
+        const parsed = JSON.parse(jsonStr.trim());
+        setAnalysisResult(parsed);
+        showAlert('success', '✅ Analisi generata!');
+      } catch (e) {
+        setAnalysisResult({ raw: response });
+        showAlert('info', 'ℹ️ Risposta ricevuta.');
+      }
+    } catch (e) {
+      showAlert('error', `❌ Errore: ${e.message}`);
+    }
+    setGenerating(false);
+  };
+
+  const renderResult = () => {
+    if (!analysisResult) return null;
+    if (analysisResult.raw) {
+      return <div className="ai-result"><h2>📊 Risultato</h2><div className="schedina-output">{analysisResult.raw}</div></div>;
+    }
+    const { analisi_generale, pronostico, consigli_giocate, valutazione_giocata, indice_rischio } = analysisResult;
+    return (
+      <div className="ai-analysis-box">
+        <h4>📋 Analisi Generale</h4>
+        <p>{analisi_generale || 'N/A'}</p>
+        {pronostico && (
+          <div className="pronostico-mini">
+            <div className="item"><div className="label">Pronostico 1X2</div><div className="value">{pronostico.esito_1X2 || 'N/D'}</div></div>
+            <div className="item"><div className="label">Sicurezza</div><div className="value">{pronostico.percentuale_sicurezza || 0}%</div></div>
+            <div className="item" style={{flex: '0 0 100%'}}><div className="label">Motivazione</div><div style={{fontSize: '14px', color: 'var(--text)'}}>{pronostico.motivazione || ''}</div></div>
+          </div>
+        )}
+        {consigli_giocate && consigli_giocate.length > 0 && (
+          <>
+            <h4 style={{marginTop: '12px', marginBottom: '6px'}}>🎯 Consigli Giocate (dalle CARD)</h4>
+            <div className="consigli-grid">
+              {consigli_giocate.map((c, idx) => {
+                const labels = ['🎯 Fissa', '🔗 Combinata', '⭐ Libera'];
+                return (
+                  <div key={idx} className="consiglio-card">
+                    <div className="tipo">{labels[idx] || 'Giocata'}</div>
+                    <div className="giocata">{c.giocata || 'N/A'}</div>
+                    <div className="percentuale"><span className={getPercentualeClasse(c.percentuale)}>{c.percentuale || 0}%</span></div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+        {valutazione_giocata && (
+          <div style={{marginTop: '8px', background: 'var(--card)', padding: '10px', borderRadius: '6px'}}>
+            <div style={{fontWeight: 'bold', color: 'var(--accent)'}}>📈 Valutazione</div>
+            <div style={{fontSize: '13px'}}>{valutazione_giocata}</div>
+          </div>
+        )}
+        {indice_rischio !== undefined && (
+          <div style={{marginTop: '8px'}}><span style={{background: 'var(--card)', padding: '4px 12px', borderRadius: '20px'}}>🎯 Rischio: {indice_rischio}/10</span></div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <h2 style={{marginBottom: '14px'}}>🔍 Analisi Partita Custom</h2>
+      <p style={{color: 'var(--text-muted)', marginBottom: '16px'}}>Inserisci l'ID SofaScore di un campionato, seleziona due squadre e genera un'analisi professionale con i 3 consigli delle CARD.</p>
+      <div className="card">
+        <div className="custom-analysis-grid">
+          <div className="team-select-group">
+            <label>🏆 ID Campionato SofaScore</label>
+            <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+              <input type="number" value={leagueId} onChange={e => setLeagueId(e.target.value)} placeholder="Es. 41 per Veikkausliiga" style={{flex: 2, minWidth: '120px'}} onKeyDown={e => e.key === 'Enter' && checkLeague()} disabled={checking || generating} />
+              <select value={seasonYear} onChange={e => setSeasonYear(e.target.value)} style={{width: '100px'}} disabled={checking || generating}>
+                <option value="26/27">26/27</option><option value="25/26">25/26</option><option value="24/25">24/25</option>
+              </select>
+              <button className="btn-check-league" onClick={checkLeague} disabled={checking || generating}>{checking ? '⏳ Verifica...' : '🔍 Verifica'}</button>
+            </div>
+            <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px'}}>💡 ID utili: Veikkausliiga (41), Allsvenskan (40), Eliteserien (20), Premier League (17), Serie A (23)</div>
+          </div>
+          <div className="league-info-box">
+            {leagueName ? (
+              <>
+                <div className="league-name">{leagueName}</div>
+                <div className="league-id">ID: {leagueId}</div>
+                <div className={`league-status ${leagueFound ? 'found' : 'not-found'}`}>{leagueFound ? `✅ ${teams.length} squadre trovate` : '❌ Campionato non trovato'}</div>
+              </>
+            ) : (
+              <>
+                <div style={{fontSize: '16px', color: 'var(--text-muted)'}}>🔍 Inserisci un ID</div>
+                <div style={{fontSize: '13px', color: 'var(--text-muted)'}}>Il nome del campionato apparirà qui</div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {teams.length > 0 && (
+        <div className="card">
+          <div className="custom-analysis-grid">
+            <div className="team-select-group">
+              <label>🏠 Squadra di Casa</label>
+              <select value={homeTeam} onChange={e => setHomeTeam(e.target.value)} disabled={generating}>
+                <option value="">-- Seleziona --</option>
+                {teams.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
+              </select>
+            </div>
+            <div className="team-select-group">
+              <label>✈️ Squadra Ospite</label>
+              <select value={awayTeam} onChange={e => setAwayTeam(e.target.value)} disabled={generating}>
+                <option value="">-- Seleziona --</option>
+                {teams.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={{display: 'flex', gap: '12px', marginTop: '12px', flexWrap: 'wrap'}}>
+            <button className="btn-analyze" onClick={generateAnalysis} disabled={!homeTeam || !awayTeam || homeTeam === awayTeam || generating || !leagueFound}>
+              {generating ? '⏳ Generando...' : '🧠 Genera Analisi AI'}
+            </button>
+            {!apiKeys['GROQ'] && <span style={{color: 'var(--lose)', fontSize: '13px', alignSelf: 'center'}}>⚠️ Configura la chiave GROQ nel tab API KEY</span>}
+          </div>
+        </div>
+      )}
+
+      {renderResult()}
+    </div>
+  );
+};
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
