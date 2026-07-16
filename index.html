@@ -2587,13 +2587,6 @@ const AnalisiMeteo = ({ matches, weatherCache }) => {
 };
 
 // ============================================================
-// COMPONENTE: AI ANALYSIS PROFESSIONALE (VERSIONE STABILE)
-// ============================================================
-
-// Il componente AIAnalysis è stato spostato qui per evitare problemi di caricamento
-// Nota: questo è un placeholder, il vero componente è definito più avanti
-
-// ============================================================
 // COMPONENTI - askGroq
 // ============================================================
 
@@ -3975,12 +3968,1077 @@ const saveState = (data) => {
 };
 
 // ============================================================
-// COMPONENTE: AI ANALYSIS PROFESSIONALE (VERSIONE STABILE COMPLETA)
+// COMPONENTE: AI ANALYSIS PROFESSIONALE (VERSIONE STABILE COMPLETA CON LE 3 GIOCATE DELLA CARD)
 // ============================================================
 
-// Nota: Questo componente è già stato definito in precedenza
-// Per evitare duplicazioni, lo definiamo qui come placeholder
-// Il vero componente è stato definito prima della funzione App
+const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
+  const [analysis, setAnalysis] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [weatherData, setWeatherData] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [tacticsData, setTacticsData] = useState(null);
+  const [injuriesData, setInjuriesData] = useState(null);
+  const [activeApi, setActiveApi] = useState(null);
+
+  const getWeatherEmoji = (weatherDesc) => {
+    if (!weatherDesc) return '🌤️';
+    const desc = weatherDesc.toLowerCase();
+    if (desc.includes('clear') || desc.includes('sunny')) return '☀️';
+    if (desc.includes('cloud') || desc.includes('overcast')) return '☁️';
+    if (desc.includes('rain') || desc.includes('drizzle')) return '🌧️';
+    if (desc.includes('thunder')) return '⛈️';
+    if (desc.includes('snow')) return '❄️';
+    return '🌤️';
+  };
+
+  const getWeatherIcon = (weatherDesc) => {
+    if (!weatherDesc) return '🌤️';
+    const desc = weatherDesc.toLowerCase();
+    if (desc.includes('clear') || desc.includes('sunny')) return '☀️';
+    if (desc.includes('few cloud')) return '🌤️';
+    if (desc.includes('cloud') || desc.includes('overcast')) return '☁️';
+    if (desc.includes('rain') && desc.includes('light')) return '🌦️';
+    if (desc.includes('rain')) return '🌧️';
+    if (desc.includes('thunder')) return '⛈️';
+    if (desc.includes('snow')) return '❄️';
+    return '🌤️';
+  };
+
+  const fetchWeather = async (city, matchDate) => {
+    const apiKey = apiKeys['OpenWeatherMap'];
+    if (!apiKey || !city) return null;
+    try {
+      const r = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&units=metric&appid=${apiKey}`);
+      if (!r.ok) return null;
+      const data = await r.json();
+      const matchDay = new Date(matchDate);
+      matchDay.setHours(0,0,0,0);
+      const forecasts = data.list.filter(item => {
+        const dt = new Date(item.dt * 1000);
+        dt.setHours(0,0,0,0);
+        return dt.getTime() === matchDay.getTime();
+      });
+      if (forecasts.length === 0) return null;
+      const forecast = forecasts[0];
+      return {
+        temp: forecast.main.temp,
+        temp_min: forecast.main.temp_min,
+        temp_max: forecast.main.temp_max,
+        weather: forecast.weather[0].description,
+        weather_icon: forecast.weather[0].icon,
+        wind_speed: forecast.wind.speed,
+        rain: forecast.rain ? forecast.rain['3h'] : 0,
+        humidity: forecast.main.humidity,
+        pressure: forecast.main.pressure
+      };
+    } catch (e) { return null; }
+  };
+
+  const fetchTacticsFromApiFootball = async (homeTeam, awayTeam, matchDate) => {
+    const apiKey = apiKeys['API-Football'];
+    if (!apiKey) return null;
+
+    try {
+      const searchHome = await fetch(
+        `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(homeTeam)}`,
+        { headers: { 'x-apisports-key': apiKey } }
+      );
+      const searchAway = await fetch(
+        `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(awayTeam)}`,
+        { headers: { 'x-apisports-key': apiKey } }
+      );
+
+      if (!searchHome.ok || !searchAway.ok) return null;
+
+      const homeData = await searchHome.json();
+      const awayData = await searchAway.json();
+
+      const homeId = homeData.response?.[0]?.team?.id;
+      const awayId = awayData.response?.[0]?.team?.id;
+
+      if (!homeId || !awayId) return null;
+
+      const matchDateObj = new Date(matchDate);
+      const dateStr = matchDateObj.toISOString().split('T')[0];
+      
+      const fixturesRes = await fetch(
+        `https://v3.football.api-sports.io/fixtures?date=${dateStr}&team=${homeId}`,
+        { headers: { 'x-apisports-key': apiKey } }
+      );
+
+      if (!fixturesRes.ok) return null;
+
+      const fixturesData = await fixturesRes.json();
+      const fixture = fixturesData.response?.find(f => 
+        f.teams?.home?.id === homeId && f.teams?.away?.id === awayId
+      );
+
+      if (!fixture) return null;
+
+      const formationsRes = await fetch(
+        `https://v3.football.api-sports.io/fixtures/lineups?fixture=${fixture.fixture.id}`,
+        { headers: { 'x-apisports-key': apiKey } }
+      );
+
+      if (!formationsRes.ok) return null;
+
+      const formationsData = await formationsRes.json();
+      
+      if (!formationsData.response || formationsData.response.length === 0) return null;
+
+      const homeFormation = formationsData.response.find(f => f.team.id === homeId);
+      const awayFormation = formationsData.response.find(f => f.team.id === awayId);
+
+      setActiveApi('API-Football');
+
+      return {
+        source: 'API-Football',
+        home: {
+          formation: homeFormation?.formation || 'N/D',
+          players: homeFormation?.startXI?.map(p => ({
+            role: p.player.pos || 'N/A',
+            name: p.player.name
+          })) || []
+        },
+        away: {
+          formation: awayFormation?.formation || 'N/D',
+          players: awayFormation?.startXI?.map(p => ({
+            role: p.player.pos || 'N/A',
+            name: p.player.name
+          })) || []
+        }
+      };
+    } catch (e) {
+      console.error('Errore API-Football formazioni:', e);
+      return null;
+    }
+  };
+
+  const fetchTacticsFromSofaScore = async (homeTeam, awayTeam, matchDate) => {
+    try {
+      const searchHome = await fetch(
+        `https://api.sofascore.com/api/v1/search?q=${encodeURIComponent(homeTeam)}&type=team`
+      );
+      const searchAway = await fetch(
+        `https://api.sofascore.com/api/v1/search?q=${encodeURIComponent(awayTeam)}&type=team`
+      );
+
+      if (!searchHome.ok || !searchAway.ok) return null;
+
+      const homeData = await searchHome.json();
+      const awayData = await searchAway.json();
+
+      const homeId = homeData.results?.[0]?.entity?.id;
+      const awayId = awayData.results?.[0]?.entity?.id;
+
+      if (!homeId || !awayId) return null;
+
+      const matchDateObj = new Date(matchDate);
+      const dateStr = matchDateObj.toISOString().split('T')[0];
+      
+      const eventsRes = await fetch(
+        `https://api.sofascore.com/api/v1/sport/football/events/date/${dateStr}`
+      );
+
+      if (!eventsRes.ok) return null;
+
+      const eventsData = await eventsRes.json();
+      const fixture = eventsData.events?.find(f => 
+        f.homeTeam?.id === homeId && f.awayTeam?.id === awayId
+      );
+
+      if (!fixture) return null;
+
+      const lineupRes = await fetch(
+        `https://api.sofascore.com/api/v1/event/${fixture.id}/lineups`
+      );
+
+      if (!lineupRes.ok) return null;
+
+      const lineupData = await lineupRes.json();
+
+      const homeLineup = lineupData.lineups?.find(l => l.teamId === homeId);
+      const awayLineup = lineupData.lineups?.find(l => l.teamId === awayId);
+
+      setActiveApi('SofaScore');
+
+      return {
+        source: 'SofaScore',
+        home: {
+          formation: homeLineup?.formation || 'N/D',
+          players: homeLineup?.players?.map(p => ({
+            role: p.position || 'N/A',
+            name: p.name
+          })) || []
+        },
+        away: {
+          formation: awayLineup?.formation || 'N/D',
+          players: awayLineup?.players?.map(p => ({
+            role: p.position || 'N/A',
+            name: p.name
+          })) || []
+        }
+      };
+    } catch (e) {
+      console.error('Errore SofaScore:', e);
+      return null;
+    }
+  };
+
+  const fetchInjuriesFromApiFootball = async (homeTeam, awayTeam) => {
+    const apiKey = apiKeys['API-Football'];
+    if (!apiKey) return null;
+
+    try {
+      const searchHome = await fetch(
+        `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(homeTeam)}`,
+        { headers: { 'x-apisports-key': apiKey } }
+      );
+      const searchAway = await fetch(
+        `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(awayTeam)}`,
+        { headers: { 'x-apisports-key': apiKey } }
+      );
+
+      if (!searchHome.ok || !searchAway.ok) return null;
+
+      const homeData = await searchHome.json();
+      const awayData = await searchAway.json();
+
+      const homeId = homeData.response?.[0]?.team?.id;
+      const awayId = awayData.response?.[0]?.team?.id;
+
+      if (!homeId || !awayId) return null;
+
+      const injuriesHome = await fetch(
+        `https://v3.football.api-sports.io/injuries?team=${homeId}`,
+        { headers: { 'x-apisports-key': apiKey } }
+      );
+      const injuriesAway = await fetch(
+        `https://v3.football.api-sports.io/injuries?team=${awayId}`,
+        { headers: { 'x-apisports-key': apiKey } }
+      );
+
+      const homeInjuriesData = injuriesHome.ok ? await injuriesHome.json() : { response: [] };
+      const awayInjuriesData = injuriesAway.ok ? await injuriesAway.json() : { response: [] };
+
+      const mapInjury = (injury) => ({
+        name: injury.player?.name || 'N/D',
+        condition: injury.type || 'Infortunato',
+        note: injury.reason || injury.detail || 'N/D'
+      });
+
+      return {
+        source: 'API-Football',
+        home: (homeInjuriesData.response || []).map(mapInjury),
+        away: (awayInjuriesData.response || []).map(mapInjury)
+      };
+    } catch (e) {
+      console.error('Errore API-Football infortuni:', e);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    if (!match) return;
+    const storageKey = `ft_ai_${match.id}`;
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setAnalysis(parsed.analysis || null);
+        setWeatherData(parsed.weatherData || null);
+        setTacticsData(parsed.tacticsData || null);
+        setInjuriesData(parsed.injuriesData || null);
+        setActiveApi(parsed.activeApi || null);
+        setError(null);
+        return;
+      } catch (e) {}
+    }
+    generateAnalysis();
+  }, [match]);
+
+  const generateAnalysis = async () => {
+    if (!match) return;
+    if (!apiKeys['GROQ']) {
+      setError('🔑 Chiave API GROQ non configurata');
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setIsRefreshing(true);
+
+    try {
+      const stats = computeMatchStats(match, allMatches);
+      if (stats.error) { setError(stats.error); setLoading(false); setIsRefreshing(false); return; }
+      
+      const homeForm = calcFormAndStats(allMatches, match.casa);
+      const awayForm = calcFormAndStats(allMatches, match.ospiti);
+      const homeMG = calcTeamMG(allMatches, match.casa);
+      const awayMG = calcTeamMG(allMatches, match.ospiti);
+
+      // ============================================================
+      // 🔥 CALCOLA LE 3 GIOCATE DELLA CARD (come nel MatchTab)
+      // ============================================================
+      const pct12Under45 = get12Under45(allMatches, match.casa, match.ospiti);
+      const homeRange = getMultigolRange(match.casa, allMatches);
+      const awayRange = getMultigolRange(match.ospiti, allMatches);
+      const freeCombo = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
+
+      // ============================================================
+      // METEO
+      // ============================================================
+      let city = null;
+      if (typeof getCittaFromChampionship === 'function') {
+        city = getCittaFromChampionship(match.campionato);
+      } else {
+        for (const [key, val] of Object.entries(CITTÀ_PER_CAMPIONATO)) {
+          if (match.campionato.toLowerCase().includes(key.toLowerCase())) {
+            city = val;
+            break;
+          }
+        }
+        if (!city) city = 'Stoccolma';
+      }
+      
+      let weather = null;
+      if (city && apiKeys['OpenWeatherMap']) {
+        weather = await fetchWeather(city, match.data);
+        setWeatherData(weather);
+      }
+
+      // ============================================================
+      // FORMAZIONI (API-Football → SofaScore)
+      // ============================================================
+      let tactics = null;
+      
+      if (apiKeys['API-Football']) {
+        tactics = await fetchTacticsFromApiFootball(match.casa, match.ospiti, match.data);
+      }
+      
+      if (!tactics) {
+        tactics = await fetchTacticsFromSofaScore(match.casa, match.ospiti, match.data);
+      }
+      
+      if (!tactics) {
+        tactics = {
+          source: null,
+          home: { formation: 'N/D', players: [] },
+          away: { formation: 'N/D', players: [] }
+        };
+      }
+      
+      setTacticsData(tactics);
+
+      // ============================================================
+      // INFORTUNI (solo API-Football)
+      // ============================================================
+      let injuries = null;
+      if (apiKeys['API-Football']) {
+        injuries = await fetchInjuriesFromApiFootball(match.casa, match.ospiti);
+      }
+      
+      if (!injuries) {
+        injuries = { source: null, home: [], away: [] };
+      }
+      
+      setInjuriesData(injuries);
+
+      // ============================================================
+      // COSTRUISCI PROMPT CON LE 3 GIOCATE
+      // ============================================================
+      let homeFormationStr = 'N/D';
+      let awayFormationStr = 'N/D';
+      let homeInjuriesStr = 'Nessun infortunio segnalato';
+      let awayInjuriesStr = 'Nessun infortunio segnalato';
+
+      if (tactics.home.players && tactics.home.players.length > 0) {
+        homeFormationStr = tactics.home.players.map(p => `${p.role}: ${p.name}`).join('\n  - ');
+      }
+      if (tactics.away.players && tactics.away.players.length > 0) {
+        awayFormationStr = tactics.away.players.map(p => `${p.role}: ${p.name}`).join('\n  - ');
+      }
+      if (injuries.home && injuries.home.length > 0) {
+        homeInjuriesStr = injuries.home.map(i => `  - ${i.name}: ${i.condition} (${i.note})`).join('\n');
+      }
+      if (injuries.away && injuries.away.length > 0) {
+        awayInjuriesStr = injuries.away.map(i => `  - ${i.name}: ${i.condition} (${i.note})`).join('\n');
+      }
+
+      let meteoSection = '';
+      if (weather) {
+        const weatherEmoji = getWeatherEmoji(weather.weather);
+        meteoSection = `
+🌤️ METEO (${city}):
+- ${weatherEmoji} ${weather.weather}
+- Temperatura: ${weather.temp}°C (min ${weather.temp_min}°C, max ${weather.temp_max}°C)
+- Vento: ${weather.wind_speed} m/s
+- Pioggia: ${weather.rain ? weather.rain + ' mm' : 'nessuna'}
+- Umidità: ${weather.humidity || 'N/A'}%
+- Pressione: ${weather.pressure || 'N/A'} hPa
+`;
+      } else {
+        meteoSection = '⚠️ Dati meteo non disponibili';
+      }
+
+      // ============================================================
+      // SEZIONE GIOCATE DELLA CARD - DA USARE NEL PROMPT
+      // ============================================================
+      const giocateSection = `
+🎯 GIOCATE CALCOLATE (dalla Card del Palinsesto):
+
+1️⃣ 12+U4.5: ${Math.round(pct12Under45)}%
+   → Vittoria di una squadra + meno di 5 gol totali
+
+2️⃣ COMBINATA: ${match.casa} ${homeRange.label} (${homeRange.pct}%) + ${match.ospiti} ${awayRange.label} (${awayRange.pct}%)
+   → Combinazione dei Multigol delle due squadre
+
+3️⃣ LIBERA: ${freeCombo.label} (${freeCombo.pct}%)
+   → Migliore combinazione tra Doppia Chance, Over/Under e Multigol
+
+📌 QUESTE SONO LE 3 GIOCATE CHE DEVI INSERIRE NEI "consigli_giocate" DEL JSON.
+`;
+
+      const prompt = `Sei un analista tattico professionista. Analizza la partita:
+
+${match.casa} vs ${match.ospiti} - ${match.campionato}
+Data: ${match.data}
+
+📋 FORMAZIONI (Fonte: ${tactics.source || 'N/D'}):
+${match.casa} (${tactics.home.formation || 'N/D'}):
+${homeFormationStr}
+
+${match.ospiti} (${tactics.away.formation || 'N/D'}):
+${awayFormationStr}
+
+🏥 INFORTUNI (Fonte: ${injuries.source || 'N/D'}):
+${match.casa}:
+${homeInjuriesStr}
+
+${match.ospiti}:
+${awayInjuriesStr}
+
+📊 STATISTICHE:
+- Forma Casa: ${homeForm.form} (${homeForm.pct}%)
+- Forma Ospite: ${awayForm.form} (${awayForm.pct}%)
+- Differenza: ${Math.abs(homeForm.pct - awayForm.pct)}%
+- Media Gol Casa: ${homeMG} - Ospite: ${awayMG}
+
+1X2: 1=${Math.round(stats.p1)}% X=${Math.round(stats.pX)}% 2=${Math.round(stats.p2)}%
+Doppia Chance: 1X=${Math.round(stats.p1X)}% 12=${Math.round(stats.p12)}% X2=${Math.round(stats.pX2)}%
+
+Under/Over:
+- 1.5: U=${Math.round(stats.underOver[0].under)}% O=${Math.round(stats.underOver[0].over)}%
+- 2.5: U=${Math.round(stats.underOver[1].under)}% O=${Math.round(stats.underOver[1].over)}%
+- 3.5: U=${Math.round(stats.underOver[2].under)}% O=${Math.round(stats.underOver[2].over)}%
+
+Multigol Casa: 0-1=${Math.round(stats.homeMG['0-1'])}% 0-2=${Math.round(stats.homeMG['0-2'])}% 1-3=${Math.round(stats.homeMG['1-3'])}% Over1,5=${Math.round(stats.homeMG['2-4'])}%
+Multigol Ospite: 0-1=${Math.round(stats.awayMG['0-1'])}% 0-2=${Math.round(stats.awayMG['0-2'])}% 1-3=${Math.round(stats.awayMG['1-3'])}% Over1,5=${Math.round(stats.awayMG['2-4'])}%
+
+${meteoSection}
+
+${giocateSection}
+
+⚠️ IMPORTANTE: Nei "consigli_giocate" del JSON, DEVI ASSOLUTAMENTE includere QUESTE 3 GIOCATE, nell'ordine:
+1. "12+U4.5" con percentuale ${Math.round(pct12Under45)}%
+2. "COMBINATA: ${match.casa} ${homeRange.label} + ${match.ospiti} ${awayRange.label}" con percentuale ${Math.round((homeRange.pct + awayRange.pct) / 2)}%
+3. "LIBERA: ${freeCombo.label}" con percentuale ${freeCombo.pct}%
+
+Genera un'analisi in formato JSON:
+{
+  "analisi_generale": "Panoramica della partita (2-3 righe)",
+  "analisi_tattica": {
+    "stile_casa": "Stile di gioco casa",
+    "stile_ospite": "Stile di gioco ospite",
+    "punti_di_forza_casa": "Punti di forza casa",
+    "punti_di_forza_ospite": "Punti di forza ospite",
+    "debolezze_casa": "Debolezze casa",
+    "debolezze_ospite": "Debolezze ospite",
+    "chiave_tattica": "Chiave tattica",
+    "duelli_chiave": "Duelli chiave"
+  },
+  "fattori_esterni": {
+    "meteo": "Impatto meteo",
+    "assenze": "Impatto assenze",
+    "classifica": "Pressione psicologica"
+  },
+  "pronostico": {
+    "esito_1X2": "1, X o 2",
+    "percentuale_sicurezza": 75,
+    "12+under_4_5": "Sì",
+    "12+under_4_5_pct": ${Math.round(pct12Under45)},
+    "motivazione": "Motivazione"
+  },
+  "consigli_giocate": [
+    {"tipo":"singola","giocata":"12+U4.5","percentuale":${Math.round(pct12Under45)}},
+    {"tipo":"combinata","giocata":"COMBINATA: ${match.casa} ${homeRange.label} + ${match.ospiti} ${awayRange.label}","percentuale":${Math.round((homeRange.pct + awayRange.pct) / 2)}},
+    {"tipo":"libera","giocata":"LIBERA: ${freeCombo.label}","percentuale":${freeCombo.pct}}
+  ],
+  "indice_rischio": 5,
+  "valutazione_giocata": "Valutazione"
+}`;
+
+      const res = await askGroq(prompt, apiKeys['GROQ']);
+      let jsonStr = res;
+      const jsonMatch = res.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (jsonMatch) jsonStr = jsonMatch[1];
+      const parsed = JSON.parse(jsonStr.trim());
+
+      // Assicuriamoci che le 3 giocate siano corrette
+      if (parsed.consigli_giocate && parsed.consigli_giocate.length >= 3) {
+        // Forza le 3 giocate esatte
+        parsed.consigli_giocate[0] = { tipo: "singola", giocata: `12+U4.5`, percentuale: Math.round(pct12Under45) };
+        parsed.consigli_giocate[1] = { tipo: "combinata", giocata: `COMBINATA: ${match.casa} ${homeRange.label} + ${match.ospiti} ${awayRange.label}`, percentuale: Math.round((homeRange.pct + awayRange.pct) / 2) };
+        parsed.consigli_giocate[2] = { tipo: "libera", giocata: `LIBERA: ${freeCombo.label}`, percentuale: freeCombo.pct };
+      }
+
+      const storageKey = `ft_ai_${match.id}`;
+      localStorage.setItem(storageKey, JSON.stringify({ 
+        analysis: parsed, 
+        weatherData: weather,
+        tacticsData: tactics,
+        injuriesData: injuries,
+        activeApi: tactics.source || null
+      }));
+
+      setAnalysis(parsed);
+      setError(null);
+    } catch (e) {
+      console.warn('Errore analisi AI:', e);
+      setError(e.message || 'Errore durante la generazione');
+    }
+    setLoading(false);
+    setIsRefreshing(false);
+  };
+
+  const refreshAnalysis = () => {
+    if (match) {
+      const storageKey = `ft_ai_${match.id}`;
+      localStorage.removeItem(storageKey);
+      generateAnalysis();
+    }
+  };
+
+  const goToApiKey = () => {
+    if (setTab) setTab('API KEY');
+  };
+
+  if (!match) return null;
+
+  if (loading) {
+    return (
+      <div className="ai-analysis-loading">
+        ⏳ Generazione analisi AI...<br/>
+        <span style={{fontSize:'12px', color:'var(--text-muted)'}}>
+          Recupero dati da API-Football...
+        </span>
+      </div>
+    );
+  }
+
+  if (error) {
+    const isKeyError = error.includes('GROQ') || error.includes('chiave');
+    return (
+      <div className="ai-analysis-error">
+        <span>⚠️ {error}</span>
+        {isKeyError && (
+          <div>
+            <button className="btn-go-key" onClick={goToApiKey}>
+              🔑 Vai al tab API KEY
+            </button>
+          </div>
+        )}
+        {!isKeyError && (
+          <div style={{marginTop:'8px'}}>
+            <button className="btn-go-key" onClick={refreshAnalysis}>
+              🔄 Riprova
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (!analysis) return null;
+
+  const { analisi_generale, analisi_tattica, fattori_esterni, pronostico, consigli_giocate, indice_rischio, valutazione_giocata } = analysis;
+  const weatherEmoji = weatherData ? getWeatherEmoji(weatherData.weather) : '🌤️';
+  const weatherIcon = weatherData ? getWeatherIcon(weatherData.weather) : '🌤️';
+
+  const storageKey = `ft_ai_${match.id}`;
+  const saved = localStorage.getItem(storageKey);
+  let savedData = null;
+  if (saved) {
+    try { savedData = JSON.parse(saved); } catch(e) {}
+  }
+  const tacticsDataLocal = savedData?.tacticsData || { home: { formation: 'N/D', players: [] }, away: { formation: 'N/D', players: [] } };
+  const injuriesDataLocal = savedData?.injuriesData || { home: [], away: [] };
+  const activeApiLocal = savedData?.activeApi || null;
+
+  const hasRealTactics = (tacticsDataLocal.home.players && tacticsDataLocal.home.players.length > 0) || 
+                         (tacticsDataLocal.away.players && tacticsDataLocal.away.players.length > 0);
+  const hasRealInjuries = (injuriesDataLocal.home && injuriesDataLocal.home.length > 0) || 
+                          (injuriesDataLocal.away && injuriesDataLocal.away.length > 0);
+
+  const apiNameMap = {
+    'API-Football': 'API-Football 🏆',
+    'SofaScore': 'SofaScore 📊',
+    'Football-data.org': 'Football-data.org ⚽'
+  };
+
+  return (
+    <div className="ai-analysis-box">
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px', flexWrap:'wrap', gap:'8px'}}>
+        <h3 style={{color: getChampColor(match.campionato), margin:0, fontSize:'16px'}}>
+          🤖 Analisi AI Avanzata
+          {weatherData && <span style={{marginLeft:'8px', fontSize:'20px'}}>{weatherEmoji}</span>}
+        </h3>
+        <div style={{display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap'}}>
+          {activeApiLocal && (
+            <span style={{
+              fontSize:'11px',
+              background: 'var(--win)',
+              color: '#000',
+              padding: '2px 10px',
+              borderRadius: '12px',
+              fontWeight: 'bold'
+            }}>
+              ✅ {apiNameMap[activeApiLocal] || activeApiLocal}
+            </span>
+          )}
+          {!activeApiLocal && apiKeys['API-Football'] && (
+            <span style={{
+              fontSize:'11px',
+              background: 'var(--draw)',
+              color: '#000',
+              padding: '2px 10px',
+              borderRadius: '12px',
+              fontWeight: 'bold'
+            }}>
+              ⏳ Cercando formazioni...
+            </span>
+          )}
+          {!apiKeys['API-Football'] && (
+            <span style={{
+              fontSize:'11px',
+              background: 'var(--lose)',
+              color: '#fff',
+              padding: '2px 10px',
+              borderRadius: '12px',
+              fontWeight: 'bold'
+            }}>
+              ⚠️ API-Football non configurata
+            </span>
+          )}
+          <button onClick={refreshAnalysis} style={{background:'transparent', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:'13px'}}>
+            🔄 Aggiorna
+          </button>
+        </div>
+      </div>
+
+      {/* METEO */}
+      {weatherData ? (
+        <div style={{
+          background: 'linear-gradient(135deg, var(--card), var(--surface))',
+          borderRadius: '12px',
+          padding: '16px 20px',
+          marginBottom: '16px',
+          border: '1px solid var(--border)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+        }}>
+          <div style={{display:'flex', alignItems:'center', gap:'20px', flexWrap:'wrap'}}>
+            <div style={{textAlign:'center', minWidth:'80px'}}>
+              <div style={{fontSize:'60px', lineHeight:'1'}}>{weatherIcon}</div>
+              <div style={{fontSize:'12px', color:'var(--text-muted)', marginTop:'4px', textTransform:'capitalize'}}>
+                {weatherData.weather || 'N/A'}
+              </div>
+            </div>
+            <div style={{flex:1, minWidth:'120px'}}>
+              <div style={{fontSize:'40px', fontWeight:'bold', color:'var(--accent)', lineHeight:'1'}}>
+                {Math.round(weatherData.temp)}°C
+              </div>
+              <div style={{fontSize:'13px', color:'var(--text-muted)'}}>
+                {match.campionato}
+              </div>
+            </div>
+            <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(70px, 1fr))', gap:'6px 12px', flex:'1'}}>
+              <div style={{textAlign:'center'}}>
+                <div style={{fontSize:'18px'}}>🌡️</div>
+                <div style={{fontSize:'14px', fontWeight:'bold'}}>{Math.round(weatherData.temp_min)}°/{Math.round(weatherData.temp_max)}°</div>
+                <div style={{fontSize:'10px', color:'var(--text-muted)'}}>Min/Max</div>
+              </div>
+              <div style={{textAlign:'center'}}>
+                <div style={{fontSize:'18px'}}>💨</div>
+                <div style={{fontSize:'14px', fontWeight:'bold'}}>{Math.round(weatherData.wind_speed)} m/s</div>
+                <div style={{fontSize:'10px', color:'var(--text-muted)'}}>Vento</div>
+              </div>
+              <div style={{textAlign:'center'}}>
+                <div style={{fontSize:'18px'}}>💧</div>
+                <div style={{fontSize:'14px', fontWeight:'bold'}}>{weatherData.humidity || 'N/A'}%</div>
+                <div style={{fontSize:'10px', color:'var(--text-muted)'}}>Umidità</div>
+              </div>
+              {weatherData.rain > 0 && (
+                <div style={{textAlign:'center'}}>
+                  <div style={{fontSize:'18px'}}>🌧️</div>
+                  <div style={{fontSize:'14px', fontWeight:'bold'}}>{weatherData.rain} mm</div>
+                  <div style={{fontSize:'10px', color:'var(--text-muted)'}}>Pioggia</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{
+          background: 'var(--card)',
+          borderRadius: '8px',
+          padding: '12px 16px',
+          marginBottom: '16px',
+          border: '1px solid var(--border)',
+          textAlign: 'center',
+          color: 'var(--text-muted)',
+          fontSize: '13px'
+        }}>
+          ⚠️ Dati meteo non disponibili
+          {!apiKeys['OpenWeatherMap'] && (
+            <span style={{display:'block', marginTop:'4px'}}>
+              💡 Configura OpenWeatherMap nel tab API KEY
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* ANALISI GENERALE */}
+      <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'12px', marginBottom:'4px'}}>📋 Analisi Generale</h4>
+      <p style={{fontSize:'14px', lineHeight:'1.6', color:'var(--text)'}}>{analisi_generale || 'N/A'}</p>
+
+      {/* FORMAZIONI */}
+      <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'16px', marginBottom:'8px'}}>
+        📋 Formazioni {hasRealTactics ? '✅ Reali' : '⚠️ Non disponibili'}
+        {hasRealTactics && tacticsDataLocal.source && (
+          <span style={{fontSize:'11px', color:'var(--text-muted)', fontWeight:'normal', marginLeft:'8px'}}>
+            (Fonte: {apiNameMap[tacticsDataLocal.source] || tacticsDataLocal.source})
+          </span>
+        )}
+        {!hasRealTactics && apiKeys['API-Football'] && (
+          <span style={{fontSize:'11px', color:'var(--draw)', fontWeight:'normal', marginLeft:'8px'}}>
+            (⏳ Partita non ancora iniziata o formazioni non ufficiali)
+          </span>
+        )}
+        {!hasRealTactics && !apiKeys['API-Football'] && (
+          <span style={{fontSize:'11px', color:'var(--lose)', fontWeight:'normal', marginLeft:'8px'}}>
+            (❌ Configura API-Football)
+          </span>
+        )}
+      </h4>
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
+        <div style={{background:'var(--card)', padding:'12px', borderRadius:'8px', border:'1px solid var(--border)'}}>
+          <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'15px', marginBottom:'6px'}}>
+            🟡 {match.casa} <span style={{fontSize:'12px', color:'var(--text-muted)', fontWeight:'normal'}}>({tacticsDataLocal.home.formation || 'N/D'})</span>
+          </div>
+          {tacticsDataLocal.home.players && tacticsDataLocal.home.players.length > 0 ? (
+            <div style={{fontSize:'13px', lineHeight:'1.8'}}>
+              {tacticsDataLocal.home.players.map((p, i) => (
+                <div key={i} style={{display:'flex', justifyContent:'space-between', borderBottom:'1px solid var(--border)', padding:'2px 0'}}>
+                  <span style={{color:'var(--text-muted)'}}>{p.role || 'N/A'}</span>
+                  <span style={{fontWeight:'bold'}}>{p.name}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{fontSize:'13px', color:'var(--text-muted)', textAlign:'center', padding:'12px 0'}}>
+              ⚠️ Formazione non disponibile<br/>
+              <span style={{fontSize:'11px'}}>
+                {apiKeys['API-Football'] ? 'Partita non iniziata o dati non pubblicati' : 'Configura API-Football'}
+              </span>
+            </div>
+          )}
+        </div>
+        <div style={{background:'var(--card)', padding:'12px', borderRadius:'8px', border:'1px solid var(--border)'}}>
+          <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'15px', marginBottom:'6px'}}>
+            🔴 {match.ospiti} <span style={{fontSize:'12px', color:'var(--text-muted)', fontWeight:'normal'}}>({tacticsDataLocal.away.formation || 'N/D'})</span>
+          </div>
+          {tacticsDataLocal.away.players && tacticsDataLocal.away.players.length > 0 ? (
+            <div style={{fontSize:'13px', lineHeight:'1.8'}}>
+              {tacticsDataLocal.away.players.map((p, i) => (
+                <div key={i} style={{display:'flex', justifyContent:'space-between', borderBottom:'1px solid var(--border)', padding:'2px 0'}}>
+                  <span style={{color:'var(--text-muted)'}}>{p.role || 'N/A'}</span>
+                  <span style={{fontWeight:'bold'}}>{p.name}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{fontSize:'13px', color:'var(--text-muted)', textAlign:'center', padding:'12px 0'}}>
+              ⚠️ Formazione non disponibile<br/>
+              <span style={{fontSize:'11px'}}>
+                {apiKeys['API-Football'] ? 'Partita non iniziata o dati non pubblicati' : 'Configura API-Football'}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* INFORTUNI */}
+      <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'16px', marginBottom:'8px'}}>
+        🏥 Infortunati, Assenti & Diffidati {hasRealInjuries ? '✅ Reali' : '⚠️ Non disponibili'}
+        {hasRealInjuries && injuriesDataLocal.source && (
+          <span style={{fontSize:'11px', color:'var(--text-muted)', fontWeight:'normal', marginLeft:'8px'}}>
+            (Fonte: {apiNameMap[injuriesDataLocal.source] || injuriesDataLocal.source})
+          </span>
+        )}
+        {!hasRealInjuries && apiKeys['API-Football'] && (
+          <span style={{fontSize:'11px', color:'var(--draw)', fontWeight:'normal', marginLeft:'8px'}}>
+            (✅ Nessun infortunio segnalato)
+          </span>
+        )}
+        {!hasRealInjuries && !apiKeys['API-Football'] && (
+          <span style={{fontSize:'11px', color:'var(--lose)', fontWeight:'normal', marginLeft:'8px'}}>
+            (❌ Configura API-Football)
+          </span>
+        )}
+      </h4>
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
+        <div style={{background:'var(--card)', padding:'12px', borderRadius:'8px', border:'1px solid var(--border)'}}>
+          <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'14px', marginBottom:'6px'}}>
+            🟡 {match.casa}
+          </div>
+          {injuriesDataLocal.home && injuriesDataLocal.home.length > 0 ? (
+            injuriesDataLocal.home.map((i, idx) => (
+              <div key={idx} style={{display:'flex', justifyContent:'space-between', padding:'4px 0', borderBottom:'1px solid var(--border)', fontSize:'13px'}}>
+                <span style={{fontWeight:'bold'}}>{i.name}</span>
+                <span style={{
+                  color: i.condition === 'Infortunato' ? 'var(--lose)' : 
+                         i.condition === 'Squalificato' ? 'var(--accent)' : 
+                         i.condition === 'Diffidato' ? 'var(--draw)' : 'var(--text-muted)',
+                  fontWeight:'bold'
+                }}>
+                  {i.condition === 'Infortunato' && '❌ '}
+                  {i.condition === 'Squalificato' && '🚫 '}
+                  {i.condition === 'Diffidato' && '⚠️ '}
+                  {i.condition}
+                </span>
+                <span style={{fontSize:'11px', color:'var(--text-muted)'}}>{i.note}</span>
+              </div>
+            ))
+          ) : (
+            <div style={{fontSize:'13px', color:'var(--text-muted)', textAlign:'center', padding:'12px 0'}}>
+              ✅ Nessun infortunio segnalato
+              {!apiKeys['API-Football'] && (
+                <div style={{fontSize:'11px', marginTop:'4px'}}>Configura API-Football per dati reali</div>
+              )}
+            </div>
+          )}
+        </div>
+        <div style={{background:'var(--card)', padding:'12px', borderRadius:'8px', border:'1px solid var(--border)'}}>
+          <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'14px', marginBottom:'6px'}}>
+            🔴 {match.ospiti}
+          </div>
+          {injuriesDataLocal.away && injuriesDataLocal.away.length > 0 ? (
+            injuriesDataLocal.away.map((i, idx) => (
+              <div key={idx} style={{display:'flex', justifyContent:'space-between', padding:'4px 0', borderBottom:'1px solid var(--border)', fontSize:'13px'}}>
+                <span style={{fontWeight:'bold'}}>{i.name}</span>
+                <span style={{
+                  color: i.condition === 'Infortunato' ? 'var(--lose)' : 
+                         i.condition === 'Squalificato' ? 'var(--accent)' : 
+                         i.condition === 'Diffidato' ? 'var(--draw)' : 'var(--text-muted)',
+                  fontWeight:'bold'
+                }}>
+                  {i.condition === 'Infortunato' && '❌ '}
+                  {i.condition === 'Squalificato' && '🚫 '}
+                  {i.condition === 'Diffidato' && '⚠️ '}
+                  {i.condition}
+                </span>
+                <span style={{fontSize:'11px', color:'var(--text-muted)'}}>{i.note}</span>
+              </div>
+            ))
+          ) : (
+            <div style={{fontSize:'13px', color:'var(--text-muted)', textAlign:'center', padding:'12px 0'}}>
+              ✅ Nessun infortunio segnalato
+              {!apiKeys['API-Football'] && (
+                <div style={{fontSize:'11px', marginTop:'4px'}}>Configura API-Football per dati reali</div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ANALISI TATTICA */}
+      {analisi_tattica && (
+        <>
+          <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'16px', marginBottom:'8px'}}>🧠 Analisi Tattica</h4>
+          
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', marginBottom:'8px'}}>
+            <div style={{background:'var(--card)', padding:'10px', borderRadius:'6px', border:'1px solid var(--border)'}}>
+              <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'13px'}}>🎯 {match.casa}</div>
+              <div style={{fontSize:'12px', marginTop:'4px'}}>
+                <b style={{color:'var(--accent)'}}>Stile:</b> {analisi_tattica.stile_casa || 'N/A'}
+              </div>
+            </div>
+            <div style={{background:'var(--card)', padding:'10px', borderRadius:'6px', border:'1px solid var(--border)'}}>
+              <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'13px'}}>🎯 {match.ospiti}</div>
+              <div style={{fontSize:'12px', marginTop:'4px'}}>
+                <b style={{color:'var(--accent)'}}>Stile:</b> {analisi_tattica.stile_ospite || 'N/A'}
+              </div>
+            </div>
+          </div>
+          
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px'}}>
+            <div style={{background:'var(--card)', padding:'10px', borderRadius:'6px', border:'1px solid var(--border)'}}>
+              <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'13px'}}>✅ {match.casa}</div>
+              <div style={{fontSize:'12px', marginTop:'4px'}}>
+                <b style={{color:'var(--win)'}}>Punti di forza:</b> {analisi_tattica.punti_di_forza_casa || 'N/A'}
+              </div>
+              <div style={{fontSize:'12px'}}>
+                <b style={{color:'var(--lose)'}}>Debolezze:</b> {analisi_tattica.debolezze_casa || 'N/A'}
+              </div>
+            </div>
+            <div style={{background:'var(--card)', padding:'10px', borderRadius:'6px', border:'1px solid var(--border)'}}>
+              <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'13px'}}>✅ {match.ospiti}</div>
+              <div style={{fontSize:'12px', marginTop:'4px'}}>
+                <b style={{color:'var(--win)'}}>Punti di forza:</b> {analisi_tattica.punti_di_forza_ospite || 'N/A'}
+              </div>
+              <div style={{fontSize:'12px'}}>
+                <b style={{color:'var(--lose)'}}>Debolezze:</b> {analisi_tattica.debolezze_ospite || 'N/A'}
+              </div>
+            </div>
+          </div>
+          
+          <div style={{marginTop:'8px', background:'var(--card)', padding:'10px', borderRadius:'6px', border:'1px solid var(--border)'}}>
+            <div style={{fontSize:'13px'}}>
+              <b style={{color:'var(--accent)'}}>🔑 Chiave tattica:</b> {analisi_tattica.chiave_tattica || 'N/A'}
+            </div>
+            <div style={{fontSize:'13px', marginTop:'4px'}}>
+              <b style={{color:'var(--accent)'}}>⚔️ Duelli chiave:</b> {analisi_tattica.duelli_chiave || 'N/A'}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* FATTORI ESTERNI */}
+      {fattori_esterni && (
+        <>
+          <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'16px', marginBottom:'8px'}}>🌍 Fattori Esterni</h4>
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px'}}>
+            <div style={{background:'var(--card)', padding:'10px', borderRadius:'6px', textAlign:'center', border:'1px solid var(--border)'}}>
+              <div style={{fontSize:'24px'}}>🌤️</div>
+              <div style={{fontSize:'12px', color:'var(--text)'}}>{fattori_esterni.meteo || 'N/A'}</div>
+            </div>
+            <div style={{background:'var(--card)', padding:'10px', borderRadius:'6px', textAlign:'center', border:'1px solid var(--border)'}}>
+              <div style={{fontSize:'24px'}}>🏥</div>
+              <div style={{fontSize:'12px', color:'var(--text)'}}>{fattori_esterni.assenze || 'N/A'}</div>
+            </div>
+            <div style={{background:'var(--card)', padding:'10px', borderRadius:'6px', textAlign:'center', border:'1px solid var(--border)'}}>
+              <div style={{fontSize:'24px'}}>🏆</div>
+              <div style={{fontSize:'12px', color:'var(--text)'}}>{fattori_esterni.classifica || 'N/A'}</div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* PRONOSTICO */}
+      <div style={{
+        display:'grid',
+        gridTemplateColumns:'1fr 1fr 1fr',
+        gap:'8px',
+        background:'var(--card)',
+        padding:'12px',
+        borderRadius:'8px',
+        marginTop:'12px',
+        border:'2px solid var(--accent)'
+      }}>
+        <div style={{textAlign:'center'}}>
+          <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>Pronostico 1X2</div>
+          <div style={{fontSize:'24px', fontWeight:'bold', color:'var(--accent)'}}>
+            {pronostico?.esito_1X2 || 'N/D'}
+          </div>
+        </div>
+        <div style={{textAlign:'center'}}>
+          <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>Sicurezza</div>
+          <div style={{fontSize:'24px', fontWeight:'bold', color: (pronostico?.percentuale_sicurezza || 0) >= 80 ? 'var(--win)' : 'var(--accent)'}}>
+            {pronostico?.percentuale_sicurezza || 0}%
+          </div>
+        </div>
+        <div style={{textAlign:'center'}}>
+          <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>12+Under 4.5</div>
+          <div style={{fontSize:'18px', fontWeight:'bold', color:'var(--accent)'}}>
+            {pronostico?.['12+under_4_5'] || 'No'}
+            {pronostico?.['12+under_4_5_pct'] !== undefined && (
+              <span style={{fontSize:'12px', color:'var(--text-muted)', marginLeft:'4px'}}>
+                ({pronostico['12+under_4_5_pct']}%)
+              </span>
+            )}
+          </div>
+        </div>
+        <div style={{gridColumn: '1 / -1', borderTop:'1px solid var(--border)', paddingTop:'8px'}}>
+          <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>Motivazione</div>
+          <div style={{fontSize:'13px', color:'var(--text)'}}>{pronostico?.motivazione || ''}</div>
+        </div>
+      </div>
+
+      {/* CONSIGLI GIOCATE - LE 3 DELLA CARD */}
+      {consigli_giocate && consigli_giocate.length > 0 && (
+        <>
+          <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'12px', marginBottom:'8px'}}>🎯 Consigli Giocate (dalla Card)</h4>
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px'}}>
+            {consigli_giocate.map((c, idx) => {
+              const isBomb = c.percentuale >= 90;
+              return (
+                <div key={idx} style={{
+                  background:'var(--card)',
+                  padding:'12px',
+                  borderRadius:'6px',
+                  border: isBomb ? '2px solid var(--accent)' : '1px solid var(--border)',
+                  textAlign:'center'
+                }}>
+                  <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>
+                    {idx === 0 && '🎯 12+U4.5'}
+                    {idx === 1 && '🔗 COMBINATA'}
+                    {idx === 2 && '⭐ LIBERA'}
+                  </div>
+                  <div style={{fontSize:'14px', fontWeight:'bold', color:'#ffff00', margin:'4px 0'}}>
+                    {c.giocata}
+                  </div>
+                  <div style={{fontSize:'22px', fontWeight:'bold'}}>
+                    <span className={getPercentualeClasse(c.percentuale)}>
+                      {c.percentuale || 0}%
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {/* VALUTAZIONE GIOCATA */}
+      {valutazione_giocata && (
+        <div style={{marginTop:'12px', background:'var(--card)', padding:'10px', borderRadius:'6px', border:'1px solid var(--border)'}}>
+          <div style={{fontWeight:'bold', color:'var(--accent)', fontSize:'13px'}}>📈 Valutazione Giocata</div>
+          <div style={{fontSize:'13px', color:'var(--text)'}}>{valutazione_giocata}</div>
+        </div>
+      )}
+
+      {/* INDICE RISCHIO */}
+      <div style={{marginTop:'12px'}}>
+        <span style={{
+          background:'var(--card)',
+          padding:'4px 16px',
+          borderRadius:'20px',
+          fontSize:'13px',
+          display:'inline-block',
+          border:'1px solid var(--border)'
+        }}>
+          🎯 Indice Rischio: <span style={{
+            fontWeight:'bold',
+            color: (indice_rischio || 5) > 7 ? 'var(--lose)' : (indice_rischio || 5) > 4 ? 'var(--draw)' : 'var(--win)'
+          }}>
+            {indice_rischio || 'N/D'}/10
+          </span>
+        </span>
+      </div>
+    </div>
+  );
+};
 
 // ============================================================
 // APP
@@ -4002,9 +5060,6 @@ function App() {
   const [schedineHistory, setSchedineHistory] = useState(initial.schedineHistory || []);
   const [heatmapDetailChamp, setHeatmapDetailChamp] = useState(null);
   
-  // ============================================================
-  // STATO PER GRANDEZZA CARATTERI
-  // ============================================================
   const [fontSize, setFontSize] = useState(() => {
     const saved = localStorage.getItem('ft_font_size');
     return saved ? parseInt(saved) : 100;
@@ -4027,9 +5082,7 @@ function App() {
   
   const [statsSubTab, setStatsSubTab] = useState('Classifica');
 
-  // ============================================================
-  // EFFECT PER GRANDEZZA CARATTERI
-  // ============================================================
+  // Effect per grandezza caratteri
   useEffect(() => {
     localStorage.setItem('ft_font_size', String(fontSize));
     document.documentElement.style.fontSize = fontSize + '%';
@@ -4407,13 +5460,6 @@ ${matchData}`;
     }
     return null;
   };
-
-  // ============================================================
-  // COMPONENTE AIAnalysis (definito qui per avere accesso a showAlert e altri)
-  // ============================================================
-  
-  // Nota: AIAnalysis è già stato definito prima di App
-  // Qui lo usiamo direttamente
 
   // RENDER PRINCIPALE
   return (
@@ -5111,1041 +6157,6 @@ ${matchData}`;
     </div>
   );
 }
-
-// ============================================================
-// COMPONENTE AIAnalysis (definito QUI per avere accesso a tutte le funzioni)
-// ============================================================
-
-const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
-  const [analysis, setAnalysis] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [weatherData, setWeatherData] = useState(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [tacticsData, setTacticsData] = useState(null);
-  const [injuriesData, setInjuriesData] = useState(null);
-  const [activeApi, setActiveApi] = useState(null);
-
-  const getWeatherEmoji = (weatherDesc) => {
-    if (!weatherDesc) return '🌤️';
-    const desc = weatherDesc.toLowerCase();
-    if (desc.includes('clear') || desc.includes('sunny')) return '☀️';
-    if (desc.includes('cloud') || desc.includes('overcast')) return '☁️';
-    if (desc.includes('rain') || desc.includes('drizzle')) return '🌧️';
-    if (desc.includes('thunder')) return '⛈️';
-    if (desc.includes('snow')) return '❄️';
-    return '🌤️';
-  };
-
-  const getWeatherIcon = (weatherDesc) => {
-    if (!weatherDesc) return '🌤️';
-    const desc = weatherDesc.toLowerCase();
-    if (desc.includes('clear') || desc.includes('sunny')) return '☀️';
-    if (desc.includes('few cloud')) return '🌤️';
-    if (desc.includes('cloud') || desc.includes('overcast')) return '☁️';
-    if (desc.includes('rain') && desc.includes('light')) return '🌦️';
-    if (desc.includes('rain')) return '🌧️';
-    if (desc.includes('thunder')) return '⛈️';
-    if (desc.includes('snow')) return '❄️';
-    return '🌤️';
-  };
-
-  const fetchWeather = async (city, matchDate) => {
-    const apiKey = apiKeys['OpenWeatherMap'];
-    if (!apiKey || !city) return null;
-    try {
-      const r = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&units=metric&appid=${apiKey}`);
-      if (!r.ok) return null;
-      const data = await r.json();
-      const matchDay = new Date(matchDate);
-      matchDay.setHours(0,0,0,0);
-      const forecasts = data.list.filter(item => {
-        const dt = new Date(item.dt * 1000);
-        dt.setHours(0,0,0,0);
-        return dt.getTime() === matchDay.getTime();
-      });
-      if (forecasts.length === 0) return null;
-      const forecast = forecasts[0];
-      return {
-        temp: forecast.main.temp,
-        temp_min: forecast.main.temp_min,
-        temp_max: forecast.main.temp_max,
-        weather: forecast.weather[0].description,
-        weather_icon: forecast.weather[0].icon,
-        wind_speed: forecast.wind.speed,
-        rain: forecast.rain ? forecast.rain['3h'] : 0,
-        humidity: forecast.main.humidity,
-        pressure: forecast.main.pressure
-      };
-    } catch (e) { return null; }
-  };
-
-  const fetchTacticsFromApiFootball = async (homeTeam, awayTeam, matchDate) => {
-    const apiKey = apiKeys['API-Football'];
-    if (!apiKey) return null;
-
-    try {
-      const searchHome = await fetch(
-        `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(homeTeam)}`,
-        { headers: { 'x-apisports-key': apiKey } }
-      );
-      const searchAway = await fetch(
-        `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(awayTeam)}`,
-        { headers: { 'x-apisports-key': apiKey } }
-      );
-
-      if (!searchHome.ok || !searchAway.ok) return null;
-
-      const homeData = await searchHome.json();
-      const awayData = await searchAway.json();
-
-      const homeId = homeData.response?.[0]?.team?.id;
-      const awayId = awayData.response?.[0]?.team?.id;
-
-      if (!homeId || !awayId) return null;
-
-      const matchDateObj = new Date(matchDate);
-      const dateStr = matchDateObj.toISOString().split('T')[0];
-      
-      const fixturesRes = await fetch(
-        `https://v3.football.api-sports.io/fixtures?date=${dateStr}&team=${homeId}`,
-        { headers: { 'x-apisports-key': apiKey } }
-      );
-
-      if (!fixturesRes.ok) return null;
-
-      const fixturesData = await fixturesRes.json();
-      const fixture = fixturesData.response?.find(f => 
-        f.teams?.home?.id === homeId && f.teams?.away?.id === awayId
-      );
-
-      if (!fixture) return null;
-
-      const formationsRes = await fetch(
-        `https://v3.football.api-sports.io/fixtures/lineups?fixture=${fixture.fixture.id}`,
-        { headers: { 'x-apisports-key': apiKey } }
-      );
-
-      if (!formationsRes.ok) return null;
-
-      const formationsData = await formationsRes.json();
-      
-      if (!formationsData.response || formationsData.response.length === 0) return null;
-
-      const homeFormation = formationsData.response.find(f => f.team.id === homeId);
-      const awayFormation = formationsData.response.find(f => f.team.id === awayId);
-
-      setActiveApi('API-Football');
-
-      return {
-        source: 'API-Football',
-        home: {
-          formation: homeFormation?.formation || 'N/D',
-          players: homeFormation?.startXI?.map(p => ({
-            role: p.player.pos || 'N/A',
-            name: p.player.name
-          })) || []
-        },
-        away: {
-          formation: awayFormation?.formation || 'N/D',
-          players: awayFormation?.startXI?.map(p => ({
-            role: p.player.pos || 'N/A',
-            name: p.player.name
-          })) || []
-        }
-      };
-    } catch (e) {
-      console.error('Errore API-Football formazioni:', e);
-      return null;
-    }
-  };
-
-  const fetchTacticsFromSofaScore = async (homeTeam, awayTeam, matchDate) => {
-    try {
-      const searchHome = await fetch(
-        `https://api.sofascore.com/api/v1/search?q=${encodeURIComponent(homeTeam)}&type=team`
-      );
-      const searchAway = await fetch(
-        `https://api.sofascore.com/api/v1/search?q=${encodeURIComponent(awayTeam)}&type=team`
-      );
-
-      if (!searchHome.ok || !searchAway.ok) return null;
-
-      const homeData = await searchHome.json();
-      const awayData = await searchAway.json();
-
-      const homeId = homeData.results?.[0]?.entity?.id;
-      const awayId = awayData.results?.[0]?.entity?.id;
-
-      if (!homeId || !awayId) return null;
-
-      const matchDateObj = new Date(matchDate);
-      const dateStr = matchDateObj.toISOString().split('T')[0];
-      
-      const eventsRes = await fetch(
-        `https://api.sofascore.com/api/v1/sport/football/events/date/${dateStr}`
-      );
-
-      if (!eventsRes.ok) return null;
-
-      const eventsData = await eventsRes.json();
-      const fixture = eventsData.events?.find(f => 
-        f.homeTeam?.id === homeId && f.awayTeam?.id === awayId
-      );
-
-      if (!fixture) return null;
-
-      const lineupRes = await fetch(
-        `https://api.sofascore.com/api/v1/event/${fixture.id}/lineups`
-      );
-
-      if (!lineupRes.ok) return null;
-
-      const lineupData = await lineupRes.json();
-
-      const homeLineup = lineupData.lineups?.find(l => l.teamId === homeId);
-      const awayLineup = lineupData.lineups?.find(l => l.teamId === awayId);
-
-      setActiveApi('SofaScore');
-
-      return {
-        source: 'SofaScore',
-        home: {
-          formation: homeLineup?.formation || 'N/D',
-          players: homeLineup?.players?.map(p => ({
-            role: p.position || 'N/A',
-            name: p.name
-          })) || []
-        },
-        away: {
-          formation: awayLineup?.formation || 'N/D',
-          players: awayLineup?.players?.map(p => ({
-            role: p.position || 'N/A',
-            name: p.name
-          })) || []
-        }
-      };
-    } catch (e) {
-      console.error('Errore SofaScore:', e);
-      return null;
-    }
-  };
-
-  const fetchInjuriesFromApiFootball = async (homeTeam, awayTeam) => {
-    const apiKey = apiKeys['API-Football'];
-    if (!apiKey) return null;
-
-    try {
-      const searchHome = await fetch(
-        `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(homeTeam)}`,
-        { headers: { 'x-apisports-key': apiKey } }
-      );
-      const searchAway = await fetch(
-        `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(awayTeam)}`,
-        { headers: { 'x-apisports-key': apiKey } }
-      );
-
-      if (!searchHome.ok || !searchAway.ok) return null;
-
-      const homeData = await searchHome.json();
-      const awayData = await searchAway.json();
-
-      const homeId = homeData.response?.[0]?.team?.id;
-      const awayId = awayData.response?.[0]?.team?.id;
-
-      if (!homeId || !awayId) return null;
-
-      const injuriesHome = await fetch(
-        `https://v3.football.api-sports.io/injuries?team=${homeId}`,
-        { headers: { 'x-apisports-key': apiKey } }
-      );
-      const injuriesAway = await fetch(
-        `https://v3.football.api-sports.io/injuries?team=${awayId}`,
-        { headers: { 'x-apisports-key': apiKey } }
-      );
-
-      const homeInjuriesData = injuriesHome.ok ? await injuriesHome.json() : { response: [] };
-      const awayInjuriesData = injuriesAway.ok ? await injuriesAway.json() : { response: [] };
-
-      const mapInjury = (injury) => ({
-        name: injury.player?.name || 'N/D',
-        condition: injury.type || 'Infortunato',
-        note: injury.reason || injury.detail || 'N/D'
-      });
-
-      return {
-        source: 'API-Football',
-        home: (homeInjuriesData.response || []).map(mapInjury),
-        away: (awayInjuriesData.response || []).map(mapInjury)
-      };
-    } catch (e) {
-      console.error('Errore API-Football infortuni:', e);
-      return null;
-    }
-  };
-
-  useEffect(() => {
-    if (!match) return;
-    const storageKey = `ft_ai_${match.id}`;
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setAnalysis(parsed.analysis || null);
-        setWeatherData(parsed.weatherData || null);
-        setTacticsData(parsed.tacticsData || null);
-        setInjuriesData(parsed.injuriesData || null);
-        setActiveApi(parsed.activeApi || null);
-        setError(null);
-        return;
-      } catch (e) {}
-    }
-    generateAnalysis();
-  }, [match]);
-
-  const generateAnalysis = async () => {
-    if (!match) return;
-    if (!apiKeys['GROQ']) {
-      setError('🔑 Chiave API GROQ non configurata');
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setIsRefreshing(true);
-
-    try {
-      const stats = computeMatchStats(match, allMatches);
-      if (stats.error) { setError(stats.error); setLoading(false); setIsRefreshing(false); return; }
-      
-      const homeForm = calcFormAndStats(allMatches, match.casa);
-      const awayForm = calcFormAndStats(allMatches, match.ospiti);
-      const homeMG = calcTeamMG(allMatches, match.casa);
-      const awayMG = calcTeamMG(allMatches, match.ospiti);
-
-      // METEO
-      let city = null;
-      if (typeof getCittaFromChampionship === 'function') {
-        city = getCittaFromChampionship(match.campionato);
-      } else {
-        for (const [key, val] of Object.entries(CITTÀ_PER_CAMPIONATO)) {
-          if (match.campionato.toLowerCase().includes(key.toLowerCase())) {
-            city = val;
-            break;
-          }
-        }
-        if (!city) city = 'Stoccolma';
-      }
-      
-      let weather = null;
-      if (city && apiKeys['OpenWeatherMap']) {
-        weather = await fetchWeather(city, match.data);
-        setWeatherData(weather);
-      }
-
-      // FORMAZIONI (API-Football → SofaScore)
-      let tactics = null;
-      
-      if (apiKeys['API-Football']) {
-        tactics = await fetchTacticsFromApiFootball(match.casa, match.ospiti, match.data);
-      }
-      
-      if (!tactics) {
-        tactics = await fetchTacticsFromSofaScore(match.casa, match.ospiti, match.data);
-      }
-      
-      if (!tactics) {
-        tactics = {
-          source: null,
-          home: { formation: 'N/D', players: [] },
-          away: { formation: 'N/D', players: [] }
-        };
-      }
-      
-      setTacticsData(tactics);
-
-      // INFORTUNI (solo API-Football)
-      let injuries = null;
-      if (apiKeys['API-Football']) {
-        injuries = await fetchInjuriesFromApiFootball(match.casa, match.ospiti);
-      }
-      
-      if (!injuries) {
-        injuries = { source: null, home: [], away: [] };
-      }
-      
-      setInjuriesData(injuries);
-
-      // COSTRUISCI PROMPT
-      let homeFormationStr = 'N/D';
-      let awayFormationStr = 'N/D';
-      let homeInjuriesStr = 'Nessun infortunio segnalato';
-      let awayInjuriesStr = 'Nessun infortunio segnalato';
-
-      if (tactics.home.players && tactics.home.players.length > 0) {
-        homeFormationStr = tactics.home.players.map(p => `${p.role}: ${p.name}`).join('\n  - ');
-      }
-      if (tactics.away.players && tactics.away.players.length > 0) {
-        awayFormationStr = tactics.away.players.map(p => `${p.role}: ${p.name}`).join('\n  - ');
-      }
-      if (injuries.home && injuries.home.length > 0) {
-        homeInjuriesStr = injuries.home.map(i => `  - ${i.name}: ${i.condition} (${i.note})`).join('\n');
-      }
-      if (injuries.away && injuries.away.length > 0) {
-        awayInjuriesStr = injuries.away.map(i => `  - ${i.name}: ${i.condition} (${i.note})`).join('\n');
-      }
-
-      let meteoSection = '';
-      if (weather) {
-        const weatherEmoji = getWeatherEmoji(weather.weather);
-        meteoSection = `
-🌤️ METEO (${city}):
-- ${weatherEmoji} ${weather.weather}
-- Temperatura: ${weather.temp}°C (min ${weather.temp_min}°C, max ${weather.temp_max}°C)
-- Vento: ${weather.wind_speed} m/s
-- Pioggia: ${weather.rain ? weather.rain + ' mm' : 'nessuna'}
-- Umidità: ${weather.humidity || 'N/A'}%
-- Pressione: ${weather.pressure || 'N/A'} hPa
-`;
-      } else {
-        meteoSection = '⚠️ Dati meteo non disponibili';
-      }
-
-      const prompt = `Sei un analista tattico professionista. Analizza la partita:
-
-${match.casa} vs ${match.ospiti} - ${match.campionato}
-Data: ${match.data}
-
-📋 FORMAZIONI (Fonte: ${tactics.source || 'N/D'}):
-${match.casa} (${tactics.home.formation || 'N/D'}):
-${homeFormationStr}
-
-${match.ospiti} (${tactics.away.formation || 'N/D'}):
-${awayFormationStr}
-
-🏥 INFORTUNI (Fonte: ${injuries.source || 'N/D'}):
-${match.casa}:
-${homeInjuriesStr}
-
-${match.ospiti}:
-${awayInjuriesStr}
-
-📊 STATISTICHE:
-- Forma Casa: ${homeForm.form} (${homeForm.pct}%)
-- Forma Ospite: ${awayForm.form} (${awayForm.pct}%)
-- Differenza: ${Math.abs(homeForm.pct - awayForm.pct)}%
-- Media Gol Casa: ${homeMG} - Ospite: ${awayMG}
-
-1X2: 1=${Math.round(stats.p1)}% X=${Math.round(stats.pX)}% 2=${Math.round(stats.p2)}%
-Doppia Chance: 1X=${Math.round(stats.p1X)}% 12=${Math.round(stats.p12)}% X2=${Math.round(stats.pX2)}%
-
-Under/Over:
-- 1.5: U=${Math.round(stats.underOver[0].under)}% O=${Math.round(stats.underOver[0].over)}%
-- 2.5: U=${Math.round(stats.underOver[1].under)}% O=${Math.round(stats.underOver[1].over)}%
-- 3.5: U=${Math.round(stats.underOver[2].under)}% O=${Math.round(stats.underOver[2].over)}%
-
-Multigol Casa: 0-1=${Math.round(stats.homeMG['0-1'])}% 0-2=${Math.round(stats.homeMG['0-2'])}% 1-3=${Math.round(stats.homeMG['1-3'])}% Over1,5=${Math.round(stats.homeMG['2-4'])}%
-Multigol Ospite: 0-1=${Math.round(stats.awayMG['0-1'])}% 0-2=${Math.round(stats.awayMG['0-2'])}% 1-3=${Math.round(stats.awayMG['1-3'])}% Over1,5=${Math.round(stats.awayMG['2-4'])}%
-
-${meteoSection}
-
-Genera un'analisi in formato JSON:
-{
-  "analisi_generale": "Panoramica della partita (2-3 righe)",
-  "analisi_tattica": {
-    "stile_casa": "Stile di gioco casa",
-    "stile_ospite": "Stile di gioco ospite",
-    "punti_di_forza_casa": "Punti di forza casa",
-    "punti_di_forza_ospite": "Punti di forza ospite",
-    "debolezze_casa": "Debolezze casa",
-    "debolezze_ospite": "Debolezze ospite",
-    "chiave_tattica": "Chiave tattica",
-    "duelli_chiave": "Duelli chiave"
-  },
-  "fattori_esterni": {
-    "meteo": "Impatto meteo",
-    "assenze": "Impatto assenze",
-    "classifica": "Pressione psicologica"
-  },
-  "pronostico": {
-    "esito_1X2": "1, X o 2",
-    "percentuale_sicurezza": 75,
-    "12+under_4_5": "Sì",
-    "12+under_4_5_pct": 67,
-    "motivazione": "Motivazione"
-  },
-  "consigli_giocate": [
-    {"tipo":"singola","giocata":"Over 1.5","percentuale":68},
-    {"tipo":"combinata","giocata":"1X+Over1.5","percentuale":72},
-    {"tipo":"libera","giocata":"1X+Over1.5","percentuale":72}
-  ],
-  "indice_rischio": 5,
-  "valutazione_giocata": "Valutazione"
-}`;
-
-      const res = await askGroq(prompt, apiKeys['GROQ']);
-      let jsonStr = res;
-      const jsonMatch = res.match(/```(?:json)?\s*([\s\S]*?)```/);
-      if (jsonMatch) jsonStr = jsonMatch[1];
-      const parsed = JSON.parse(jsonStr.trim());
-
-      if (parsed.consigli_giocate && parsed.consigli_giocate.length === 3) {
-        const bestFree = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
-        const libera = parsed.consigli_giocate[2];
-        const validKeywords = ['1X','12','X2','Over','Under','MG','Multigol','Casa','Ospite','DC'];
-        const isValid = validKeywords.some(k => libera.giocata.includes(k));
-        if (!isValid) {
-          libera.giocata = bestFree.label;
-          libera.percentuale = bestFree.pct;
-        }
-      }
-
-      const storageKey = `ft_ai_${match.id}`;
-      localStorage.setItem(storageKey, JSON.stringify({ 
-        analysis: parsed, 
-        weatherData: weather,
-        tacticsData: tactics,
-        injuriesData: injuries,
-        activeApi: tactics.source || null
-      }));
-
-      setAnalysis(parsed);
-      setError(null);
-    } catch (e) {
-      console.warn('Errore analisi AI:', e);
-      setError(e.message || 'Errore durante la generazione');
-    }
-    setLoading(false);
-    setIsRefreshing(false);
-  };
-
-  const refreshAnalysis = () => {
-    if (match) {
-      const storageKey = `ft_ai_${match.id}`;
-      localStorage.removeItem(storageKey);
-      generateAnalysis();
-    }
-  };
-
-  const goToApiKey = () => {
-    if (setTab) setTab('API KEY');
-  };
-
-  if (!match) return null;
-
-  if (loading) {
-    return (
-      <div className="ai-analysis-loading">
-        ⏳ Generazione analisi AI...<br/>
-        <span style={{fontSize:'12px', color:'var(--text-muted)'}}>
-          Recupero dati da API-Football...
-        </span>
-      </div>
-    );
-  }
-
-  if (error) {
-    const isKeyError = error.includes('GROQ') || error.includes('chiave');
-    return (
-      <div className="ai-analysis-error">
-        <span>⚠️ {error}</span>
-        {isKeyError && (
-          <div>
-            <button className="btn-go-key" onClick={goToApiKey}>
-              🔑 Vai al tab API KEY
-            </button>
-          </div>
-        )}
-        {!isKeyError && (
-          <div style={{marginTop:'8px'}}>
-            <button className="btn-go-key" onClick={refreshAnalysis}>
-              🔄 Riprova
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  if (!analysis) return null;
-
-  const { analisi_generale, analisi_tattica, fattori_esterni, pronostico, consigli_giocate, indice_rischio, valutazione_giocata } = analysis;
-  const weatherEmoji = weatherData ? getWeatherEmoji(weatherData.weather) : '🌤️';
-  const weatherIcon = weatherData ? getWeatherIcon(weatherData.weather) : '🌤️';
-
-  const storageKey = `ft_ai_${match.id}`;
-  const saved = localStorage.getItem(storageKey);
-  let savedData = null;
-  if (saved) {
-    try { savedData = JSON.parse(saved); } catch(e) {}
-  }
-  const tacticsDataLocal = savedData?.tacticsData || { home: { formation: 'N/D', players: [] }, away: { formation: 'N/D', players: [] } };
-  const injuriesDataLocal = savedData?.injuriesData || { home: [], away: [] };
-  const activeApiLocal = savedData?.activeApi || null;
-
-  const hasRealTactics = (tacticsDataLocal.home.players && tacticsDataLocal.home.players.length > 0) || 
-                         (tacticsDataLocal.away.players && tacticsDataLocal.away.players.length > 0);
-  const hasRealInjuries = (injuriesDataLocal.home && injuriesDataLocal.home.length > 0) || 
-                          (injuriesDataLocal.away && injuriesDataLocal.away.length > 0);
-
-  const apiNameMap = {
-    'API-Football': 'API-Football 🏆',
-    'SofaScore': 'SofaScore 📊',
-    'Football-data.org': 'Football-data.org ⚽'
-  };
-
-  return (
-    <div className="ai-analysis-box">
-      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px', flexWrap:'wrap', gap:'8px'}}>
-        <h3 style={{color: getChampColor(match.campionato), margin:0, fontSize:'16px'}}>
-          🤖 Analisi AI Avanzata
-          {weatherData && <span style={{marginLeft:'8px', fontSize:'20px'}}>{weatherEmoji}</span>}
-        </h3>
-        <div style={{display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap'}}>
-          {activeApiLocal && (
-            <span style={{
-              fontSize:'11px',
-              background: 'var(--win)',
-              color: '#000',
-              padding: '2px 10px',
-              borderRadius: '12px',
-              fontWeight: 'bold'
-            }}>
-              ✅ {apiNameMap[activeApiLocal] || activeApiLocal}
-            </span>
-          )}
-          {!activeApiLocal && apiKeys['API-Football'] && (
-            <span style={{
-              fontSize:'11px',
-              background: 'var(--draw)',
-              color: '#000',
-              padding: '2px 10px',
-              borderRadius: '12px',
-              fontWeight: 'bold'
-            }}>
-              ⏳ Cercando formazioni...
-            </span>
-          )}
-          {!apiKeys['API-Football'] && (
-            <span style={{
-              fontSize:'11px',
-              background: 'var(--lose)',
-              color: '#fff',
-              padding: '2px 10px',
-              borderRadius: '12px',
-              fontWeight: 'bold'
-            }}>
-              ⚠️ API-Football non configurata
-            </span>
-          )}
-          <button onClick={refreshAnalysis} style={{background:'transparent', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:'13px'}}>
-            🔄 Aggiorna
-          </button>
-        </div>
-      </div>
-
-      {/* METEO */}
-      {weatherData ? (
-        <div style={{
-          background: 'linear-gradient(135deg, var(--card), var(--surface))',
-          borderRadius: '12px',
-          padding: '16px 20px',
-          marginBottom: '16px',
-          border: '1px solid var(--border)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
-        }}>
-          <div style={{display:'flex', alignItems:'center', gap:'20px', flexWrap:'wrap'}}>
-            <div style={{textAlign:'center', minWidth:'80px'}}>
-              <div style={{fontSize:'60px', lineHeight:'1'}}>{weatherIcon}</div>
-              <div style={{fontSize:'12px', color:'var(--text-muted)', marginTop:'4px', textTransform:'capitalize'}}>
-                {weatherData.weather || 'N/A'}
-              </div>
-            </div>
-            <div style={{flex:1, minWidth:'120px'}}>
-              <div style={{fontSize:'40px', fontWeight:'bold', color:'var(--accent)', lineHeight:'1'}}>
-                {Math.round(weatherData.temp)}°C
-              </div>
-              <div style={{fontSize:'13px', color:'var(--text-muted)'}}>
-                {match.campionato}
-              </div>
-            </div>
-            <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(70px, 1fr))', gap:'6px 12px', flex:'1'}}>
-              <div style={{textAlign:'center'}}>
-                <div style={{fontSize:'18px'}}>🌡️</div>
-                <div style={{fontSize:'14px', fontWeight:'bold'}}>{Math.round(weatherData.temp_min)}°/{Math.round(weatherData.temp_max)}°</div>
-                <div style={{fontSize:'10px', color:'var(--text-muted)'}}>Min/Max</div>
-              </div>
-              <div style={{textAlign:'center'}}>
-                <div style={{fontSize:'18px'}}>💨</div>
-                <div style={{fontSize:'14px', fontWeight:'bold'}}>{Math.round(weatherData.wind_speed)} m/s</div>
-                <div style={{fontSize:'10px', color:'var(--text-muted)'}}>Vento</div>
-              </div>
-              <div style={{textAlign:'center'}}>
-                <div style={{fontSize:'18px'}}>💧</div>
-                <div style={{fontSize:'14px', fontWeight:'bold'}}>{weatherData.humidity || 'N/A'}%</div>
-                <div style={{fontSize:'10px', color:'var(--text-muted)'}}>Umidità</div>
-              </div>
-              {weatherData.rain > 0 && (
-                <div style={{textAlign:'center'}}>
-                  <div style={{fontSize:'18px'}}>🌧️</div>
-                  <div style={{fontSize:'14px', fontWeight:'bold'}}>{weatherData.rain} mm</div>
-                  <div style={{fontSize:'10px', color:'var(--text-muted)'}}>Pioggia</div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div style={{
-          background: 'var(--card)',
-          borderRadius: '8px',
-          padding: '12px 16px',
-          marginBottom: '16px',
-          border: '1px solid var(--border)',
-          textAlign: 'center',
-          color: 'var(--text-muted)',
-          fontSize: '13px'
-        }}>
-          ⚠️ Dati meteo non disponibili
-          {!apiKeys['OpenWeatherMap'] && (
-            <span style={{display:'block', marginTop:'4px'}}>
-              💡 Configura OpenWeatherMap nel tab API KEY
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* ANALISI GENERALE */}
-      <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'12px', marginBottom:'4px'}}>📋 Analisi Generale</h4>
-      <p style={{fontSize:'14px', lineHeight:'1.6', color:'var(--text)'}}>{analisi_generale || 'N/A'}</p>
-
-      {/* FORMAZIONI */}
-      <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'16px', marginBottom:'8px'}}>
-        📋 Formazioni {hasRealTactics ? '✅ Reali' : '⚠️ Non disponibili'}
-        {hasRealTactics && tacticsDataLocal.source && (
-          <span style={{fontSize:'11px', color:'var(--text-muted)', fontWeight:'normal', marginLeft:'8px'}}>
-            (Fonte: {apiNameMap[tacticsDataLocal.source] || tacticsDataLocal.source})
-          </span>
-        )}
-        {!hasRealTactics && apiKeys['API-Football'] && (
-          <span style={{fontSize:'11px', color:'var(--draw)', fontWeight:'normal', marginLeft:'8px'}}>
-            (⏳ Partita non ancora iniziata o formazioni non ufficiali)
-          </span>
-        )}
-        {!hasRealTactics && !apiKeys['API-Football'] && (
-          <span style={{fontSize:'11px', color:'var(--lose)', fontWeight:'normal', marginLeft:'8px'}}>
-            (❌ Configura API-Football)
-          </span>
-        )}
-      </h4>
-      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
-        <div style={{background:'var(--card)', padding:'12px', borderRadius:'8px', border:'1px solid var(--border)'}}>
-          <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'15px', marginBottom:'6px'}}>
-            🟡 {match.casa} <span style={{fontSize:'12px', color:'var(--text-muted)', fontWeight:'normal'}}>({tacticsDataLocal.home.formation || 'N/D'})</span>
-          </div>
-          {tacticsDataLocal.home.players && tacticsDataLocal.home.players.length > 0 ? (
-            <div style={{fontSize:'13px', lineHeight:'1.8'}}>
-              {tacticsDataLocal.home.players.map((p, i) => (
-                <div key={i} style={{display:'flex', justifyContent:'space-between', borderBottom:'1px solid var(--border)', padding:'2px 0'}}>
-                  <span style={{color:'var(--text-muted)'}}>{p.role || 'N/A'}</span>
-                  <span style={{fontWeight:'bold'}}>{p.name}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{fontSize:'13px', color:'var(--text-muted)', textAlign:'center', padding:'12px 0'}}>
-              ⚠️ Formazione non disponibile<br/>
-              <span style={{fontSize:'11px'}}>
-                {apiKeys['API-Football'] ? 'Partita non iniziata o dati non pubblicati' : 'Configura API-Football'}
-              </span>
-            </div>
-          )}
-        </div>
-        <div style={{background:'var(--card)', padding:'12px', borderRadius:'8px', border:'1px solid var(--border)'}}>
-          <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'15px', marginBottom:'6px'}}>
-            🔴 {match.ospiti} <span style={{fontSize:'12px', color:'var(--text-muted)', fontWeight:'normal'}}>({tacticsDataLocal.away.formation || 'N/D'})</span>
-          </div>
-          {tacticsDataLocal.away.players && tacticsDataLocal.away.players.length > 0 ? (
-            <div style={{fontSize:'13px', lineHeight:'1.8'}}>
-              {tacticsDataLocal.away.players.map((p, i) => (
-                <div key={i} style={{display:'flex', justifyContent:'space-between', borderBottom:'1px solid var(--border)', padding:'2px 0'}}>
-                  <span style={{color:'var(--text-muted)'}}>{p.role || 'N/A'}</span>
-                  <span style={{fontWeight:'bold'}}>{p.name}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{fontSize:'13px', color:'var(--text-muted)', textAlign:'center', padding:'12px 0'}}>
-              ⚠️ Formazione non disponibile<br/>
-              <span style={{fontSize:'11px'}}>
-                {apiKeys['API-Football'] ? 'Partita non iniziata o dati non pubblicati' : 'Configura API-Football'}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* INFORTUNI */}
-      <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'16px', marginBottom:'8px'}}>
-        🏥 Infortunati, Assenti & Diffidati {hasRealInjuries ? '✅ Reali' : '⚠️ Non disponibili'}
-        {hasRealInjuries && injuriesDataLocal.source && (
-          <span style={{fontSize:'11px', color:'var(--text-muted)', fontWeight:'normal', marginLeft:'8px'}}>
-            (Fonte: {apiNameMap[injuriesDataLocal.source] || injuriesDataLocal.source})
-          </span>
-        )}
-        {!hasRealInjuries && apiKeys['API-Football'] && (
-          <span style={{fontSize:'11px', color:'var(--draw)', fontWeight:'normal', marginLeft:'8px'}}>
-            (✅ Nessun infortunio segnalato)
-          </span>
-        )}
-        {!hasRealInjuries && !apiKeys['API-Football'] && (
-          <span style={{fontSize:'11px', color:'var(--lose)', fontWeight:'normal', marginLeft:'8px'}}>
-            (❌ Configura API-Football)
-          </span>
-        )}
-      </h4>
-      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
-        <div style={{background:'var(--card)', padding:'12px', borderRadius:'8px', border:'1px solid var(--border)'}}>
-          <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'14px', marginBottom:'6px'}}>
-            🟡 {match.casa}
-          </div>
-          {injuriesDataLocal.home && injuriesDataLocal.home.length > 0 ? (
-            injuriesDataLocal.home.map((i, idx) => (
-              <div key={idx} style={{display:'flex', justifyContent:'space-between', padding:'4px 0', borderBottom:'1px solid var(--border)', fontSize:'13px'}}>
-                <span style={{fontWeight:'bold'}}>{i.name}</span>
-                <span style={{
-                  color: i.condition === 'Infortunato' ? 'var(--lose)' : 
-                         i.condition === 'Squalificato' ? 'var(--accent)' : 
-                         i.condition === 'Diffidato' ? 'var(--draw)' : 'var(--text-muted)',
-                  fontWeight:'bold'
-                }}>
-                  {i.condition === 'Infortunato' && '❌ '}
-                  {i.condition === 'Squalificato' && '🚫 '}
-                  {i.condition === 'Diffidato' && '⚠️ '}
-                  {i.condition}
-                </span>
-                <span style={{fontSize:'11px', color:'var(--text-muted)'}}>{i.note}</span>
-              </div>
-            ))
-          ) : (
-            <div style={{fontSize:'13px', color:'var(--text-muted)', textAlign:'center', padding:'12px 0'}}>
-              ✅ Nessun infortunio segnalato
-              {!apiKeys['API-Football'] && (
-                <div style={{fontSize:'11px', marginTop:'4px'}}>Configura API-Football per dati reali</div>
-              )}
-            </div>
-          )}
-        </div>
-        <div style={{background:'var(--card)', padding:'12px', borderRadius:'8px', border:'1px solid var(--border)'}}>
-          <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'14px', marginBottom:'6px'}}>
-            🔴 {match.ospiti}
-          </div>
-          {injuriesDataLocal.away && injuriesDataLocal.away.length > 0 ? (
-            injuriesDataLocal.away.map((i, idx) => (
-              <div key={idx} style={{display:'flex', justifyContent:'space-between', padding:'4px 0', borderBottom:'1px solid var(--border)', fontSize:'13px'}}>
-                <span style={{fontWeight:'bold'}}>{i.name}</span>
-                <span style={{
-                  color: i.condition === 'Infortunato' ? 'var(--lose)' : 
-                         i.condition === 'Squalificato' ? 'var(--accent)' : 
-                         i.condition === 'Diffidato' ? 'var(--draw)' : 'var(--text-muted)',
-                  fontWeight:'bold'
-                }}>
-                  {i.condition === 'Infortunato' && '❌ '}
-                  {i.condition === 'Squalificato' && '🚫 '}
-                  {i.condition === 'Diffidato' && '⚠️ '}
-                  {i.condition}
-                </span>
-                <span style={{fontSize:'11px', color:'var(--text-muted)'}}>{i.note}</span>
-              </div>
-            ))
-          ) : (
-            <div style={{fontSize:'13px', color:'var(--text-muted)', textAlign:'center', padding:'12px 0'}}>
-              ✅ Nessun infortunio segnalato
-              {!apiKeys['API-Football'] && (
-                <div style={{fontSize:'11px', marginTop:'4px'}}>Configura API-Football per dati reali</div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ANALISI TATTICA */}
-      {analisi_tattica && (
-        <>
-          <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'16px', marginBottom:'8px'}}>🧠 Analisi Tattica</h4>
-          
-          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', marginBottom:'8px'}}>
-            <div style={{background:'var(--card)', padding:'10px', borderRadius:'6px', border:'1px solid var(--border)'}}>
-              <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'13px'}}>🎯 {match.casa}</div>
-              <div style={{fontSize:'12px', marginTop:'4px'}}>
-                <b style={{color:'var(--accent)'}}>Stile:</b> {analisi_tattica.stile_casa || 'N/A'}
-              </div>
-            </div>
-            <div style={{background:'var(--card)', padding:'10px', borderRadius:'6px', border:'1px solid var(--border)'}}>
-              <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'13px'}}>🎯 {match.ospiti}</div>
-              <div style={{fontSize:'12px', marginTop:'4px'}}>
-                <b style={{color:'var(--accent)'}}>Stile:</b> {analisi_tattica.stile_ospite || 'N/A'}
-              </div>
-            </div>
-          </div>
-          
-          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px'}}>
-            <div style={{background:'var(--card)', padding:'10px', borderRadius:'6px', border:'1px solid var(--border)'}}>
-              <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'13px'}}>✅ {match.casa}</div>
-              <div style={{fontSize:'12px', marginTop:'4px'}}>
-                <b style={{color:'var(--win)'}}>Punti di forza:</b> {analisi_tattica.punti_di_forza_casa || 'N/A'}
-              </div>
-              <div style={{fontSize:'12px'}}>
-                <b style={{color:'var(--lose)'}}>Debolezze:</b> {analisi_tattica.debolezze_casa || 'N/A'}
-              </div>
-            </div>
-            <div style={{background:'var(--card)', padding:'10px', borderRadius:'6px', border:'1px solid var(--border)'}}>
-              <div style={{fontWeight:'bold', color: getChampColor(match.campionato), fontSize:'13px'}}>✅ {match.ospiti}</div>
-              <div style={{fontSize:'12px', marginTop:'4px'}}>
-                <b style={{color:'var(--win)'}}>Punti di forza:</b> {analisi_tattica.punti_di_forza_ospite || 'N/A'}
-              </div>
-              <div style={{fontSize:'12px'}}>
-                <b style={{color:'var(--lose)'}}>Debolezze:</b> {analisi_tattica.debolezze_ospite || 'N/A'}
-              </div>
-            </div>
-          </div>
-          
-          <div style={{marginTop:'8px', background:'var(--card)', padding:'10px', borderRadius:'6px', border:'1px solid var(--border)'}}>
-            <div style={{fontSize:'13px'}}>
-              <b style={{color:'var(--accent)'}}>🔑 Chiave tattica:</b> {analisi_tattica.chiave_tattica || 'N/A'}
-            </div>
-            <div style={{fontSize:'13px', marginTop:'4px'}}>
-              <b style={{color:'var(--accent)'}}>⚔️ Duelli chiave:</b> {analisi_tattica.duelli_chiave || 'N/A'}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* FATTORI ESTERNI */}
-      {fattori_esterni && (
-        <>
-          <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'16px', marginBottom:'8px'}}>🌍 Fattori Esterni</h4>
-          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px'}}>
-            <div style={{background:'var(--card)', padding:'10px', borderRadius:'6px', textAlign:'center', border:'1px solid var(--border)'}}>
-              <div style={{fontSize:'24px'}}>🌤️</div>
-              <div style={{fontSize:'12px', color:'var(--text)'}}>{fattori_esterni.meteo || 'N/A'}</div>
-            </div>
-            <div style={{background:'var(--card)', padding:'10px', borderRadius:'6px', textAlign:'center', border:'1px solid var(--border)'}}>
-              <div style={{fontSize:'24px'}}>🏥</div>
-              <div style={{fontSize:'12px', color:'var(--text)'}}>{fattori_esterni.assenze || 'N/A'}</div>
-            </div>
-            <div style={{background:'var(--card)', padding:'10px', borderRadius:'6px', textAlign:'center', border:'1px solid var(--border)'}}>
-              <div style={{fontSize:'24px'}}>🏆</div>
-              <div style={{fontSize:'12px', color:'var(--text)'}}>{fattori_esterni.classifica || 'N/A'}</div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* PRONOSTICO */}
-      <div style={{
-        display:'grid',
-        gridTemplateColumns:'1fr 1fr 1fr',
-        gap:'8px',
-        background:'var(--card)',
-        padding:'12px',
-        borderRadius:'8px',
-        marginTop:'12px',
-        border:'2px solid var(--accent)'
-      }}>
-        <div style={{textAlign:'center'}}>
-          <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>Pronostico 1X2</div>
-          <div style={{fontSize:'24px', fontWeight:'bold', color:'var(--accent)'}}>
-            {pronostico?.esito_1X2 || 'N/D'}
-          </div>
-        </div>
-        <div style={{textAlign:'center'}}>
-          <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>Sicurezza</div>
-          <div style={{fontSize:'24px', fontWeight:'bold', color: (pronostico?.percentuale_sicurezza || 0) >= 80 ? 'var(--win)' : 'var(--accent)'}}>
-            {pronostico?.percentuale_sicurezza || 0}%
-          </div>
-        </div>
-        <div style={{textAlign:'center'}}>
-          <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>12+Under 4.5</div>
-          <div style={{fontSize:'18px', fontWeight:'bold', color:'var(--accent)'}}>
-            {pronostico?.['12+under_4_5'] || 'No'}
-            {pronostico?.['12+under_4_5_pct'] !== undefined && (
-              <span style={{fontSize:'12px', color:'var(--text-muted)', marginLeft:'4px'}}>
-                ({pronostico['12+under_4_5_pct']}%)
-              </span>
-            )}
-          </div>
-        </div>
-        <div style={{gridColumn: '1 / -1', borderTop:'1px solid var(--border)', paddingTop:'8px'}}>
-          <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>Motivazione</div>
-          <div style={{fontSize:'13px', color:'var(--text)'}}>{pronostico?.motivazione || ''}</div>
-        </div>
-      </div>
-
-      {/* CONSIGLI GIOCATE */}
-      {consigli_giocate && consigli_giocate.length > 0 && (
-        <>
-          <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'12px', marginBottom:'8px'}}>🎯 Consigli Giocate</h4>
-          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px'}}>
-            {consigli_giocate.map((c, idx) => {
-              const isBomb = c.percentuale >= 90;
-              return (
-                <div key={idx} style={{
-                  background:'var(--card)',
-                  padding:'12px',
-                  borderRadius:'6px',
-                  border: isBomb ? '2px solid var(--accent)' : '1px solid var(--border)',
-                  textAlign:'center'
-                }}>
-                  <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>
-                    {c.tipo === 'singola' && '🎯 Singola'}
-                    {c.tipo === 'combinata' && '🔗 Combinata'}
-                    {c.tipo === 'libera' && '⭐ Libera'}
-                  </div>
-                  <div style={{fontSize:'14px', fontWeight:'bold', color:'#ffff00', margin:'4px 0'}}>
-                    {c.giocata}
-                  </div>
-                  <div style={{fontSize:'22px', fontWeight:'bold'}}>
-                    <span className={getPercentualeClasse(c.percentuale)}>
-                      {c.percentuale || 0}%
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
-
-      {/* VALUTAZIONE GIOCATA */}
-      {valutazione_giocata && (
-        <div style={{marginTop:'12px', background:'var(--card)', padding:'10px', borderRadius:'6px', border:'1px solid var(--border)'}}>
-          <div style={{fontWeight:'bold', color:'var(--accent)', fontSize:'13px'}}>📈 Valutazione Giocata</div>
-          <div style={{fontSize:'13px', color:'var(--text)'}}>{valutazione_giocata}</div>
-        </div>
-      )}
-
-      {/* INDICE RISCHIO */}
-      <div style={{marginTop:'12px'}}>
-        <span style={{
-          background:'var(--card)',
-          padding:'4px 16px',
-          borderRadius:'20px',
-          fontSize:'13px',
-          display:'inline-block',
-          border:'1px solid var(--border)'
-        }}>
-          🎯 Indice Rischio: <span style={{
-            fontWeight:'bold',
-            color: (indice_rischio || 5) > 7 ? 'var(--lose)' : (indice_rischio || 5) > 4 ? 'var(--draw)' : 'var(--win)'
-          }}>
-            {indice_rischio || 'N/D'}/10
-          </span>
-        </span>
-      </div>
-    </div>
-  );
-};
 
 // ============================================================
 // MOUNT
