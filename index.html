@@ -116,10 +116,19 @@
     padding: 18px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
   .matches-grid {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 18px;
-    justify-content: flex-start;
+  }
+  @media (max-width: 1024px) {
+    .matches-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 768px) {
+    .matches-grid {
+      grid-template-columns: 1fr;
+    }
   }
   .match-tab {
     background: var(--card);
@@ -129,9 +138,6 @@
     border: 1px solid var(--border);
     border-left-width: 6px;
     box-shadow: 0 3px 10px rgba(0,0,0,0.4);
-    flex: 1;
-    min-width: 300px;
-    max-width: 420px;
     cursor: pointer;
     transition: transform 0.15s, box-shadow 0.15s;
     position: relative;
@@ -151,6 +157,13 @@
     padding: 2px 10px;
     border-radius: 20px;
     border: 2px solid var(--accent2);
+  }
+  .match-tab .bomb-indicator {
+    position: absolute;
+    top: 8px;
+    left: 12px;
+    font-size: 24px;
+    animation: bomb-bounce 1s infinite ease-in-out;
   }
   .match-tab-history {
     background: var(--card);
@@ -281,32 +294,51 @@
   .bet-row {
     display: flex;
     justify-content: space-around;
-    gap: 6px;
+    gap: 4px;
     margin-top: 8px;
     flex-wrap: wrap;
   }
   .bet-item {
     background: var(--surface);
-    padding: 4px 10px;
+    padding: 4px 8px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 11px;
     border: 1px solid var(--border);
     text-align: center;
     flex: 1;
-    min-width: 70px;
+    min-width: 60px;
     cursor: pointer;
     transition: background 0.2s;
   }
   .bet-item:hover { background: var(--card); }
   .bet-item .bet-label {
-    font-size: 10px;
+    font-size: 9px;
     text-transform: uppercase;
     font-weight: 600;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
+    color: var(--text-muted);
   }
   .bet-item .bet-value {
     font-weight: bold;
-    font-size: 14px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .bet-item.bomb {
+    border-color: var(--accent);
+    background: var(--accent);
+    animation: bomb-glow 1s infinite alternate;
+  }
+  .bet-item.bomb .bet-value {
+    color: #000 !important;
+  }
+  .bet-item.bomb .bet-label {
+    color: #000 !important;
+  }
+  .bet-item.bomb .bet-value .pct-verde,
+  .bet-item.bomb .bet-value .pct-oro,
+  .bet-item.bomb .bet-value .pct-neutro,
+  .bet-item.bomb .bet-value .pct-rosso {
+    color: #000 !important;
   }
   
   .tab-header { 
@@ -2038,6 +2070,9 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
   const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + freeCombo.pct) / 4);
   const mediaCombinata = Math.round((homeRange.pct + awayRange.pct) / 2);
   
+  // Verifica se c'è una giocata con la bomba (percentuale >= 90)
+  const hasBomb = pct12Under45 >= 90 || homeRange.pct >= 90 || awayRange.pct >= 90 || freeCombo.pct >= 90;
+  
   const handleClick = (e) => { e.stopPropagation(); onSelect(match.id); };
   const addBet1 = (e) => { e.stopPropagation(); const text = `Giocata 12+U4.5: ${Math.round(pct12Under45)}% (${match.casa} vs ${match.ospiti})`; addToSchedina(text); };
   const addBet2 = (e) => { e.stopPropagation(); const text = `Combinata: ${match.casa} ${homeRange.label} (${homeRange.pct}%) + ${match.ospiti} ${awayRange.label} (${awayRange.pct}%)`; addToSchedina(text); };
@@ -2048,6 +2083,7 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
   
   return (
     <div className="match-tab" style={{borderLeftColor: champColor}} onClick={handleClick}>
+      {hasBomb && <div className="bomb-indicator">💣</div>}
       <div className="score-badge">{isNaN(score) ? 0 : score}%</div>
       <div className="tab-header" style={{background: champColor}}>📊 {match.campionato || 'N/D'}</div>
       <div className="match-info">{match.campionato || 'N/D'} - Giornata: {match.round || 'N/A'}</div>
@@ -2074,21 +2110,19 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
       </div>
       <div className="form-diff">📊 Differenza forma: <span>{isNaN(diff) ? 0 : diff}%</span></div>
       <div className="bet-row">
-        <div className="bet-item" onClick={addBet1}>
-          <div className="bet-label"><span className={getPercentualeClasse(Math.round(pct12Under45))}>12+U4.5</span></div>
-          <div className="bet-value"><span className={getPercentualeClasse(Math.round(pct12Under45))}>{Math.round(pct12Under45)}%</span></div>
+        <div className={`bet-item ${Math.round(pct12Under45) >= 90 ? 'bomb' : ''}`} onClick={addBet1}>
+          <div className="bet-label">12+U4.5</div>
+          <div className="bet-value">{Math.round(pct12Under45)}% {Math.round(pct12Under45) >= 90 ? '💣' : ''}</div>
         </div>
-        <div className="bet-item" style={{flex: 2}} onClick={addBet2}>
-          <div className="bet-label"><span className={getPercentualeClasse(mediaCombinata)}>COMBINATA</span></div>
-          <div className="bet-value" style={{fontSize: '12px'}}>
-            <span className={getPercentualeClasse(homeRange.pct)}>{match.casa} {homeRange.label} ({homeRange.pct}%)</span>
-            {' + '}
-            <span className={getPercentualeClasse(awayRange.pct)}>{match.ospiti} {awayRange.label} ({awayRange.pct}%)</span>
+        <div className={`bet-item ${mediaCombinata >= 90 ? 'bomb' : ''}`} style={{flex: 2}} onClick={addBet2}>
+          <div className="bet-label">COMBINATA</div>
+          <div className="bet-value" style={{fontSize: '11px'}}>
+            {match.casa} {homeRange.label} ({homeRange.pct}%) + {match.ospiti} {awayRange.label} ({awayRange.pct}%) {mediaCombinata >= 90 ? '💣' : ''}
           </div>
         </div>
-        <div className="bet-item" onClick={addBet3}>
-          <div className="bet-label"><span className={getPercentualeClasse(freeCombo.pct)}>LIBERA</span></div>
-          <div className="bet-value"><span className={getPercentualeClasse(freeCombo.pct)}>{freeCombo.label} ({freeCombo.pct}%)</span></div>
+        <div className={`bet-item ${freeCombo.pct >= 90 ? 'bomb' : ''}`} onClick={addBet3}>
+          <div className="bet-label">LIBERA</div>
+          <div className="bet-value">{freeCombo.label} ({freeCombo.pct}%) {freeCombo.pct >= 90 ? '💣' : ''}</div>
         </div>
       </div>
     </div>
@@ -2741,19 +2775,110 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
       const awayRange = getMultigolRange(m.ospiti, matches);
       const freeCombo = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
       const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + freeCombo.pct) / 4);
+      
+      // Raccogli TUTTE le giocate disponibili dalla CARD
+      const giocate = [];
+      
+      // 1. 12+U4.5
+      const pct1 = Math.round(pct12Under45);
+      giocate.push({ 
+        label: '12+U4.5', 
+        pct: pct1, 
+        type: '12+U4.5',
+        isBomb: pct1 >= 90
+      });
+      
+      // 2. Combinata
+      const combPct = Math.round((homeRange.pct + awayRange.pct) / 2);
+      giocate.push({ 
+        label: `Combinata: ${m.casa} ${homeRange.label} + ${m.ospiti} ${awayRange.label}`, 
+        pct: combPct, 
+        type: 'Combinata',
+        isBomb: combPct >= 90
+      });
+      
+      // 3. Libera
+      giocate.push({ 
+        label: `Libera: ${freeCombo.label}`, 
+        pct: freeCombo.pct, 
+        type: 'Libera',
+        isBomb: freeCombo.pct >= 90
+      });
+      
+      // 4. Over 1.5 (se disponibile)
+      if (stats.underOver && stats.underOver[0]) {
+        const over15 = Math.round(stats.underOver[0].over);
+        giocate.push({ 
+          label: 'Over 1.5', 
+          pct: over15, 
+          type: 'Over',
+          isBomb: over15 >= 90
+        });
+      }
+      
+      // 5. Under 3.5 (se disponibile)
+      if (stats.underOver && stats.underOver[2]) {
+        const under35 = Math.round(stats.underOver[2].under);
+        giocate.push({ 
+          label: 'Under 3.5', 
+          pct: under35, 
+          type: 'Under',
+          isBomb: under35 >= 90
+        });
+      }
+      
+      // 6-7. Multigol Casa
+      if (stats.homeMG) {
+        for (const [key, value] of Object.entries(stats.homeMG)) {
+          const pct = Math.round(value);
+          const displayKey = key === '2-4' ? 'Over 1,5' : key;
+          giocate.push({
+            label: `MG Casa ${displayKey}`,
+            pct: pct,
+            type: 'MG Casa',
+            isBomb: pct >= 90
+          });
+        }
+      }
+      
+      // 8-9. Multigol Ospite
+      if (stats.awayMG) {
+        for (const [key, value] of Object.entries(stats.awayMG)) {
+          const pct = Math.round(value);
+          const displayKey = key === '2-4' ? 'Over 1,5' : key;
+          giocate.push({
+            label: `MG Ospite ${displayKey}`,
+            pct: pct,
+            type: 'MG Ospite',
+            isBomb: pct >= 90
+          });
+        }
+      }
+      
+      // 10. Doppie Chance + Over/Under
+      if (stats.p1X !== undefined) {
+        const p1x = Math.round(stats.p1X);
+        giocate.push({ label: '1X', pct: p1x, type: 'Doppia Chance', isBomb: p1x >= 90 });
+        const p12 = Math.round(stats.p12);
+        giocate.push({ label: '12', pct: p12, type: 'Doppia Chance', isBomb: p12 >= 90 });
+        const px2 = Math.round(stats.pX2);
+        giocate.push({ label: 'X2', pct: px2, type: 'Doppia Chance', isBomb: px2 >= 90 });
+      }
+      
+      // Ordina per percentuale decrescente
+      giocate.sort((a, b) => b.pct - a.pct);
+      
+      // FILTRA SOLO LE GIOCATE CON LA BOMBA (percentuale >= 90)
+      const bombGiocate = giocate.filter(g => g.isBomb);
+      
       return {
         ...m,
         score,
-        giocate: [
-          { label: `12+U4.5`, pct: Math.round(pct12Under45), type: 'Fissa' },
-          { label: `${m.casa} ${homeRange.label}`, pct: homeRange.pct, type: 'Casa' },
-          { label: `${m.ospiti} ${awayRange.label}`, pct: awayRange.pct, type: 'Ospite' },
-          { label: freeCombo.label, pct: freeCombo.pct, type: 'Libera' }
-        ],
+        giocate: bombGiocate, // Solo le giocate con la bomba
         stats
       };
     })
-    .filter(m => m.score > 0)
+    .filter(m => m.score > 0 && m.giocate.length > 0) // Solo partite con almeno una bomba
     .sort((a,b) => b.score - a.score)
     .slice(0, 5);
   };
@@ -2766,7 +2891,7 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
         <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px'}}>
           <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
             <span style={{fontSize: '24px'}}>🏠</span>
-            <h3 style={{margin: 0}}>Giocate del Giorno</h3>
+            <h3 style={{margin: 0}}>💣 Giocate Bomba del Giorno</h3>
           </div>
           <div className="day-selector">
             <button className={selectedDay === 'oggi' ? 'active' : ''} onClick={() => setSelectedDay('oggi')}>Oggi</button>
@@ -2775,8 +2900,8 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
           </div>
         </div>
         <div className="empty-state" style={{padding: '20px'}}>
-          <span style={{fontSize: '24px'}}>📅</span>
-          <p>Nessuna partita disponibile per {selectedDay === 'weekend' ? 'il weekend' : selectedDay}</p>
+          <span style={{fontSize: '24px'}}>💣</span>
+          <p>Nessuna giocata con 💣 disponibile per {selectedDay === 'weekend' ? 'il weekend' : selectedDay}</p>
         </div>
       </div>
     );
@@ -2786,8 +2911,8 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
     <div className="home-widget">
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', cursor: 'pointer'}} onClick={() => setExpanded(!expanded)}>
         <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-          <span style={{fontSize: '24px'}}>🏠</span>
-          <h3 style={{margin: 0}}>Giocate del Giorno</h3>
+          <span style={{fontSize: '24px'}}>💣</span>
+          <h3 style={{margin: 0}}>Giocate Bomba del Giorno</h3>
           <span className="badge" style={{
             background: 'var(--accent)',
             color: '#000',
@@ -2795,7 +2920,7 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
             borderRadius: '12px',
             fontSize: '12px',
             fontWeight: 'bold'
-          }}>{giocateDelGiorno.length} Top</span>
+          }}>{giocateDelGiorno.length} Top 💣</span>
         </div>
         <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
           <div className="day-selector" onClick={e => e.stopPropagation()}>
@@ -2810,7 +2935,7 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
       {expanded && (
         <>
           {giocateDelGiorno[0] && (
-            <div className="top-pick">
+            <div className="top-pick" style={{borderLeftColor: 'var(--accent)'}}>
               <div style={{display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap'}}>
                 <span style={{
                   background: 'var(--accent)',
@@ -2819,28 +2944,40 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
                   borderRadius: '12px',
                   fontSize: '11px',
                   fontWeight: 'bold'
-                }}>⭐ TOP PICK</span>
+                }}>⭐ TOP PICK 💣</span>
                 <span style={{fontWeight: 'bold'}}>{giocateDelGiorno[0].casa} vs {giocateDelGiorno[0].ospiti}</span>
                 <span style={{color: 'var(--text-muted)', fontSize: '13px'}}>{formatDateEU(giocateDelGiorno[0].data)}</span>
-                <span style={{marginLeft: 'auto', fontSize: '20px', fontWeight: 'bold', color: giocateDelGiorno[0].score >= 80 ? 'var(--win)' : 'var(--accent)'}}>
+                <span style={{marginLeft: 'auto', fontSize: '20px', fontWeight: 'bold', color: 'var(--accent)'}}>
                   Score: {giocateDelGiorno[0].score}%
                 </span>
               </div>
-              <div style={{display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap'}}>
-                {giocateDelGiorno[0].giocate.slice(0, 3).map((g, idx) => (
-                  <button key={idx} className="btn btn-secondary" style={{
-                    fontSize: '12px', padding: '4px 12px',
-                    background: g.pct >= 70 ? 'var(--win)' : 'var(--surface)',
-                    color: g.pct >= 70 ? '#000' : 'var(--text)',
-                    border: g.pct >= 70 ? '1px solid var(--win)' : '1px solid var(--border)'
-                  }} onClick={(e) => {
-                    e.stopPropagation();
-                    const text = `${g.label}: ${g.pct}% (${giocateDelGiorno[0].casa} vs ${giocateDelGiorno[0].ospiti})`;
-                    addToSchedina(text);
-                  }}>
-                    {g.label} {g.pct}%
-                  </button>
-                ))}
+              <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px'}}>
+                {giocateDelGiorno[0].giocate.map((g, idx) => {
+                  return (
+                    <div key={idx} style={{
+                      background: 'var(--accent)',
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      textAlign: 'center',
+                      border: '1px solid var(--accent)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      fontSize: '10px',
+                      color: '#000'
+                    }} onClick={(e) => {
+                      e.stopPropagation();
+                      const text = `${g.label}: ${g.pct}% (${giocateDelGiorno[0].casa} vs ${giocateDelGiorno[0].ospiti})`;
+                      addToSchedina(text);
+                    }}>
+                      <div style={{fontWeight: 'bold', color: '#000'}}>
+                        {g.label.length > 30 ? g.label.slice(0, 28) + '...' : g.label}
+                      </div>
+                      <div style={{fontWeight: 'bold', color: '#000'}}>
+                        {g.pct}% 💣
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -2848,38 +2985,51 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
           <div className="giocate-list">
             {giocateDelGiorno.slice(1).map((match, idx) => {
               const champColor = getChampColor(match.campionato);
-              const bestGiocata = match.giocate.reduce((a,b) => a.pct > b.pct ? a : b);
               return (
                 <div key={idx} className="giocata-item" onClick={() => onSelectMatch(match.id)}>
-                  <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap'}}>
+                  <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: '120px'}}>
                     <span style={{width: '24px', fontSize: '14px', fontWeight: 'bold', color: champColor}}>#{idx + 2}</span>
                     <div>
                       <div style={{fontWeight: 'bold', fontSize: '14px'}}>{match.casa} vs {match.ospiti}</div>
                       <div style={{fontSize: '11px', color: 'var(--text-muted)'}}>{match.campionato} • {formatDateEU(match.data)}</div>
                     </div>
                   </div>
-                  <div style={{
-                    background: 'var(--surface)',
-                    padding: '4px 12px',
-                    borderRadius: '12px',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{fontSize: '10px', color: 'var(--text-muted)'}}>Migliore</div>
-                    <div style={{fontSize: '12px', fontWeight: 'bold', color: bestGiocata.pct >= 70 ? 'var(--win)' : 'var(--accent)'}}>
-                      {bestGiocata.label} {bestGiocata.pct}%
-                    </div>
+                  
+                  <div style={{display: 'flex', flexWrap: 'wrap', gap: '3px', flex: '2', minWidth: '200px'}}>
+                    {match.giocate.map((g, gi) => {
+                      return (
+                        <div key={gi} style={{
+                          background: 'var(--accent)',
+                          padding: '2px 6px',
+                          borderRadius: '3px',
+                          textAlign: 'center',
+                          border: '1px solid var(--accent)',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          fontSize: '9px',
+                          color: '#000'
+                        }} onClick={(e) => {
+                          e.stopPropagation();
+                          const text = `${g.label}: ${g.pct}% (${match.casa} vs ${match.ospiti})`;
+                          addToSchedina(text);
+                        }}>
+                          <div style={{fontWeight: 'bold', color: '#000'}}>
+                            {g.label.length > 20 ? g.label.slice(0, 18) + '..' : g.label}
+                          </div>
+                          <div style={{fontWeight: 'bold', color: '#000'}}>
+                            {g.pct}% 💣
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <div style={{textAlign: 'center', minWidth: '50px'}}>
-                    <div style={{fontSize: '18px', fontWeight: 'bold', color: match.score >= 70 ? 'var(--win)' : 'var(--accent)'}}>
+                  
+                  <div style={{textAlign: 'center', minWidth: '40px'}}>
+                    <div style={{fontSize: '16px', fontWeight: 'bold', color: 'var(--accent)'}}>
                       {match.score}%
                     </div>
-                    <div style={{fontSize: '10px', color: 'var(--text-muted)'}}>Score</div>
+                    <div style={{fontSize: '9px', color: 'var(--text-muted)'}}>Score</div>
                   </div>
-                  <button className="btn btn-secondary" style={{fontSize: '11px', padding: '2px 10px'}} onClick={(e) => {
-                    e.stopPropagation();
-                    const text = `${bestGiocata.label}: ${bestGiocata.pct}% (${match.casa} vs ${match.ospiti})`;
-                    addToSchedina(text);
-                  }}>➕</button>
                 </div>
               );
             })}
@@ -2896,7 +3046,7 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
             flexWrap: 'wrap',
             gap: '8px'
           }}>
-            <span>📊 {giocateDelGiorno.length} partite analizzate</span>
+            <span>💣 {giocateDelGiorno.length} partite con bombe</span>
             <span>⭐ Media Score: {Math.round(giocateDelGiorno.reduce((s, m) => s + m.score, 0) / giocateDelGiorno.length)}%</span>
             <span style={{color: 'var(--accent)', cursor: 'pointer'}} onClick={() => setTab('Schedina AI')}>Vedi tutte →</span>
           </div>
