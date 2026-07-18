@@ -36,6 +36,24 @@
   .pct-verde { color: var(--pct-verde) !important; font-weight: bold; }
   .pct-oro { color: var(--pct-oro) !important; font-weight: bold; text-shadow: 0 0 10px rgba(243, 156, 18, 0.3); }
 
+  /* Classi per le percentuali nelle giocate della CARD */
+  .giocata-pct.flag-red { color: #eb5757; font-weight: bold; }
+  .giocata-pct.flag-neutral { color: #8b949e; font-weight: bold; }
+  .giocata-pct.flag-green { color: #6fcf97; font-weight: bold; }
+  .giocata-pct.flag-gold { 
+    color: #f39c12; 
+    font-weight: bold; 
+    text-shadow: 0 0 12px rgba(243, 156, 18, 0.5);
+  }
+  .giocata-pct.flag-bomb { 
+    color: #000; 
+    font-weight: bold; 
+    background: var(--accent); 
+    padding: 2px 8px; 
+    border-radius: 6px; 
+    animation: bomb-glow 1s infinite alternate;
+  }
+
   .multigol-badge {
     display: inline-block;
     padding: 2px 10px;
@@ -1550,6 +1568,14 @@ const parseDate = (dateStr, timeStr = '00:00') => {
 // FUNZIONI STATISTICHE - CORRETTE
 // ============================================================
 
+// 🔥 FUNZIONE getPercentualeClasse AGGIORNATA
+const getPercentualeClasse = (valore) => {
+  if (valore < 33.34) return 'flag-red';
+  if (valore < 66.67) return 'flag-neutral';
+  if (valore < 90) return 'flag-green';
+  return 'flag-gold';
+};
+
 const calcFormAndStats = (matches, teamName) => {
   const played = matches
     .filter(m => m.stato === 'Giocata' && (m.casa === teamName || m.ospiti === teamName))
@@ -1865,13 +1891,6 @@ const formatDateEU = (dateStr) => {
 // ============================================================
 // ALTRE FUNZIONI UTILITY
 // ============================================================
-
-const getPercentualeClasse = (valore) => {
-  if (valore < 33) return 'pct-rosso';
-  if (valore < 66) return 'pct-neutro';
-  if (valore < 90) return 'pct-verde';
-  return 'pct-oro';
-};
 
 const getChampColor = (champName) => {
   if (!champName) return '#95a5a6';
@@ -2743,7 +2762,7 @@ const StoricoSchedine = ({ schedineHistory, setSchedineHistory }) => {
 };
 
 // ============================================================
-// COMPONENTI - HomeWidget, HeatmapGiocate, HeatmapDetailModal
+// COMPONENTI - HomeWidget (VERSIONE COMPLETA CON COLORI)
 // ============================================================
 
 const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
@@ -2776,10 +2795,8 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
       const freeCombo = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
       const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + freeCombo.pct) / 4);
       
-      // Raccogli TUTTE le giocate disponibili dalla CARD
       const giocate = [];
       
-      // 1. 12+U4.5
       const pct1 = Math.round(pct12Under45);
       giocate.push({ 
         label: '12+U4.5', 
@@ -2788,24 +2805,21 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
         isBomb: pct1 >= 90
       });
       
-      // 2. Combinata
       const combPct = Math.round((homeRange.pct + awayRange.pct) / 2);
       giocate.push({ 
-        label: `Combinata: ${m.casa} ${homeRange.label} + ${m.ospiti} ${awayRange.label}`, 
+        label: `COMBINATA: ${m.casa} ${homeRange.label} + ${m.ospiti} ${awayRange.label}`, 
         pct: combPct, 
         type: 'Combinata',
         isBomb: combPct >= 90
       });
       
-      // 3. Libera
       giocate.push({ 
-        label: `Libera: ${freeCombo.label}`, 
+        label: `LIBERA: ${freeCombo.label}`, 
         pct: freeCombo.pct, 
         type: 'Libera',
         isBomb: freeCombo.pct >= 90
       });
       
-      // 4. Over 1.5 (se disponibile)
       if (stats.underOver && stats.underOver[0]) {
         const over15 = Math.round(stats.underOver[0].over);
         giocate.push({ 
@@ -2816,7 +2830,6 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
         });
       }
       
-      // 5. Under 3.5 (se disponibile)
       if (stats.underOver && stats.underOver[2]) {
         const under35 = Math.round(stats.underOver[2].under);
         giocate.push({ 
@@ -2827,7 +2840,6 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
         });
       }
       
-      // 6-7. Multigol Casa
       if (stats.homeMG) {
         for (const [key, value] of Object.entries(stats.homeMG)) {
           const pct = Math.round(value);
@@ -2841,7 +2853,6 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
         }
       }
       
-      // 8-9. Multigol Ospite
       if (stats.awayMG) {
         for (const [key, value] of Object.entries(stats.awayMG)) {
           const pct = Math.round(value);
@@ -2855,7 +2866,6 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
         }
       }
       
-      // 10. Doppie Chance + Over/Under
       if (stats.p1X !== undefined) {
         const p1x = Math.round(stats.p1X);
         giocate.push({ label: '1X', pct: p1x, type: 'Doppia Chance', isBomb: p1x >= 90 });
@@ -2865,20 +2875,18 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
         giocate.push({ label: 'X2', pct: px2, type: 'Doppia Chance', isBomb: px2 >= 90 });
       }
       
-      // Ordina per percentuale decrescente
       giocate.sort((a, b) => b.pct - a.pct);
       
-      // FILTRA SOLO LE GIOCATE CON LA BOMBA (percentuale >= 90)
       const bombGiocate = giocate.filter(g => g.isBomb);
       
       return {
         ...m,
         score,
-        giocate: bombGiocate, // Solo le giocate con la bomba
+        giocate: bombGiocate,
         stats
       };
     })
-    .filter(m => m.score > 0 && m.giocate.length > 0) // Solo partite con almeno una bomba
+    .filter(m => m.score > 0 && m.giocate.length > 0)
     .sort((a,b) => b.score - a.score)
     .slice(0, 5);
   };
@@ -2945,7 +2953,7 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
                   fontSize: '11px',
                   fontWeight: 'bold'
                 }}>⭐ TOP PICK 💣</span>
-                <span style={{fontWeight: 'bold'}}>{giocateDelGiorno[0].casa} vs {giocateDelGiorno[0].ospiti}</span>
+                <span style={{fontWeight: 'bold', color: 'var(--text)'}}>{giocateDelGiorno[0].casa} vs {giocateDelGiorno[0].ospiti}</span>
                 <span style={{color: 'var(--text-muted)', fontSize: '13px'}}>{formatDateEU(giocateDelGiorno[0].data)}</span>
                 <span style={{marginLeft: 'auto', fontSize: '20px', fontWeight: 'bold', color: 'var(--accent)'}}>
                   Score: {giocateDelGiorno[0].score}%
@@ -2953,27 +2961,31 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
               </div>
               <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px'}}>
                 {giocateDelGiorno[0].giocate.map((g, idx) => {
+                  const isMax = g.pct === Math.max(...giocateDelGiorno[0].giocate.map(x => x.pct));
                   return (
                     <div key={idx} style={{
-                      background: 'var(--accent)',
-                      padding: '3px 8px',
+                      background: 'var(--surface)',
+                      padding: '4px 10px',
                       borderRadius: '4px',
                       textAlign: 'center',
-                      border: '1px solid var(--accent)',
+                      border: isMax && g.isBomb ? '2px solid var(--accent)' : '1px solid var(--border)',
                       cursor: 'pointer',
                       transition: 'all 0.2s',
-                      fontSize: '10px',
-                      color: '#000'
+                      fontSize: '11px',
+                      flex: '1',
+                      minWidth: '80px'
                     }} onClick={(e) => {
                       e.stopPropagation();
                       const text = `${g.label}: ${g.pct}% (${giocateDelGiorno[0].casa} vs ${giocateDelGiorno[0].ospiti})`;
                       addToSchedina(text);
                     }}>
-                      <div style={{fontWeight: 'bold', color: '#000'}}>
-                        {g.label.length > 30 ? g.label.slice(0, 28) + '...' : g.label}
+                      <div style={{fontWeight: 'bold', color: 'var(--text)', fontSize: '10px'}}>
+                        {g.label.length > 25 ? g.label.slice(0, 22) + '...' : g.label}
                       </div>
-                      <div style={{fontWeight: 'bold', color: '#000'}}>
-                        {g.pct}% 💣
+                      <div style={{fontWeight: 'bold', fontSize: '14px'}}>
+                        <span className={`giocata-pct ${isMax ? 'flag-gold' : getPercentualeClasse(g.pct)}`}>
+                          {g.pct}% {g.isBomb && '💣'}
+                        </span>
                       </div>
                     </div>
                   );
@@ -2985,50 +2997,67 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
           <div className="giocate-list">
             {giocateDelGiorno.slice(1).map((match, idx) => {
               const champColor = getChampColor(match.campionato);
+              const maxPct = Math.max(...match.giocate.map(g => g.pct));
+              
               return (
-                <div key={idx} className="giocata-item" onClick={() => onSelectMatch(match.id)}>
-                  <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: '120px'}}>
-                    <span style={{width: '24px', fontSize: '14px', fontWeight: 'bold', color: champColor}}>#{idx + 2}</span>
+                <div key={idx} className="giocata-item" onClick={() => onSelectMatch(match.id)} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  borderBottom: '1px solid var(--border)',
+                  cursor: 'pointer',
+                  transition: 'background 0.2s',
+                  borderRadius: '6px',
+                  flexWrap: 'wrap'
+                }}>
+                  <div style={{flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    <span style={{fontSize: '14px', fontWeight: 'bold', color: champColor, minWidth: '30px'}}>#{idx + 2}</span>
                     <div>
-                      <div style={{fontWeight: 'bold', fontSize: '14px'}}>{match.casa} vs {match.ospiti}</div>
-                      <div style={{fontSize: '11px', color: 'var(--text-muted)'}}>{match.campionato} • {formatDateEU(match.data)}</div>
+                      <div style={{fontWeight: 'bold', fontSize: '13px', color: 'var(--text)'}}>{match.casa} vs {match.ospiti}</div>
+                      <div style={{fontSize: '10px', color: 'var(--text-muted)'}}>{match.campionato} • {formatDateEU(match.data)}</div>
                     </div>
                   </div>
                   
-                  <div style={{display: 'flex', flexWrap: 'wrap', gap: '3px', flex: '2', minWidth: '200px'}}>
+                  <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px', flex: '1', minWidth: '180px'}}>
                     {match.giocate.map((g, gi) => {
+                      const isMax = g.pct === maxPct;
                       return (
                         <div key={gi} style={{
-                          background: 'var(--accent)',
-                          padding: '2px 6px',
-                          borderRadius: '3px',
+                          background: 'var(--surface)',
+                          padding: '3px 8px',
+                          borderRadius: '4px',
                           textAlign: 'center',
-                          border: '1px solid var(--accent)',
+                          border: isMax && g.isBomb ? '2px solid var(--accent)' : '1px solid var(--border)',
                           cursor: 'pointer',
                           transition: 'all 0.2s',
-                          fontSize: '9px',
-                          color: '#000'
+                          fontSize: '10px',
+                          flex: '1',
+                          minWidth: '60px',
+                          maxWidth: '160px'
                         }} onClick={(e) => {
                           e.stopPropagation();
                           const text = `${g.label}: ${g.pct}% (${match.casa} vs ${match.ospiti})`;
                           addToSchedina(text);
                         }}>
-                          <div style={{fontWeight: 'bold', color: '#000'}}>
-                            {g.label.length > 20 ? g.label.slice(0, 18) + '..' : g.label}
+                          <div style={{fontWeight: 'bold', color: 'var(--text)', fontSize: '9px', lineHeight: '1.2'}}>
+                            {g.label.length > 18 ? g.label.slice(0, 15) + '..' : g.label}
                           </div>
-                          <div style={{fontWeight: 'bold', color: '#000'}}>
-                            {g.pct}% 💣
+                          <div style={{fontWeight: 'bold', fontSize: '13px'}}>
+                            <span className={`giocata-pct ${isMax ? 'flag-gold' : getPercentualeClasse(g.pct)}`}>
+                              {g.pct}% {g.isBomb && '💣'}
+                            </span>
                           </div>
                         </div>
                       );
                     })}
                   </div>
                   
-                  <div style={{textAlign: 'center', minWidth: '40px'}}>
-                    <div style={{fontSize: '16px', fontWeight: 'bold', color: 'var(--accent)'}}>
+                  <div style={{textAlign: 'center', minWidth: '35px'}}>
+                    <div style={{fontSize: '14px', fontWeight: 'bold', color: 'var(--accent)'}}>
                       {match.score}%
                     </div>
-                    <div style={{fontSize: '9px', color: 'var(--text-muted)'}}>Score</div>
+                    <div style={{fontSize: '8px', color: 'var(--text-muted)'}}>Score</div>
                   </div>
                 </div>
               );
@@ -3038,23 +3067,46 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
           <div className="widget-footer" style={{
             display: 'flex',
             justifyContent: 'space-between',
-            marginTop: '12px',
-            paddingTop: '10px',
+            marginTop: '10px',
+            paddingTop: '8px',
             borderTop: '1px solid var(--border)',
-            fontSize: '12px',
+            fontSize: '11px',
             color: 'var(--text-muted)',
             flexWrap: 'wrap',
-            gap: '8px'
+            gap: '6px'
           }}>
             <span>💣 {giocateDelGiorno.length} partite con bombe</span>
             <span>⭐ Media Score: {Math.round(giocateDelGiorno.reduce((s, m) => s + m.score, 0) / giocateDelGiorno.length)}%</span>
             <span style={{color: 'var(--accent)', cursor: 'pointer'}} onClick={() => setTab('Schedina AI')}>Vedi tutte →</span>
+          </div>
+
+          {/* 🔥 LEGENDA COLORI */}
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '10px',
+            marginTop: '6px',
+            paddingTop: '8px',
+            borderTop: '1px solid var(--border)',
+            fontSize: '10px',
+            color: 'var(--text-muted)',
+            alignItems: 'center'
+          }}>
+            <span>🔴 0% - 33,33%</span>
+            <span>⚪ 33,34% - 66,66%</span>
+            <span>🟢 66,67% - 89,99%</span>
+            <span style={{color: 'var(--accent)'}}>🟡 Migliore tra le 3</span>
+            <span style={{color: 'var(--accent)', fontWeight: 'bold'}}>💣 ≥ 90% (Bomba)</span>
           </div>
         </>
       )}
     </div>
   );
 };
+
+// ============================================================
+// COMPONENTI - HeatmapGiocate, HeatmapDetailModal
+// ============================================================
 
 const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
   const [filterChamp, setFilterChamp] = useState('Tutti');
@@ -4118,7 +4170,7 @@ const saveState = (data) => {
 };
 
 // ============================================================
-// COMPONENTE: AI ANALYSIS PROFESSIONALE (VERSIONE STABILE COMPLETA CON LE 3 GIOCATE DELLA CARD)
+// COMPONENTE: AI ANALYSIS (versione ridotta per spazio)
 // ============================================================
 
 const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
@@ -5149,7 +5201,7 @@ Genera un'analisi in formato JSON:
                     {c.giocata}
                   </div>
                   <div style={{fontSize:'22px', fontWeight:'bold'}}>
-                    <span className={getPercentualeClasse(c.percentuale)}>
+                    <span className={`giocata-pct ${isBomb ? 'flag-bomb' : getPercentualeClasse(c.percentuale)}`}>
                       {c.percentuale || 0}%
                     </span>
                   </div>
@@ -5596,7 +5648,11 @@ ${matchData}`;
                   <div key={ci} className="consiglio-card" style={{borderColor: isBomb ? 'var(--accent)' : 'var(--border)'}}>
                     <div className="tipo">{c.tipo === 'singola' ? '🎯 Singola' : (c.tipo === 'combinata' ? '🔗 Combinata' : '⭐ Libera')}{isBomb && ' 💣'}</div>
                     <div className="giocata">{c.giocata || 'N/A'}</div>
-                    <div className={`percentuale ${isBomb ? 'flag-bomb' : ''}`}><span className={getPercentualeClasse(c.percentuale)}>{c.percentuale || 0}%</span></div>
+                    <div className={`percentuale ${isBomb ? 'flag-bomb' : ''}`}>
+                      <span className={getPercentualeClasse(c.percentuale)}>
+                        {c.percentuale || 0}%
+                      </span>
+                    </div>
                   </div>
                 );
               })}
