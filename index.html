@@ -36,7 +36,6 @@
   .pct-verde { color: var(--pct-verde) !important; font-weight: bold; }
   .pct-oro { color: var(--pct-oro) !important; font-weight: bold; text-shadow: 0 0 10px rgba(243, 156, 18, 0.3); }
 
-  /* Classi per le percentuali nelle giocate della CARD */
   .giocata-pct.flag-red { color: #eb5757; font-weight: bold; }
   .giocata-pct.flag-neutral { color: #8b949e; font-weight: bold; }
   .giocata-pct.flag-green { color: #6fcf97; font-weight: bold; }
@@ -583,58 +582,57 @@
     font-size: 16px;
   }
   
-  /* Meteo nell'analisi AI */
-.ai-analysis-box .weather-display {
-  background: var(--card);
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-  border: 1px solid var(--border);
-}
-
-.ai-analysis-box .weather-display .weather-main {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.ai-analysis-box .weather-display .weather-icon {
-  font-size: 32px;
-}
-
-.ai-analysis-box .weather-display .weather-temp {
-  font-size: 24px;
-  font-weight: bold;
-  color: var(--accent);
-}
-
-.ai-analysis-box .weather-display .weather-desc {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.ai-analysis-box .weather-display .weather-details {
-  display: flex;
-  gap: 16px;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-@media (max-width: 768px) {
   .ai-analysis-box .weather-display {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .ai-analysis-box .weather-display .weather-details {
+    background: var(--card);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     flex-wrap: wrap;
     gap: 8px;
+    border: 1px solid var(--border);
   }
-}
+
+  .ai-analysis-box .weather-display .weather-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .ai-analysis-box .weather-display .weather-icon {
+    font-size: 32px;
+  }
+
+  .ai-analysis-box .weather-display .weather-temp {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--accent);
+  }
+
+  .ai-analysis-box .weather-display .weather-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .ai-analysis-box .weather-display .weather-details {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 768px) {
+    .ai-analysis-box .weather-display {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .ai-analysis-box .weather-display .weather-details {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+  }
   
   .ai-analysis-loading {
     text-align: center;
@@ -662,147 +660,143 @@
   }
   .ai-analysis-error .btn-go-key:hover { background: var(--accent2); }
   
-  /* Risultati Frequenti - Caratteri più grandi */
-.freq-table-wrap {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  margin: 0 -8px;
-  padding: 0 8px;
-}
+  .freq-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -8px;
+    padding: 0 8px;
+  }
 
-.freq-table {
-  width: 100%;
-  min-width: 400px;
-  border-collapse: collapse;
-  font-size: 16px;
-}
-
-.freq-table th {
-  background: var(--surface);
-  color: var(--text-muted);
-  padding: 10px 12px;
-  text-align: center;
-  border-bottom: 2px solid var(--border);
-  font-weight: 700;
-  font-size: 14px;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.freq-table td {
-  padding: 10px 12px;
-  text-align: center;
-  border-bottom: 1px solid var(--border);
-  font-size: 16px;
-}
-
-.freq-table td:first-child {
-  font-size: 17px;
-  font-weight: bold;
-  color: var(--accent);
-}
-
-.freq-table td:nth-child(2) {
-  font-size: 22px;
-  font-weight: bold;
-}
-
-.freq-table td:nth-child(3) {
-  font-size: 17px;
-  font-weight: bold;
-}
-
-.freq-table td:nth-child(4) {
-  font-size: 17px;
-  font-weight: bold;
-}
-
-.freq-table td:nth-child(4) .form-bar {
-  height: 8px;
-  width: 60px;
-}
-
-.freq-result-badge {
-  display: inline-block;
-  padding: 5px 14px;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: bold;
-}
-.freq-result-badge.win { background: var(--win); color: #000; }
-.freq-result-badge.draw { background: var(--draw); color: #000; }
-.freq-result-badge.loss { background: var(--lose); color: #fff; }
-
-/* Card header più grande */
-.card:has(.freq-table) h4,
-.card:has(.freq-table-wrap) h4 {
-  font-size: 18px !important;
-}
-
-/* Responsive per mobile */
-@media (max-width: 768px) {
   .freq-table {
-    font-size: 14px;
-    min-width: 350px;
-  }
-  .freq-table th {
-    font-size: 12px;
-    padding: 6px 6px;
-  }
-  .freq-table td {
-    font-size: 14px;
-    padding: 6px 6px;
-  }
-  .freq-table td:first-child {
-    font-size: 15px;
-  }
-  .freq-table td:nth-child(2) {
-    font-size: 19px;
-  }
-  .freq-table td:nth-child(3) {
-    font-size: 15px;
-  }
-  .freq-table td:nth-child(4) {
-    font-size: 15px;
-  }
-  .freq-table td:nth-child(4) .form-bar {
-    height: 6px;
-    width: 40px;
-  }
-}
-
-@media (max-width: 480px) {
-  .freq-table {
-    font-size: 12px;
-    min-width: 280px;
-  }
-  .freq-table th {
-    font-size: 10px;
-    padding: 4px 4px;
-  }
-  .freq-table td {
-    font-size: 12px;
-    padding: 4px 4px;
-  }
-  .freq-table td:first-child {
-    font-size: 13px;
-  }
-  .freq-table td:nth-child(2) {
+    width: 100%;
+    min-width: 400px;
+    border-collapse: collapse;
     font-size: 16px;
   }
+
+  .freq-table th {
+    background: var(--surface);
+    color: var(--text-muted);
+    padding: 10px 12px;
+    text-align: center;
+    border-bottom: 2px solid var(--border);
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .freq-table td {
+    padding: 10px 12px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    font-size: 16px;
+  }
+
+  .freq-table td:first-child {
+    font-size: 17px;
+    font-weight: bold;
+    color: var(--accent);
+  }
+
+  .freq-table td:nth-child(2) {
+    font-size: 22px;
+    font-weight: bold;
+  }
+
   .freq-table td:nth-child(3) {
-    font-size: 13px;
+    font-size: 17px;
+    font-weight: bold;
   }
+
   .freq-table td:nth-child(4) {
-    font-size: 13px;
+    font-size: 17px;
+    font-weight: bold;
   }
+
   .freq-table td:nth-child(4) .form-bar {
-    height: 5px;
-    width: 30px;
+    height: 8px;
+    width: 60px;
   }
-}
+
+  .freq-result-badge {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .freq-result-badge.win { background: var(--win); color: #000; }
+  .freq-result-badge.draw { background: var(--draw); color: #000; }
+  .freq-result-badge.loss { background: var(--lose); color: #fff; }
+
+  .card:has(.freq-table) h4,
+  .card:has(.freq-table-wrap) h4 {
+    font-size: 18px !important;
+  }
+
+  @media (max-width: 768px) {
+    .freq-table {
+      font-size: 14px;
+      min-width: 350px;
+    }
+    .freq-table th {
+      font-size: 12px;
+      padding: 6px 6px;
+    }
+    .freq-table td {
+      font-size: 14px;
+      padding: 6px 6px;
+    }
+    .freq-table td:first-child {
+      font-size: 15px;
+    }
+    .freq-table td:nth-child(2) {
+      font-size: 19px;
+    }
+    .freq-table td:nth-child(3) {
+      font-size: 15px;
+    }
+    .freq-table td:nth-child(4) {
+      font-size: 15px;
+    }
+    .freq-table td:nth-child(4) .form-bar {
+      height: 6px;
+      width: 40px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .freq-table {
+      font-size: 12px;
+      min-width: 280px;
+    }
+    .freq-table th {
+      font-size: 10px;
+      padding: 4px 4px;
+    }
+    .freq-table td {
+      font-size: 12px;
+      padding: 4px 4px;
+    }
+    .freq-table td:first-child {
+      font-size: 13px;
+    }
+    .freq-table td:nth-child(2) {
+      font-size: 16px;
+    }
+    .freq-table td:nth-child(3) {
+      font-size: 13px;
+    }
+    .freq-table td:nth-child(4) {
+      font-size: 13px;
+    }
+    .freq-table td:nth-child(4) .form-bar {
+      height: 5px;
+      width: 30px;
+    }
+  }
   
-  /* Intervalli */
   .intervalli-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -817,7 +811,6 @@
     border: 1px solid var(--border);
   }
   
-  /* Weather */
   .weather-impact-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -841,7 +834,6 @@
   .weather-stat .weather-pct { font-size: 11px; margin: 4px 0; }
   .weather-stat .weather-count { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
   
-  /* Schedina */
   .schedina-controls {
     display: flex;
     flex-wrap: wrap;
@@ -1424,7 +1416,6 @@ const THEMES = {
   'Calcio': { bg:'#1b5e20', surface:'#2e7d32', card:'#388e3c', banner:'#2e7d32', text:'#fff', textMuted:'#ffff00', accent:'#ffc107', accent2:'#ff9800', border:'#1b5e20', tabActive:'#ffc107' },
 };
 
-// RIMOSSO TAB "Performance"
 const MAIN_TABS = ['Home','Palinsesto','Statistiche','Analisi Custom','Schedina AI','Storico','API KEY','Impostazioni'];
 const SETTINGS_TABS = ['Temi','API KEY','Dati Locali','Importa Campionato','Grandezza Caratteri'];
 
@@ -1529,7 +1520,7 @@ const fetchSofaScoreMatches = async (leagueId, seasonYear) => {
 };
 
 // ============================================================
-// FUNZIONE PARSE DATE - CORRETTA
+// FUNZIONE PARSE DATE
 // ============================================================
 
 const parseDate = (dateStr, timeStr = '00:00') => {
@@ -1565,10 +1556,9 @@ const parseDate = (dateStr, timeStr = '00:00') => {
 };
 
 // ============================================================
-// FUNZIONI STATISTICHE - CORRETTE
+// FUNZIONI STATISTICHE
 // ============================================================
 
-// 🔥 FUNZIONE getPercentualeClasse AGGIORNATA
 const getPercentualeClasse = (valore) => {
   if (valore < 33.34) return 'flag-red';
   if (valore < 66.67) return 'flag-neutral';
@@ -1637,7 +1627,6 @@ const computeMatchStats = (match, allMatches) => {
   
   if (totalGames === 0) return { error: 'Nessuna partita giocata per queste squadre.' };
   
-  // Statistiche casa
   let homeWins = 0, homeDraws = 0, homeLosses = 0;
   let homeGoalsScored = 0, homeGoalsConceded = 0;
   
@@ -1654,7 +1643,6 @@ const computeMatchStats = (match, allMatches) => {
     else homeLosses++;
   });
   
-  // Statistiche ospite
   let awayWins = 0, awayDraws = 0, awayLosses = 0;
   let awayGoalsScored = 0, awayGoalsConceded = 0;
   
@@ -1671,17 +1659,14 @@ const computeMatchStats = (match, allMatches) => {
     else awayLosses++;
   });
   
-  // FISSE - secondo la formula corretta
   const p1 = totalGames > 0 ? ((homeWins + awayLosses) / totalGames) * 100 : 0;
   const pX = totalGames > 0 ? ((homeDraws + awayDraws) / totalGames) * 100 : 0;
   const p2 = totalGames > 0 ? ((homeLosses + awayWins) / totalGames) * 100 : 0;
   
-  // DOPPIA CHANCE - secondo la formula corretta
   const p1X = totalGames > 0 ? ((homeWins + homeDraws) / totalGames) * 100 : 0;
   const p12 = totalGames > 0 ? ((homeWins + awayWins) / totalGames) * 100 : 0;
   const pX2 = totalGames > 0 ? ((homeLosses + awayWins) / totalGames) * 100 : 0;
   
-  // UNDER / OVER
   const allGamesForGoals = [...homeGames, ...awayGames];
   const goalTotals = allGamesForGoals.map(g => g.golCasa + g.golOspite);
   const thresholds = [1.5, 2.5, 3.5, 4.5];
@@ -1691,7 +1676,6 @@ const computeMatchStats = (match, allMatches) => {
     return { threshold: t, under, over };
   });
   
-  // MULTIGOL
   const getMultigolV2 = (team, games) => {
     const goals = games.map(g => (g.casa === team) ? g.golCasa : g.golOspite);
     const total = goals.length;
@@ -2089,7 +2073,6 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
   const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + freeCombo.pct) / 4);
   const mediaCombinata = Math.round((homeRange.pct + awayRange.pct) / 2);
   
-  // Verifica se c'è una giocata con la bomba (percentuale >= 90)
   const hasBomb = pct12Under45 >= 90 || homeRange.pct >= 90 || awayRange.pct >= 90 || freeCombo.pct >= 90;
   
   const handleClick = (e) => { e.stopPropagation(); onSelect(match.id); };
@@ -2359,7 +2342,7 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
 };
 
 // ============================================================
-// COMPONENTI - RisultatiFrequenti (con quadratini colorati)
+// COMPONENTI - RisultatiFrequenti
 // ============================================================
 
 const RisultatiFrequenti = ({ teamName, allMatches }) => {
@@ -2762,7 +2745,7 @@ const StoricoSchedine = ({ schedineHistory, setSchedineHistory }) => {
 };
 
 // ============================================================
-// COMPONENTI - HomeWidget (VERSIONE COMPLETA CON COLORI)
+// COMPONENTI - HomeWidget
 // ============================================================
 
 const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
@@ -3080,7 +3063,6 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
             <span style={{color: 'var(--accent)', cursor: 'pointer'}} onClick={() => setTab('Schedina AI')}>Vedi tutte →</span>
           </div>
 
-          {/* 🔥 LEGENDA COLORI */}
           <div style={{
             display: 'flex',
             flexWrap: 'wrap',
@@ -4170,7 +4152,7 @@ const saveState = (data) => {
 };
 
 // ============================================================
-// COMPONENTE: AI ANALYSIS (versione ridotta per spazio)
+// COMPONENTE: AI ANALYSIS (per la scheda Statistiche)
 // ============================================================
 
 const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
@@ -4480,29 +4462,19 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
       const homeMG = calcTeamMG(allMatches, match.casa);
       const awayMG = calcTeamMG(allMatches, match.ospiti);
 
-      // ============================================================
-      // 🔥 CALCOLA LE 3 GIOCATE DELLA CARD (come nel MatchTab)
-      // ============================================================
       const pct12Under45 = get12Under45(allMatches, match.casa, match.ospiti);
       const homeRange = getMultigolRange(match.casa, allMatches);
       const awayRange = getMultigolRange(match.ospiti, allMatches);
       const freeCombo = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
 
-      // ============================================================
-      // METEO
-      // ============================================================
       let city = null;
-      if (typeof getCittaFromChampionship === 'function') {
-        city = getCittaFromChampionship(match.campionato);
-      } else {
-        for (const [key, val] of Object.entries(CITTÀ_PER_CAMPIONATO)) {
-          if (match.campionato.toLowerCase().includes(key.toLowerCase())) {
-            city = val;
-            break;
-          }
+      for (const [key, val] of Object.entries(CITTÀ_PER_CAMPIONATO)) {
+        if (match.campionato.toLowerCase().includes(key.toLowerCase())) {
+          city = val;
+          break;
         }
-        if (!city) city = 'Stoccolma';
       }
+      if (!city) city = 'Stoccolma';
       
       let weather = null;
       if (city && apiKeys['OpenWeatherMap']) {
@@ -4510,9 +4482,6 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
         setWeatherData(weather);
       }
 
-      // ============================================================
-      // FORMAZIONI (API-Football → SofaScore)
-      // ============================================================
       let tactics = null;
       
       if (apiKeys['API-Football']) {
@@ -4533,9 +4502,6 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
       
       setTacticsData(tactics);
 
-      // ============================================================
-      // INFORTUNI (solo API-Football)
-      // ============================================================
       let injuries = null;
       if (apiKeys['API-Football']) {
         injuries = await fetchInjuriesFromApiFootball(match.casa, match.ospiti);
@@ -4547,9 +4513,6 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
       
       setInjuriesData(injuries);
 
-      // ============================================================
-      // COSTRUISCI PROMPT CON LE 3 GIOCATE
-      // ============================================================
       let homeFormationStr = 'N/D';
       let awayFormationStr = 'N/D';
       let homeInjuriesStr = 'Nessun infortunio segnalato';
@@ -4583,24 +4546,6 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
       } else {
         meteoSection = '⚠️ Dati meteo non disponibili';
       }
-
-      // ============================================================
-      // SEZIONE GIOCATE DELLA CARD - DA USARE NEL PROMPT
-      // ============================================================
-      const giocateSection = `
-🎯 GIOCATE CALCOLATE (dalla Card del Palinsesto):
-
-1️⃣ 12+U4.5: ${Math.round(pct12Under45)}%
-   → Vittoria di una squadra + meno di 5 gol totali
-
-2️⃣ COMBINATA: ${match.casa} ${homeRange.label} (${homeRange.pct}%) + ${match.ospiti} ${awayRange.label} (${awayRange.pct}%)
-   → Combinazione dei Multigol delle due squadre
-
-3️⃣ LIBERA: ${freeCombo.label} (${freeCombo.pct}%)
-   → Migliore combinazione tra Doppia Chance, Over/Under e Multigol
-
-📌 QUESTE SONO LE 3 GIOCATE CHE DEVI INSERIRE NEI "consigli_giocate" DEL JSON.
-`;
 
       const prompt = `Sei un analista tattico professionista. Analizza la partita:
 
@@ -4639,13 +4584,6 @@ Multigol Casa: 0-1=${Math.round(stats.homeMG['0-1'])}% 0-2=${Math.round(stats.ho
 Multigol Ospite: 0-1=${Math.round(stats.awayMG['0-1'])}% 0-2=${Math.round(stats.awayMG['0-2'])}% 1-3=${Math.round(stats.awayMG['1-3'])}% Over1,5=${Math.round(stats.awayMG['2-4'])}%
 
 ${meteoSection}
-
-${giocateSection}
-
-⚠️ IMPORTANTE: Nei "consigli_giocate" del JSON, DEVI ASSOLUTAMENTE includere QUESTE 3 GIOCATE, nell'ordine:
-1. "12+U4.5" con percentuale ${Math.round(pct12Under45)}%
-2. "COMBINATA: ${match.casa} ${homeRange.label} + ${match.ospiti} ${awayRange.label}" con percentuale ${Math.round((homeRange.pct + awayRange.pct) / 2)}%
-3. "LIBERA: ${freeCombo.label}" con percentuale ${freeCombo.pct}%
 
 Genera un'analisi in formato JSON:
 {
@@ -4687,9 +4625,7 @@ Genera un'analisi in formato JSON:
       if (jsonMatch) jsonStr = jsonMatch[1];
       const parsed = JSON.parse(jsonStr.trim());
 
-      // Assicuriamoci che le 3 giocate siano corrette
       if (parsed.consigli_giocate && parsed.consigli_giocate.length >= 3) {
-        // Forza le 3 giocate esatte
         parsed.consigli_giocate[0] = { tipo: "singola", giocata: `12+U4.5`, percentuale: Math.round(pct12Under45) };
         parsed.consigli_giocate[1] = { tipo: "combinata", giocata: `COMBINATA: ${match.casa} ${homeRange.label} + ${match.ospiti} ${awayRange.label}`, percentuale: Math.round((homeRange.pct + awayRange.pct) / 2) };
         parsed.consigli_giocate[2] = { tipo: "libera", giocata: `LIBERA: ${freeCombo.label}`, percentuale: freeCombo.pct };
@@ -4839,7 +4775,6 @@ Genera un'analisi in formato JSON:
         </div>
       </div>
 
-      {/* METEO */}
       {weatherData ? (
         <div style={{
           background: 'linear-gradient(135deg, var(--card), var(--surface))',
@@ -4910,11 +4845,9 @@ Genera un'analisi in formato JSON:
         </div>
       )}
 
-      {/* ANALISI GENERALE */}
       <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'12px', marginBottom:'4px'}}>📋 Analisi Generale</h4>
       <p style={{fontSize:'14px', lineHeight:'1.6', color:'var(--text)'}}>{analisi_generale || 'N/A'}</p>
 
-      {/* FORMAZIONI */}
       <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'16px', marginBottom:'8px'}}>
         📋 Formazioni {hasRealTactics ? '✅ Reali' : '⚠️ Non disponibili'}
         {hasRealTactics && tacticsDataLocal.source && (
@@ -4980,7 +4913,6 @@ Genera un'analisi in formato JSON:
         </div>
       </div>
 
-      {/* INFORTUNI */}
       <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'16px', marginBottom:'8px'}}>
         🏥 Infortunati, Assenti & Diffidati {hasRealInjuries ? '✅ Reali' : '⚠️ Non disponibili'}
         {hasRealInjuries && injuriesDataLocal.source && (
@@ -5064,7 +4996,6 @@ Genera un'analisi in formato JSON:
         </div>
       </div>
 
-      {/* ANALISI TATTICA */}
       {analisi_tattica && (
         <>
           <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'16px', marginBottom:'8px'}}>🧠 Analisi Tattica</h4>
@@ -5116,7 +5047,6 @@ Genera un'analisi in formato JSON:
         </>
       )}
 
-      {/* FATTORI ESTERNI */}
       {fattori_esterni && (
         <>
           <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'16px', marginBottom:'8px'}}>🌍 Fattori Esterni</h4>
@@ -5137,7 +5067,6 @@ Genera un'analisi in formato JSON:
         </>
       )}
 
-      {/* PRONOSTICO */}
       <div style={{
         display:'grid',
         gridTemplateColumns:'1fr 1fr 1fr',
@@ -5177,7 +5106,6 @@ Genera un'analisi in formato JSON:
         </div>
       </div>
 
-      {/* CONSIGLI GIOCATE - LE 3 DELLA CARD */}
       {consigli_giocate && consigli_giocate.length > 0 && (
         <>
           <h4 style={{fontSize:'14px', fontWeight:'bold', color:'var(--text)', marginTop:'12px', marginBottom:'8px'}}>🎯 Consigli Giocate (dalla Card)</h4>
@@ -5212,7 +5140,6 @@ Genera un'analisi in formato JSON:
         </>
       )}
 
-      {/* VALUTAZIONE GIOCATA */}
       {valutazione_giocata && (
         <div style={{marginTop:'12px', background:'var(--card)', padding:'10px', borderRadius:'6px', border:'1px solid var(--border)'}}>
           <div style={{fontWeight:'bold', color:'var(--accent)', fontSize:'13px'}}>📈 Valutazione Giocata</div>
@@ -5220,7 +5147,6 @@ Genera un'analisi in formato JSON:
         </div>
       )}
 
-      {/* INDICE RISCHIO */}
       <div style={{marginTop:'12px'}}>
         <span style={{
           background:'var(--card)',
@@ -5284,13 +5210,11 @@ function App() {
   
   const [statsSubTab, setStatsSubTab] = useState('Classifica');
 
-  // Effect per grandezza caratteri
   useEffect(() => {
     localStorage.setItem('ft_font_size', String(fontSize));
     document.documentElement.style.fontSize = fontSize + '%';
   }, [fontSize]);
 
-  // Funzioni principali
   const importFromSofaScore = async (champName, seasonYear = '26/27') => {
     let leagueId = SOFASCORE_LEAGUE_IDS[champName];
     if (!leagueId) { const customLeagues = getCustomSofaLeagues(); const found = customLeagues.find(l => l.name === champName); if (found) leagueId = found.id; }
@@ -5585,87 +5509,6 @@ function App() {
   };
 
   const selectedMatch = matches.find(m => m.id === selectedMatchId);
-
-  const generateSchedinaAI = async () => {
-    const futureMatches = matches.filter(m => m.stato === 'Futura');
-    if (!futureMatches.length) { showAlert('error', 'Nessuna partita futura disponibile.'); return; }
-    let matchData = '';
-    futureMatches.forEach(m => {
-      const homeForm = calcFormAndStats(matches, m.casa);
-      const awayForm = calcFormAndStats(matches, m.ospiti);
-      const homeMG = calcTeamMG(matches, m.casa);
-      const awayMG = calcTeamMG(matches, m.ospiti);
-      const stats = computeMatchStats(m, matches);
-      if (stats.error) return;
-      matchData += `\nPartita: ${m.casa} vs ${m.ospiti}\nCampionato: ${m.campionato} - Giornata: ${m.round}\nData: ${m.data} - Ora: ${m.ora}\nForma Casa: ${homeForm.form} (${homeForm.pct}%)\nForma Ospite: ${awayForm.form} (${awayForm.pct}%)\nDifferenza forma: ${Math.abs(homeForm.pct - awayForm.pct)}%\nMedia Gol Casa: ${homeMG} - Media Gol Ospite: ${awayMG}\n1X2: 1=${Math.round(stats.p1)}% X=${Math.round(stats.pX)}% 2=${Math.round(stats.p2)}%\nDoppia Chance: 1X=${Math.round(stats.p1X)}% 12=${Math.round(stats.p12)}% X2=${Math.round(stats.pX2)}%\nUnder/Over 1.5: U=${Math.round(stats.underOver[0].under)}% O=${Math.round(stats.underOver[0].over)}%\nUnder/Over 2.5: U=${Math.round(stats.underOver[1].under)}% O=${Math.round(stats.underOver[1].over)}%\nUnder/Over 3.5: U=${Math.round(stats.underOver[2].under)}% O=${Math.round(stats.underOver[2].over)}%\nUnder/Over 4.5: U=${Math.round(stats.underOver[3].under)}% O=${Math.round(stats.underOver[3].over)}%\nMultigol Casa: 0-1=${Math.round(stats.homeMG['0-1'])}% 0-2=${Math.round(stats.homeMG['0-2'])}% 1-3=${Math.round(stats.homeMG['1-3'])}% Over 1,5=${Math.round(stats.homeMG['2-4'])}%\nMultigol Ospite: 0-1=${Math.round(stats.awayMG['0-1'])}% 0-2=${Math.round(stats.awayMG['0-2'])}% 1-3=${Math.round(stats.awayMG['1-3'])}% Over 1,5=${Math.round(stats.awayMG['2-4'])}%\nMultigol Totale: 1-4=${Math.round(stats.mgTot['1-4'])}% Over 1,5=${Math.round(stats.mgTot['2-4'])}% 2-5=${Math.round(stats.mgTot['2-5'])}% 3-6=${Math.round(stats.mgTot['3-6'])}%`;
-    });
-    const fullPrompt = `Analizza i seguenti dati pre-match e per OGNI partita suggerisci 3 consigli di giocate con relative percentuali di probabilità.
-
-Struttura JSON richiesta (array di oggetti, uno per partita):
-[
-  {
-    "partita": "NomeCasa vs NomeOspite",
-    "consigli": [
-      {"tipo": "singola", "giocata": "Over 1.5", "percentuale": 68},
-      {"tipo": "combinata", "giocata": "2 + Under 4.5", "percentuale": 55},
-      {"tipo": "libera", "giocata": "1X+Over1.5", "percentuale": 72}
-    ],
-    "analisi_breve": "Breve analisi della partita (max 2 righe)"
-  }
-]
-
-Dati:
-${matchData}`;
-    setLoading(true);
-    try {
-      const res = await askGroq(fullPrompt, apiKeys.GROQ);
-      let jsonStr = res;
-      const jsonMatch = res.match(/```(?:json)?\s*([\s\S]*?)```/);
-      if (jsonMatch) jsonStr = jsonMatch[1];
-      const parsed = JSON.parse(jsonStr.trim());
-      if (Array.isArray(parsed)) { setSchedinaJson(parsed); setSchedinaResult(''); }
-      else { setSchedinaJson([parsed]); setSchedinaResult(''); }
-    } catch (e) {
-      console.warn('Errore parsing JSON:', e);
-      setSchedinaJson(null);
-      setSchedinaResult(e.message || 'Errore durante la generazione');
-      showAlert('error', '⚠️ Groq non ha restituito un JSON valido.');
-    }
-    setLoading(false);
-  };
-
-  const renderAIResult = () => {
-    if (schedinaJson && schedinaJson.length > 0) {
-      return schedinaJson.map((item, idx) => {
-        const consigli = item.consigli || [];
-        return (
-          <div key={idx} className="ai-result">
-            <h2 style={{color: getChampColor(item.partita?.split(' vs ')[0] || '')}}>📊 {item.partita || `Partita ${idx+1}`}</h2>
-            <div className="consigli-grid">
-              {consigli.map((c, ci) => {
-                const isBomb = c.percentuale >= 90;
-                return (
-                  <div key={ci} className="consiglio-card" style={{borderColor: isBomb ? 'var(--accent)' : 'var(--border)'}}>
-                    <div className="tipo">{c.tipo === 'singola' ? '🎯 Singola' : (c.tipo === 'combinata' ? '🔗 Combinata' : '⭐ Libera')}{isBomb && ' 💣'}</div>
-                    <div className="giocata">{c.giocata || 'N/A'}</div>
-                    <div className={`percentuale ${isBomb ? 'flag-bomb' : ''}`}>
-                      <span className={getPercentualeClasse(c.percentuale)}>
-                        {c.percentuale || 0}%
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {item.analisi_breve && <div className="analisi-testo">📝 {item.analisi_breve}</div>}
-          </div>
-        );
-      });
-    } else if (schedinaResult) {
-      return <div className="schedina-output">{schedinaResult}</div>;
-    }
-    return null;
-  };
 
   // RENDER PRINCIPALE
   return (
@@ -5980,10 +5823,12 @@ ${matchData}`;
           </div>
         )}
 
-        {/* SCHEDINA AI */}
+        {/* SCHEDINA AI - MODIFICATA SENZA PULSANTE GENERA ANALISI AI */}
         {tab === 'Schedina AI' && (
           <div>
-            <h2 style={{marginBottom:'14px'}}>🤖 Schedina AI</h2>
+            <h2 style={{marginBottom:'14px'}}>📋 Schedina</h2>
+            
+            {/* Controlli per generare la schedina */}
             <div className="card">
               <div className="schedina-controls">
                 <div className="left-group">
@@ -5992,7 +5837,15 @@ ${matchData}`;
                     {championships.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                   </select>
                   <div className="num-buttons">
-                    {[1,2,3,4,5,6].map(n => <button key={n} className={numMatches === n ? 'active' : ''} onClick={() => setNumMatches(n)}>{n}</button>)}
+                    {[1,2,3,4,5,6].map(n => (
+                      <button 
+                        key={n} 
+                        className={numMatches === n ? 'active' : ''} 
+                        onClick={() => setNumMatches(n)}
+                      >
+                        {n}
+                      </button>
+                    ))}
                   </div>
                 </div>
                 <div className="right-group">
@@ -6006,6 +5859,8 @@ ${matchData}`;
                 </div>
               </div>
             </div>
+
+            {/* Partite selezionate */}
             {schedinaMatches.length > 0 && (
               <div className="card">
                 <h3 style={{marginBottom:'12px'}}>📋 Partite selezionate - scegli le giocate</h3>
@@ -6014,15 +5869,36 @@ ${matchData}`;
                   const giocata1 = `12+U4.5 ${Math.round(m.pct12Under45)}%`;
                   const giocata2 = `${m.casa} Multigol ${m.homeRange.label} (${m.homeRange.pct}%) + ${m.ospiti} Multigol ${m.awayRange.label} (${m.awayRange.pct}%)`;
                   const giocata3 = `Libera: ${m.freeCombo.label} (${m.freeCombo.pct}%)`;
-                  const giocate = [{ label: giocata1, value: giocata1 }, { label: giocata2, value: giocata2 }, { label: giocata3, value: giocata3 }];
+                  const giocate = [
+                    { label: giocata1, value: giocata1 }, 
+                    { label: giocata2, value: giocata2 }, 
+                    { label: giocata3, value: giocata3 }
+                  ];
+                  
                   return (
                     <div key={m.id} className="schedina-match-card" style={{borderLeftColor: champColor}}>
-                      <div className="match-info"><div className="teams">{m.casa} vs {m.ospiti}</div><div className="details">{m.campionato} - {formatDateEU(m.data)}</div></div>
+                      <div className="match-info">
+                        <div className="teams">{m.casa} vs {m.ospiti}</div>
+                        <div className="details">{m.campionato} - {formatDateEU(m.data)}</div>
+                      </div>
                       <div className="giocate">
                         {giocate.map((g, gi) => {
                           const key = `${m.id}_${gi}`;
                           const isDisabled = !!schedinaSelections[key];
-                          return <button key={gi} className={`giocata-btn ${isDisabled ? 'disabled' : ''}`} style={{color: isDisabled ? '#888' : '#ffff00', fontWeight: 'bold'}} onClick={(e) => { e.stopPropagation(); if (isDisabled) return; addToSchedinaDirect(m.id, g.value); }}>{g.label}</button>;
+                          return (
+                            <button 
+                              key={gi} 
+                              className={`giocata-btn ${isDisabled ? 'disabled' : ''}`} 
+                              style={{color: isDisabled ? '#888' : '#ffff00', fontWeight: 'bold'}} 
+                              onClick={(e) => { 
+                                e.stopPropagation(); 
+                                if (isDisabled) return; 
+                                addToSchedinaDirect(m.id, g.value); 
+                              }}
+                            >
+                              {g.label}
+                            </button>
+                          );
                         })}
                       </div>
                     </div>
@@ -6030,9 +5906,13 @@ ${matchData}`;
                 })}
               </div>
             )}
+
+            {/* Schedina corrente */}
             <div className="card">
               <h3 style={{marginBottom:'12px'}}>📝 Schedina corrente ({schedinaEntries.length} giocate)</h3>
-              {schedinaEntries.length === 0 ? <div className="empty-state" style={{padding:'20px'}}>Nessuna giocata ancora aggiunta.</div> : (
+              {schedinaEntries.length === 0 ? (
+                <div className="empty-state" style={{padding:'20px'}}>Nessuna giocata ancora aggiunta.</div>
+              ) : (
                 <div className="schedina-list">
                   {schedinaEntries.map((entry, i) => (
                     <div key={i} className="entry">
@@ -6052,14 +5932,8 @@ ${matchData}`;
                 <button className="btn" onClick={() => { setSchedinaEntries([]); showAlert('success', '✅ Schedina salvata e resettata!'); }}>💾 Salva e Resetta</button>
               </div>
             </div>
-            <div className="card">
-              <h3 style={{marginBottom:'12px'}}>🤖 Genera Analisi AI per le Partite</h3>
-              <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
-                <button className="btn" onClick={generateSchedinaAI} disabled={loading || !apiKeys.GROQ}>{loading ? '⏳ Generando...' : '🧠 Genera Analisi AI'}</button>
-                {!apiKeys.GROQ && <span style={{color: 'var(--lose)', fontSize: '13px'}}>⚠️ Configura la chiave GROQ nel tab API KEY</span>}
-              </div>
-              {renderAIResult()}
-            </div>
+
+            {/* Storico Schedine */}
             <StoricoSchedine schedineHistory={schedineHistory} setSchedineHistory={setSchedineHistory} />
           </div>
         )}
