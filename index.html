@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <title>GesssAI-Pro v3.0 - Football Trader</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
+  /* ... (css invariato) ... */
   :root {
     --bg: #0f1419;
     --surface: #1a2028;
@@ -1360,6 +1361,31 @@
     color: var(--lose);
   }
   
+  /* pulsante torna alle partite in sovraimpressione */
+  .btn-back-matches {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 999;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 30px;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-back-matches:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.8);
+  }
+
   @media (max-width: 768px) {
     .match-tab, .match-tab-history { min-width: 100%; max-width: 100%; }
     .header { flex-direction: column; align-items: center; padding: 12px; }
@@ -1382,6 +1408,7 @@
     .ai-analysis-box .consigli-grid { grid-template-columns: 1fr; }
     .ai-result .consigli-grid { grid-template-columns: 1fr; }
     .standings-table { min-width: 400px; font-size: 11px; }
+    .btn-back-matches { top: auto; bottom: 20px; right: 20px; padding: 8px 14px; font-size: 12px; }
   }
   @media (max-width: 480px) {
     .affidabilita-grid { grid-template-columns: 1fr; }
@@ -1394,6 +1421,7 @@
     .match-tab .score-badge { font-size: 14px; padding: 1px 8px; }
     .team-name { font-size: 16px; }
     .detail-stat-box .value { font-size: 16px; }
+    .btn-back-matches { padding: 6px 12px; font-size: 11px; right: 12px; bottom: 12px; }
   }
 </style>
 </head>
@@ -1401,10 +1429,10 @@
 <div id="root"></div>
 
 <script type="text/babel">
-const { useState, useEffect, useMemo } = React;
+const { useState, useEffect, useMemo, useRef } = React;
 
 // ============================================================
-// COSTANTI
+// COSTANTI (invariate)
 // ============================================================
 
 const THEMES = {
@@ -1465,7 +1493,7 @@ const FOOTBALL_DATA_LEAGUES = {
 };
 
 // ============================================================
-// FUNZIONI UTILITY
+// FUNZIONI UTILITY (invariate)
 // ============================================================
 
 const getBlacklist = () => { try { return JSON.parse(localStorage.getItem('ft_sofablacklist') || '[]'); } catch(e) { return []; } };
@@ -1520,7 +1548,7 @@ const fetchSofaScoreMatches = async (leagueId, seasonYear) => {
 };
 
 // ============================================================
-// FUNZIONE PARSE DATE
+// PARSE DATE (invariato)
 // ============================================================
 
 const parseDate = (dateStr, timeStr = '00:00') => {
@@ -1556,7 +1584,7 @@ const parseDate = (dateStr, timeStr = '00:00') => {
 };
 
 // ============================================================
-// FUNZIONI STATISTICHE
+// FUNZIONI STATISTICHE (invariate)
 // ============================================================
 
 const getPercentualeClasse = (valore) => {
@@ -1847,7 +1875,7 @@ const calcTeamMG = (matches, teamName) => {
 };
 
 // ============================================================
-// FORMAT DATE
+// FORMAT DATE (invariato)
 // ============================================================
 
 const formatDateEU = (dateStr) => {
@@ -1873,7 +1901,7 @@ const formatDateEU = (dateStr) => {
 };
 
 // ============================================================
-// ALTRE FUNZIONI UTILITY
+// ALTRE FUNZIONI UTILITY (invariate)
 // ============================================================
 
 const getChampColor = (champName) => {
@@ -1903,9 +1931,10 @@ const getCittaFromChampionship = (champName) => {
 };
 
 // ============================================================
-// COMPONENTI - Clock
+// COMPONENTI (invariati tranne quelli modificati)
 // ============================================================
 
+// Clock (invariato)
 const Clock = () => {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
@@ -1926,10 +1955,7 @@ const Clock = () => {
   );
 };
 
-// ============================================================
-// COMPONENTI - WeatherBadge
-// ============================================================
-
+// WeatherBadge (invariato)
 const WeatherBadge = ({ weatherData }) => {
   if (!weatherData) return null;
   const iconMap = {
@@ -1949,10 +1975,7 @@ const WeatherBadge = ({ weatherData }) => {
   );
 };
 
-// ============================================================
-// COMPONENTI - Standings
-// ============================================================
-
+// Standings (invariato)
 const Standings = ({ matches, filterChampionship, highlightTeams = [] }) => {
   const [view, setView] = useState('generale');
   let filtered = matches;
@@ -2045,10 +2068,7 @@ const Standings = ({ matches, filterChampionship, highlightTeams = [] }) => {
   );
 };
 
-// ============================================================
-// COMPONENTI - MatchTab
-// ============================================================
-
+// MatchTab (invariato)
 const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) => {
   if (!match) return null;
   
@@ -2131,10 +2151,7 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
   );
 };
 
-// ============================================================
-// COMPONENTI - MatchTabHistory
-// ============================================================
-
+// MatchTabHistory (invariato)
 const MatchTabHistory = ({ match, onSelect }) => {
   if (!match) return null;
   
@@ -2160,10 +2177,7 @@ const MatchTabHistory = ({ match, onSelect }) => {
   );
 };
 
-// ============================================================
-// COMPONENTI - MatchDetail
-// ============================================================
-
+// MatchDetail (invariato)
 const MatchDetail = ({ match, allMatches, addToSchedina }) => {
   const stats = computeMatchStats(match, allMatches);
   if (stats.error) return <div className="card"><p>{stats.error}</p></div>;
@@ -2341,10 +2355,7 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
   );
 };
 
-// ============================================================
-// COMPONENTI - RisultatiFrequenti
-// ============================================================
-
+// RisultatiFrequenti (invariato)
 const RisultatiFrequenti = ({ teamName, allMatches }) => {
   const getFrequenti = (team) => {
     const matches = allMatches
@@ -2477,10 +2488,7 @@ const RisultatiFrequenti = ({ teamName, allMatches }) => {
   );
 };
 
-// ============================================================
-// COMPONENTI - IndiceAffidabilita
-// ============================================================
-
+// IndiceAffidabilita (invariato)
 const IndiceAffidabilita = ({ teamName, allMatches }) => {
   const teamMatches = allMatches.filter(m => m.stato === 'Giocata' && (m.casa === teamName || m.ospiti === teamName));
   const count = teamMatches.length;
@@ -2519,10 +2527,7 @@ const IndiceAffidabilita = ({ teamName, allMatches }) => {
   );
 };
 
-// ============================================================
-// COMPONENTI - PrevisioneIntervallo
-// ============================================================
-
+// PrevisioneIntervallo (invariato)
 const PrevisioneIntervallo = ({ match, allMatches }) => {
   const stats = computeMatchStats(match, allMatches);
   if (stats.error) return null;
@@ -2555,10 +2560,7 @@ const PrevisioneIntervallo = ({ match, allMatches }) => {
   );
 };
 
-// ============================================================
-// COMPONENTI - AnalisiMeteo
-// ============================================================
-
+// AnalisiMeteo (invariato)
 const AnalisiMeteo = ({ matches, weatherCache }) => {
   const analyzeWeatherImpact = () => {
     const analysis = {
@@ -2622,10 +2624,7 @@ const AnalisiMeteo = ({ matches, weatherCache }) => {
   );
 };
 
-// ============================================================
-// COMPONENTI - askGroq
-// ============================================================
-
+// askGroq (invariato)
 const askGroq = async (prompt, key) => {
   if (!key) throw new Error('🔑 API GROQ non configurata.');
   try {
@@ -2645,10 +2644,7 @@ const askGroq = async (prompt, key) => {
   } catch(e) { throw new Error(e.message || 'Errore durante la richiesta a Groq.'); }
 };
 
-// ============================================================
-// COMPONENTI - TeamMatchesHistory
-// ============================================================
-
+// TeamMatchesHistory (invariato)
 const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
   const teamMatches = allMatches
     .filter(m => m.campionato === championship && m.stato === 'Giocata' && (m.casa === teamName || m.ospiti === teamName))
@@ -2688,10 +2684,7 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
   );
 };
 
-// ============================================================
-// COMPONENTI - StoricoSchedine
-// ============================================================
-
+// StoricoSchedine (invariato)
 const StoricoSchedine = ({ schedineHistory, setSchedineHistory }) => {
   if (schedineHistory.length === 0) {
     return (
@@ -2744,10 +2737,7 @@ const StoricoSchedine = ({ schedineHistory, setSchedineHistory }) => {
   );
 };
 
-// ============================================================
-// COMPONENTI - HomeWidget
-// ============================================================
-
+// HomeWidget (invariato)
 const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
   const [selectedDay, setSelectedDay] = useState('oggi');
   const [expanded, setExpanded] = useState(true);
@@ -3086,10 +3076,7 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
   );
 };
 
-// ============================================================
-// COMPONENTI - HeatmapGiocate, HeatmapDetailModal
-// ============================================================
-
+// HeatmapGiocate (invariato)
 const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
   const [filterChamp, setFilterChamp] = useState('Tutti');
   
@@ -3239,6 +3226,7 @@ const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
   );
 };
 
+// HeatmapDetailModal (invariato)
 const HeatmapDetailModal = ({ championship, matches, onClose }) => {
   if (!championship) return null;
   
@@ -3329,10 +3317,7 @@ const HeatmapDetailModal = ({ championship, matches, onClose }) => {
   );
 };
 
-// ============================================================
-// COMPONENTI - SofaScoreManager, FootballDataManager, SportsAPIProManager
-// ============================================================
-
+// SofaScoreManager (invariato)
 const SofaScoreManager = ({ onImport, loading, matches, setMatches }) => {
   const [customLeagues, setCustomLeagues] = useState(getCustomSofaLeagues);
   const [newLeagueName, setNewLeagueName] = useState('');
@@ -3484,6 +3469,7 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches }) => {
   );
 };
 
+// FootballDataManager (invariato)
 const FootballDataManager = ({ apiKeys, matches, setMatches }) => {
   const [selectedLeague, setSelectedLeague] = useState('');
   const [loading, setLoading] = useState(false);
@@ -3782,6 +3768,7 @@ const FootballDataManager = ({ apiKeys, matches, setMatches }) => {
   );
 };
 
+// SportsAPIProManager (invariato)
 const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setChampionships }) => {
   const [leagueName, setLeagueName] = useState('');
   const [leagueId, setLeagueId] = useState('');
@@ -4126,7 +4113,7 @@ const SportsAPIProManager = ({ apiKeys, matches, setMatches, championships, setC
 };
 
 // ============================================================
-// FUNZIONI loadState e saveState
+// FUNZIONI loadState e saveState (invariate)
 // ============================================================
 
 const loadState = () => {
@@ -4152,7 +4139,7 @@ const saveState = (data) => {
 };
 
 // ============================================================
-// COMPONENTE: AI ANALYSIS (per la scheda Statistiche)
+// COMPONENTE: AIAnalysis (invariato)
 // ============================================================
 
 const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
@@ -5169,7 +5156,7 @@ Genera un'analisi in formato JSON:
 };
 
 // ============================================================
-// APP
+// APP MODIFICATA CON SWIPE E PULSANTE TORNA ALLE PARTITE
 // ============================================================
 
 function App() {
@@ -5187,12 +5174,10 @@ function App() {
   const [weatherCache, setWeatherCache] = useState({});
   const [schedineHistory, setSchedineHistory] = useState(initial.schedineHistory || []);
   const [heatmapDetailChamp, setHeatmapDetailChamp] = useState(null);
-  
   const [fontSize, setFontSize] = useState(() => {
     const saved = localStorage.getItem('ft_font_size');
     return saved ? parseInt(saved) : 100;
   });
-  
   const [numMatches, setNumMatches] = useState(3);
   const [schedinaChamp, setSchedinaChamp] = useState('Tutti');
   const [daysRange, setDaysRange] = useState(0);
@@ -5200,15 +5185,99 @@ function App() {
   const [schedinaSelections, setSchedinaSelections] = useState({});
   const [schedinaEntries, setSchedinaEntries] = useState([]);
   const [usedMatchIds, setUsedMatchIds] = useState(new Set());
-  
   const [schedinaResult, setSchedinaResult] = useState('');
   const [schedinaJson, setSchedinaJson] = useState(null);
-  
   const [tempKeys, setTempKeys] = useState(apiKeys);
   const [apiTestResult, setApiTestResult] = useState({});
   const [selectedMatchId, setSelectedMatchId] = useState(null);
-  
   const [statsSubTab, setStatsSubTab] = useState('Classifica');
+  const [statsSubTabsOrder] = useState(['Classifica', 'AIProfessionale', 'Scontri', 'Analisi']);
+  const [matchIndex, setMatchIndex] = useState(0);
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [touchStartY, setTouchStartY] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const swipeContainerRef = useRef(null);
+  const matchListRef = useRef(null);
+
+  // Ottieni la lista delle partite per la navigazione swipe su/giù
+  const getMatchListForSwipe = () => {
+    let played = matches.filter(m => m.stato === 'Giocata');
+    if (selectedChamp !== 'Tutti') played = played.filter(m => m.campionato === selectedChamp);
+    played.sort((a, b) => {
+      const dateA = parseDate(a.data, a.ora || '00:00');
+      const dateB = parseDate(b.data, b.ora || '00:00');
+      return dateB - dateA;
+    });
+    return played;
+  };
+
+  const matchList = getMatchListForSwipe();
+
+  // Seleziona una partita e resetta l'indice
+  const selectMatch = (matchId) => {
+    setSelectedMatchId(matchId);
+    const idx = matchList.findIndex(m => m.id === matchId);
+    if (idx !== -1) setMatchIndex(idx);
+    setTab('Statistiche');
+  };
+
+  // Navigazione swipe destra/sinistra tra le subtab di Statistiche
+  const navigateStatsTab = (direction) => {
+    if (tab !== 'Statistiche') return;
+    const currentIdx = statsSubTabsOrder.indexOf(statsSubTab);
+    if (currentIdx === -1) return;
+    let newIdx = currentIdx + direction;
+    if (newIdx < 0) newIdx = statsSubTabsOrder.length - 1;
+    if (newIdx >= statsSubTabsOrder.length) newIdx = 0;
+    setStatsSubTab(statsSubTabsOrder[newIdx]);
+  };
+
+  // Navigazione swipe su/giù tra le partite (solo in Classifica)
+  const navigateMatch = (direction) => {
+    if (tab !== 'Statistiche' || statsSubTab !== 'Classifica') return;
+    if (matchList.length === 0) return;
+    let newIdx = matchIndex + direction;
+    if (newIdx < 0) newIdx = matchList.length - 1;
+    if (newIdx >= matchList.length) newIdx = 0;
+    setMatchIndex(newIdx);
+    setSelectedMatchId(matchList[newIdx].id);
+  };
+
+  // Gestori touch
+  const handleTouchStart = (e) => {
+    const touch = e.touches[0];
+    setTouchStartX(touch.clientX);
+    setTouchStartY(touch.clientY);
+    setIsSwiping(false);
+  };
+
+  const handleTouchMove = (e) => {
+    if (isSwiping) return;
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    
+    if (absX > 30 || absY > 30) {
+      setIsSwiping(true);
+      if (absX > absY) {
+        // Swipe orizzontale: naviga tra le subtab di Statistiche
+        const direction = deltaX > 0 ? -1 : 1; // sinistra = avanti, destra = indietro
+        navigateStatsTab(direction);
+      } else {
+        // Swipe verticale: naviga tra le partite (solo in Classifica)
+        const direction = deltaY > 0 ? 1 : -1; // giù = avanti, su = indietro
+        navigateMatch(direction);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsSwiping(false);
+    setTouchStartX(0);
+    setTouchStartY(0);
+  };
 
   useEffect(() => {
     localStorage.setItem('ft_font_size', String(fontSize));
@@ -5435,7 +5504,6 @@ function App() {
   }, [theme, customTheme]);
 
   const showAlert = (type, text) => { setMessage({ type, text }); setTimeout(() => setMessage(null), 4000); };
-  const selectMatch = (matchId) => { setSelectedMatchId(matchId); setTab('Statistiche'); };
   
   const testApiKey = async (name) => {
     const key = tempKeys[name];
@@ -5456,6 +5524,9 @@ function App() {
       } else if (name === 'SportsAPIPro') {
         const r = await fetch('https://api.sportsapipro.com/v1/sports', { headers: { 'X-API-Key': key } });
         setApiTestResult({ ...apiTestResult, [name]: r.status === 200 ? 'OK' : 'FAIL' });
+      } else if (name === 'WorldWeatherOnline') {
+        const r = await fetch(`https://api.worldweatheronline.com/premium/v1/weather.ashx?q=Rome&format=json&key=${key}`);
+        setApiTestResult({ ...apiTestResult, [name]: r.ok ? 'OK' : 'FAIL' });
       }
     } catch(e) { setApiTestResult({ ...apiTestResult, [name]: 'ERROR' }); }
   };
@@ -5510,9 +5581,74 @@ function App() {
 
   const selectedMatch = matches.find(m => m.id === selectedMatchId);
 
+  // Render stats sub-tab contenuto
+  const renderStatsContent = () => {
+    if (statsSubTab === 'Classifica') {
+      return (
+        <div className="stats-two-col">
+          <div>{selectedMatch ? <MatchDetail match={selectedMatch} allMatches={matches} addToSchedina={addToSchedina} /> : <div className="stats-placeholder"><p>👈 Seleziona una partita dal <b>Palinsesto</b> o dallo <b>Storico</b> per vedere le statistiche dettagliate.</p></div>}</div>
+          <div>{selectedMatch ? <><h3 style={{marginBottom:'12px', color: getChampColor(selectedMatch.campionato)}}>Classifica - {selectedMatch.campionato}</h3><Standings matches={matches} filterChampionship={selectedMatch.campionato} highlightTeams={[selectedMatch.casa, selectedMatch.ospiti]} /></> : <div className="stats-placeholder"><p>📊 Seleziona una partita per vedere la classifica.</p></div>}</div>
+        </div>
+      );
+    }
+    if (statsSubTab === 'AIProfessionale') {
+      return (
+        <div>
+          {selectedMatch ? (
+            <AIAnalysis match={selectedMatch} allMatches={matches} apiKeys={apiKeys} setTab={setTab} />
+          ) : (
+            <div className="stats-placeholder">
+              <p>👈 Seleziona una partita per generare l'analisi professionale AI.</p>
+            </div>
+          )}
+        </div>
+      );
+    }
+    if (statsSubTab === 'Scontri') {
+      return (
+        <div>{selectedMatch ? <div className="stats-two-col" style={{ gridTemplateColumns: '1fr 1fr' }}><TeamMatchesHistory teamName={selectedMatch.casa} championship={selectedMatch.campionato} allMatches={matches} /><TeamMatchesHistory teamName={selectedMatch.ospiti} championship={selectedMatch.campionato} allMatches={matches} /></div> : <div className="stats-placeholder"><p>👈 Seleziona una partita per vedere lo storico delle due squadre.</p></div>}</div>
+      );
+    }
+    if (statsSubTab === 'Analisi') {
+      return (
+        <div>
+          {selectedMatch ? (
+            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px'}}>
+              <div>
+                <RisultatiFrequenti teamName={selectedMatch.casa} allMatches={matches} />
+                <IndiceAffidabilita teamName={selectedMatch.casa} allMatches={matches} />
+              </div>
+              <div>
+                <RisultatiFrequenti teamName={selectedMatch.ospiti} allMatches={matches} />
+                <IndiceAffidabilita teamName={selectedMatch.ospiti} allMatches={matches} />
+              </div>
+              <div style={{gridColumn: '1 / -1'}}>
+                <PrevisioneIntervallo match={selectedMatch} allMatches={matches} />
+              </div>
+              <div style={{gridColumn: '1 / -1'}}>
+                <AnalisiMeteo matches={matches} weatherCache={weatherCache} />
+              </div>
+            </div>
+          ) : (
+            <div className="stats-placeholder">
+              <p>👈 Seleziona una partita per vedere l'analisi avanzata.</p>
+            </div>
+          )}
+        </div>
+      );
+    }
+    return null;
+  };
+
   // RENDER PRINCIPALE
   return (
-    <div>
+    <div 
+      ref={swipeContainerRef}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      style={{ touchAction: 'none', minHeight: '100vh' }}
+    >
       <div className="header">
         <div className="header-left"><div style={{fontSize:'28px'}}></div></div>
         <div className="header-center">
@@ -5542,6 +5678,24 @@ function App() {
       <div className="container">
         {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
         {loading && <div className="alert alert-info">⏳ Elaborazione in corso...</div>}
+
+        {/* Pulsante Torna alle Partite - visibile solo in Statistiche e solo se c'è una partita selezionata */}
+        {tab === 'Statistiche' && selectedMatch && (
+          <button 
+            className="btn-back-matches"
+            onClick={() => {
+              // Torna alla prima partita della lista (o resetta la selezione)
+              if (matchList.length > 0) {
+                setMatchIndex(0);
+                setSelectedMatchId(matchList[0].id);
+              } else {
+                setSelectedMatchId(null);
+              }
+            }}
+          >
+            ⬅️ Torna alle Partite
+          </button>
+        )}
 
         {/* HOME */}
         {tab === 'Home' && (
@@ -5727,61 +5881,29 @@ function App() {
           </div>
         )}
 
-        {/* STATISTICHE */}
+        {/* STATISTICHE - con swipe e pulsante torna alle partite */}
         {tab === 'Statistiche' && (
-          <div>
+          <div ref={matchListRef}>
             <div className="sub-tabs">
-              <button className={statsSubTab === 'Classifica' ? 'active' : ''} onClick={() => setStatsSubTab('Classifica')}>📊 Classifica</button>
-              <button className={statsSubTab === 'Scontri' ? 'active' : ''} onClick={() => setStatsSubTab('Scontri')}>⚔️ Scontri</button>
-              <button className={statsSubTab === 'Analisi' ? 'active' : ''} onClick={() => setStatsSubTab('Analisi')}>📈 Analisi Avanzata</button>
-              <button className={statsSubTab === 'AIProfessionale' ? 'active' : ''} onClick={() => setStatsSubTab('AIProfessionale')}>🤖 Analisi Professionale AI</button>
+              {statsSubTabsOrder.map(key => {
+                const labelMap = {
+                  'Classifica': '📊 Classifica',
+                  'AIProfessionale': '🤖 Analisi Professionale AI',
+                  'Scontri': '⚔️ Scontri',
+                  'Analisi': '📈 Analisi Avanzata'
+                };
+                return (
+                  <button 
+                    key={key} 
+                    className={statsSubTab === key ? 'active' : ''} 
+                    onClick={() => setStatsSubTab(key)}
+                  >
+                    {labelMap[key] || key}
+                  </button>
+                );
+              })}
             </div>
-            {statsSubTab === 'Classifica' && (
-              <div className="stats-two-col">
-                <div>{selectedMatch ? <MatchDetail match={selectedMatch} allMatches={matches} addToSchedina={addToSchedina} /> : <div className="stats-placeholder"><p>👈 Seleziona una partita dal <b>Palinsesto</b> o dallo <b>Storico</b> per vedere le statistiche dettagliate.</p></div>}</div>
-                <div>{selectedMatch ? <><h3 style={{marginBottom:'12px', color: getChampColor(selectedMatch.campionato)}}>Classifica - {selectedMatch.campionato}</h3><Standings matches={matches} filterChampionship={selectedMatch.campionato} highlightTeams={[selectedMatch.casa, selectedMatch.ospiti]} /></> : <div className="stats-placeholder"><p>📊 Seleziona una partita per vedere la classifica.</p></div>}</div>
-              </div>
-            )}
-            {statsSubTab === 'Scontri' && (
-              <div>{selectedMatch ? <div className="stats-two-col" style={{ gridTemplateColumns: '1fr 1fr' }}><TeamMatchesHistory teamName={selectedMatch.casa} championship={selectedMatch.campionato} allMatches={matches} /><TeamMatchesHistory teamName={selectedMatch.ospiti} championship={selectedMatch.campionato} allMatches={matches} /></div> : <div className="stats-placeholder"><p>👈 Seleziona una partita per vedere lo storico delle due squadre.</p></div>}</div>
-            )}
-            {statsSubTab === 'Analisi' && (
-              <div>
-                {selectedMatch ? (
-                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px'}}>
-                    <div>
-                      <RisultatiFrequenti teamName={selectedMatch.casa} allMatches={matches} />
-                      <IndiceAffidabilita teamName={selectedMatch.casa} allMatches={matches} />
-                    </div>
-                    <div>
-                      <RisultatiFrequenti teamName={selectedMatch.ospiti} allMatches={matches} />
-                      <IndiceAffidabilita teamName={selectedMatch.ospiti} allMatches={matches} />
-                    </div>
-                    <div style={{gridColumn: '1 / -1'}}>
-                      <PrevisioneIntervallo match={selectedMatch} allMatches={matches} />
-                    </div>
-                    <div style={{gridColumn: '1 / -1'}}>
-                      <AnalisiMeteo matches={matches} weatherCache={weatherCache} />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="stats-placeholder">
-                    <p>👈 Seleziona una partita per vedere l'analisi avanzata.</p>
-                  </div>
-                )}
-              </div>
-            )}
-            {statsSubTab === 'AIProfessionale' && (
-              <div>
-                {selectedMatch ? (
-                  <AIAnalysis match={selectedMatch} allMatches={matches} apiKeys={apiKeys} setTab={setTab} />
-                ) : (
-                  <div className="stats-placeholder">
-                    <p>👈 Seleziona una partita per generare l'analisi professionale AI.</p>
-                  </div>
-                )}
-              </div>
-            )}
+            {renderStatsContent()}
           </div>
         )}
 
@@ -5823,12 +5945,11 @@ function App() {
           </div>
         )}
 
-        {/* SCHEDINA AI - MODIFICATA SENZA PULSANTE GENERA ANALISI AI */}
+        {/* SCHEDINA AI */}
         {tab === 'Schedina AI' && (
           <div>
             <h2 style={{marginBottom:'14px'}}>📋 Schedina</h2>
             
-            {/* Controlli per generare la schedina */}
             <div className="card">
               <div className="schedina-controls">
                 <div className="left-group">
@@ -5860,7 +5981,6 @@ function App() {
               </div>
             </div>
 
-            {/* Partite selezionate */}
             {schedinaMatches.length > 0 && (
               <div className="card">
                 <h3 style={{marginBottom:'12px'}}>📋 Partite selezionate - scegli le giocate</h3>
@@ -5907,7 +6027,6 @@ function App() {
               </div>
             )}
 
-            {/* Schedina corrente */}
             <div className="card">
               <h3 style={{marginBottom:'12px'}}>📝 Schedina corrente ({schedinaEntries.length} giocate)</h3>
               {schedinaEntries.length === 0 ? (
@@ -5933,7 +6052,6 @@ function App() {
               </div>
             </div>
 
-            {/* Storico Schedine */}
             <StoricoSchedine schedineHistory={schedineHistory} setSchedineHistory={setSchedineHistory} />
           </div>
         )}
@@ -5942,11 +6060,11 @@ function App() {
         {tab === 'API KEY' && (
           <div>
             <h2 style={{marginBottom:'14px'}}>🔑 Gestione API Key</h2>
-            <div className="alert alert-info">💡 <b>GROQ</b> per l'AI. <b>OpenWeatherMap</b> per il meteo. <b>API-Football</b> per infortuni e statistiche avanzate. <b>Football-data.org</b> per Champions League e campionati extra. <b>SportsAPIPro</b> per Veikkausliiga e altri campionati nordici.</div>
-            {['GROQ','OpenWeatherMap','API-Football','Football-data.org','SportsAPIPro'].map(name => (
-              <div key={name} className="card" style={name === 'Football-data.org' ? {border: '2px solid #0d9488'} : name === 'SportsAPIPro' ? {border: '2px solid #8b5cf6'} : {}}>
-                <h3 style={name === 'Football-data.org' ? {color: '#0d9488'} : name === 'SportsAPIPro' ? {color: '#8b5cf6'} : {}}>
-                  {name === 'GROQ' && '🧠'} {name === 'OpenWeatherMap' && '🌤️'} {name === 'API-Football' && '⚽'} {name === 'Football-data.org' && '⚽'} {name === 'SportsAPIPro' && '🏟️'} {name}
+            <div className="alert alert-info">💡 <b>GROQ</b> per l'AI. <b>OpenWeatherMap</b> per il meteo. <b>API-Football</b> per infortuni e statistiche avanzate. <b>Football-data.org</b> per Champions League e campionati extra. <b>SportsAPIPro</b> per Veikkausliiga e altri campionati nordici. <b>WorldWeatherOnline</b> per meteo alternativo.</div>
+            {['GROQ','OpenWeatherMap','API-Football','Football-data.org','SportsAPIPro','WorldWeatherOnline'].map(name => (
+              <div key={name} className="card" style={name === 'Football-data.org' ? {border: '2px solid #0d9488'} : name === 'SportsAPIPro' ? {border: '2px solid #8b5cf6'} : name === 'WorldWeatherOnline' ? {border: '2px solid #f39c12'} : {}}>
+                <h3 style={name === 'Football-data.org' ? {color: '#0d9488'} : name === 'SportsAPIPro' ? {color: '#8b5cf6'} : name === 'WorldWeatherOnline' ? {color: '#f39c12'} : {}}>
+                  {name === 'GROQ' && '🧠'} {name === 'OpenWeatherMap' && '🌤️'} {name === 'API-Football' && '⚽'} {name === 'Football-data.org' && '⚽'} {name === 'SportsAPIPro' && '🏟️'} {name === 'WorldWeatherOnline' && '🌦️'} {name}
                 </h3>
                 <div className="form-group" style={{marginTop:'10px'}}>
                   <label>API Key</label>
@@ -6083,7 +6201,6 @@ function App() {
               <div>
                 <div className="card">
                   <h3 style={{marginBottom: '12px'}}>📏 Grandezza Caratteri</h3>
-                  
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -6108,7 +6225,6 @@ function App() {
                     >
                       −
                     </button>
-
                     <div style={{flex: 1, minWidth: '150px'}}>
                       <input
                         type="range"
@@ -6140,7 +6256,6 @@ function App() {
                         <span>150%</span>
                       </div>
                     </div>
-
                     <button 
                       className="btn btn-secondary"
                       onClick={() => setFontSize(prev => Math.min(150, prev + 5))}
@@ -6159,7 +6274,6 @@ function App() {
                     >
                       +
                     </button>
-
                     <button 
                       className="btn btn-secondary"
                       onClick={() => setFontSize(100)}
@@ -6176,7 +6290,6 @@ function App() {
                       🔄 Reset (100%)
                     </button>
                   </div>
-
                   <div style={{
                     marginTop: '12px',
                     fontSize: '12px',
