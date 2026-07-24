@@ -3376,15 +3376,41 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
   const [selectedTab, setSelectedTab] = useState('lista');
   const [isChecking, setIsChecking] = useState(false);
 
-  const saveLeagues = (leagues) => { setCustomLeagues(leagues); saveCustomSofaLeagues(leagues); };
+  const saveLeagues = (leagues) => { 
+    setCustomLeagues(leagues); 
+    saveCustomSofaLeagues(leagues);
+  };
   
   const removeLeague = (id, name) => {
     const isDefault = Object.values(SOFASCORE_LEAGUE_IDS).includes(id);
     const matchCount = matches ? matches.filter(m => m.campionato === name).length : 0;
     if (matchCount > 0 && !confirm(`⚠️ Il campionato "${name}" ha ${matchCount} partite importate. Eliminarlo cancellerà anche le partite. Continuare?`)) return;
-    if (matchCount > 0) setMatches(prev => prev.filter(m => m.campionato !== name));
-    if (isDefault) { const blacklist = getBlacklist(); if (!blacklist.includes(id)) { blacklist.push(id); saveBlacklist(blacklist); } }
-    else { saveLeagues(customLeagues.filter(l => l.id !== id)); }
+    
+    let updatedCustomLeagues = [...customLeagues];
+    let blacklist = getBlacklist();
+    
+    if (isDefault) {
+      // Per i campionati predefiniti, aggiungiamo l'ID alla blacklist
+      if (!blacklist.includes(id)) {
+        blacklist.push(id);
+        saveBlacklist(blacklist);
+      }
+      // Aggiorniamo la lista visibile rimuovendo il campionato dalla UI
+      const newList = customLeagues.filter(l => l.id !== id);
+      saveLeagues(newList);
+    } else {
+      // Per i campionati personalizzati, li rimuoviamo dalla lista custom
+      const newList = customLeagues.filter(l => l.id !== id);
+      saveLeagues(newList);
+    }
+    
+    // Rimuoviamo le partite associate a questo campionato
+    if (matchCount > 0) {
+      setMatches(prev => prev.filter(m => m.campionato !== name));
+    }
+    
+    // Forziamo l'aggiornamento della UI
+    setCustomLeagues(getCustomSofaLeagues());
   };
 
   const checkLeagueHasMatches = async (leagueId, seasonYear) => {
@@ -3447,7 +3473,8 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
   
   // Funzione per aggiornare la lista (reload da localStorage)
   const refreshList = () => {
-    setCustomLeagues(getCustomSofaLeagues());
+    const refreshed = getCustomSofaLeagues();
+    setCustomLeagues(refreshed);
   };
 
   // Effetto per aggiornare la lista quando cambia il trigger esterno
