@@ -3333,7 +3333,7 @@ const HeatmapDetailModal = ({ championship, matches, onClose }) => {
 // COMPONENTI - SofaScoreManager, FootballDataManager, SportsAPIProManager
 // ============================================================
 
-const SofaScoreManager = ({ onImport, loading, matches, setMatches }) => {
+const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigger }) => {
   const [customLeagues, setCustomLeagues] = useState(getCustomSofaLeagues);
   const [newLeagueName, setNewLeagueName] = useState('');
   const [newLeagueId, setNewLeagueId] = useState('');
@@ -3345,6 +3345,7 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches }) => {
   const [isChecking, setIsChecking] = useState(false);
 
   const saveLeagues = (leagues) => { setCustomLeagues(leagues); saveCustomSofaLeagues(leagues); };
+  
   const removeLeague = (id, name) => {
     const isDefault = Object.values(SOFASCORE_LEAGUE_IDS).includes(id);
     const matchCount = matches ? matches.filter(m => m.campionato === name).length : 0;
@@ -3411,6 +3412,18 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches }) => {
   };
 
   const allLeagues = getVisibleLeagues(customLeagues);
+  
+  // Funzione per aggiornare la lista (reload da localStorage)
+  const refreshList = () => {
+    setCustomLeagues(getCustomSofaLeagues());
+  };
+
+  // Effetto per aggiornare la lista quando cambia il trigger esterno
+  useEffect(() => {
+    if (refreshTrigger) {
+      refreshList();
+    }
+  }, [refreshTrigger]);
 
   return (
     <div className="card">
@@ -3428,6 +3441,7 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches }) => {
               <option value="26/27">26/27</option><option value="25/26">25/26</option><option value="24/25">24/25</option><option value="23/24">23/24</option>
             </select>
             <button className="btn" onClick={addAndImportLeague} disabled={isChecking || loading}>{isChecking ? '⏳ Controllo...' : '➕ Aggiungi e Importa'}</button>
+            <button className="btn btn-secondary" onClick={refreshList} disabled={loading} style={{fontSize:'12px', padding:'8px 14px'}}>🔄 Aggiorna</button>
           </div>
           <div style={{maxHeight:'300px', overflowY:'auto'}}>
             {allLeagues.length === 0 ? <p style={{color:'var(--text-muted)', textAlign:'center', padding:'20px'}}>Nessun campionato configurato.</p> : (
@@ -5188,6 +5202,9 @@ function App() {
   const [schedineHistory, setSchedineHistory] = useState(initial.schedineHistory || []);
   const [heatmapDetailChamp, setHeatmapDetailChamp] = useState(null);
   
+  // Stato per forzare il refresh del componente SofaScoreManager
+  const [refreshSofaTrigger, setRefreshSofaTrigger] = useState(0);
+  
   const [fontSize, setFontSize] = useState(() => {
     const saved = localStorage.getItem('ft_font_size');
     return saved ? parseInt(saved) : 100;
@@ -5317,6 +5334,28 @@ function App() {
       showAlert('success', `✅ Importati ${successCount} campionati! 📊 ${totalMatches} partite totali.${failCount > 0 ? ` ⚠️ ${failCount} campionati falliti.` : ''}`);
       setSelectedChamp('Tutti');
     } else if (failCount > 0) showAlert('error', `❌ Nessun campionato importato. ${failCount} falliti.`);
+  };
+
+  // Funzione per eliminare TUTTI i campionati e le partite, e resettare anche la lista SofaScore
+  const clearAllChampionshipsWithSofaReset = () => {
+    if (championships.length === 0) { 
+      showAlert('info', 'ℹ️ Non ci sono campionati da eliminare.'); 
+      return; 
+    }
+    if (confirm(`⚠️ Sei sicuro di voler eliminare TUTTI i ${championships.length} campionati e tutte le ${matches.length} partite associate?\n\nVerrà anche resettata la lista dei campionati SofaScore!`)) {
+      // Resetta i campionati e le partite
+      setChampionships([]); 
+      setMatches([]); 
+      
+      // Resetta la lista SofaScore (cancella custom leagues e blacklist)
+      saveCustomSofaLeagues([]);
+      saveBlacklist([]);
+      
+      // Forza il refresh del componente SofaScoreManager
+      setRefreshSofaTrigger(prev => prev + 1);
+      
+      showAlert('success', '🗑️ Tutti i campionati, le partite e la lista SofaScore sono stati resettati.');
+    }
   };
 
   const addToSchedina = (text) => {
@@ -5505,10 +5544,8 @@ function App() {
   };
 
   const clearAllChampionships = () => {
-    if (championships.length === 0) { showAlert('info', 'ℹ️ Non ci sono campionati da eliminare.'); return; }
-    if (confirm(`⚠️ Sei sicuro di voler eliminare TUTTI i ${championships.length} campionati e tutte le ${matches.length} partite associate?`)) {
-      setChampionships([]); setMatches([]); showAlert('success', '🗑️ Tutti i campionati e le partite sono stati cancellati.');
-    }
+    // Questa funzione ora usa la nuova versione che resetta anche SofaScore
+    clearAllChampionshipsWithSofaReset();
   };
 
   const selectedMatch = matches.find(m => m.id === selectedMatchId);
@@ -6045,6 +6082,7 @@ function App() {
                       localStorage.removeItem('ft_football_data_imported');
                       localStorage.removeItem('ft_sportsapipro_imported');
                       setChampionships([]); setMatches([]); setApiKeys({}); setTempKeys({}); setSchedineHistory([]);
+                      setRefreshSofaTrigger(prev => prev + 1);
                       showAlert('success', '🗑️ Dati resettati completamente.');
                     }
                   }}>🗑️ Reset Completo</button>
@@ -6055,7 +6093,13 @@ function App() {
             {settingsTab === 'Importa Campionato' && (
               <div>
                 <h3 style={{marginBottom:'12px'}}>📥 Importa Campionato</h3>
-                <SofaScoreManager onImport={importFromSofaScore} loading={loading} matches={matches} setMatches={setMatches} />
+                <SofaScoreManager 
+                  onImport={importFromSofaScore} 
+                  loading={loading} 
+                  matches={matches} 
+                  setMatches={setMatches}
+                  refreshTrigger={refreshSofaTrigger}
+                />
                 <hr style={{borderColor:'var(--border)', margin:'20px 0'}}/>
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', margin:'20px 0 12px', flexWrap:'wrap', gap:'10px'}}>
                   <h3 style={{margin:0}}>📋 Campionati Importati</h3>
