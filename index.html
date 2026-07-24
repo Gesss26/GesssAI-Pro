@@ -300,13 +300,37 @@
   }
   .form-diff {
     text-align: center;
-    font-size: 12px;
+    font-size: 16px;
+    font-weight: bold;
     color: var(--text-muted);
-    margin-top: 4px;
+    margin-top: 6px;
+    padding: 4px 8px;
+    background: var(--surface);
+    border-radius: 6px;
   }
   .form-diff span {
     font-weight: bold;
     color: var(--accent);
+    font-size: 18px;
+  }
+  .form-xg {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 4px 0;
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--text-muted);
+    background: var(--surface);
+    border-radius: 6px;
+  }
+  .form-xg .xg-home {
+    color: var(--accent);
+    font-weight: bold;
+  }
+  .form-xg .xg-away {
+    color: var(--accent);
+    font-weight: bold;
   }
   .bet-row {
     display: flex;
@@ -2077,7 +2101,7 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
   
   const handleClick = (e) => { e.stopPropagation(); onSelect(match.id); };
   const addBet1 = (e) => { e.stopPropagation(); const text = `Giocata 12+U4.5: ${Math.round(pct12Under45)}% (${match.casa} vs ${match.ospiti})`; addToSchedina(text); };
-  const addBet2 = (e) => { e.stopPropagation(); const text = `Combinata: ${match.casa} ${homeRange.label} (${homeRange.pct}%) + ${match.ospiti} ${awayRange.label} (${awayRange.pct}%)`; addToSchedina(text); };
+  const addBet2 = (e) => { e.stopPropagation(); const text = `Combinata:\n${match.casa}: (${homeRange.label})\n${match.ospiti}: (${awayRange.label})\nMedia: ${mediaCombinata}%`; addToSchedina(text); };
   const addBet3 = (e) => { e.stopPropagation(); const text = `Libera: ${freeCombo.label} (${freeCombo.pct}%) - ${match.casa} vs ${match.ospiti}`; addToSchedina(text); };
   
   const formattedDate = match.data ? formatDateEU(match.data) : 'N/D';
@@ -2110,7 +2134,13 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
           <div className="form-bar"><div className="form-bar-fill" style={{width: (awayForm.pct || 0) + '%'}}></div></div>
         </div>
       </div>
-      <div className="form-diff">📊 Differenza forma: <span>{isNaN(diff) ? 0 : diff}%</span></div>
+      <div className="form-diff">
+        📊 Differenza forma: <span>{isNaN(diff) ? 0 : diff}%</span>
+      </div>
+      <div className="form-xg">
+        <span className="xg-home">⚽ xG {match.casa}: {homeForm.mediaGolFatti || '0.0'}</span>
+        <span className="xg-away">⚽ xG {match.ospiti}: {awayForm.mediaGolFatti || '0.0'}</span>
+      </div>
       <div className="bet-row">
         <div className={`bet-item ${Math.round(pct12Under45) >= 90 ? 'bomb' : ''}`} onClick={addBet1}>
           <div className="bet-label">12+U4.5</div>
@@ -2119,7 +2149,9 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
         <div className={`bet-item ${mediaCombinata >= 90 ? 'bomb' : ''}`} style={{flex: 2}} onClick={addBet2}>
           <div className="bet-label">COMBINATA</div>
           <div className="bet-value" style={{fontSize: '11px'}}>
-            {match.casa} {homeRange.label} ({homeRange.pct}%) + {match.ospiti} {awayRange.label} ({awayRange.pct}%) {mediaCombinata >= 90 ? '💣' : ''}
+            <div>{match.casa}: ({homeRange.label})</div>
+            <div>{match.ospiti}: ({awayRange.label})</div>
+            <div style={{color: 'var(--accent)', fontWeight: 'bold'}}>Media: {mediaCombinata}% {mediaCombinata >= 90 ? '💣' : ''}</div>
           </div>
         </div>
         <div className={`bet-item ${freeCombo.pct >= 90 ? 'bomb' : ''}`} onClick={addBet3}>
@@ -4204,31 +4236,24 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
   };
 
   const fetchWeather = async (city, matchDate) => {
-    const apiKey = apiKeys['OpenWeatherMap'];
+    const apiKey = apiKeys['WorldWeatherOnline'];
     if (!apiKey || !city) return null;
     try {
-      const r = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&units=metric&appid=${apiKey}`);
+      const r = await fetch(`https://api.worldweatheronline.com/premium/v1/weather.ashx?q=${encodeURIComponent(city)}&format=json&date=${matchDate}&key=${apiKey}`);
       if (!r.ok) return null;
       const data = await r.json();
-      const matchDay = new Date(matchDate);
-      matchDay.setHours(0,0,0,0);
-      const forecasts = data.list.filter(item => {
-        const dt = new Date(item.dt * 1000);
-        dt.setHours(0,0,0,0);
-        return dt.getTime() === matchDay.getTime();
-      });
-      if (forecasts.length === 0) return null;
-      const forecast = forecasts[0];
+      const weather = data.data?.weather?.[0];
+      if (!weather) return null;
       return {
-        temp: forecast.main.temp,
-        temp_min: forecast.main.temp_min,
-        temp_max: forecast.main.temp_max,
-        weather: forecast.weather[0].description,
-        weather_icon: forecast.weather[0].icon,
-        wind_speed: forecast.wind.speed,
-        rain: forecast.rain ? forecast.rain['3h'] : 0,
-        humidity: forecast.main.humidity,
-        pressure: forecast.main.pressure
+        temp: parseFloat(weather.tempC) || 0,
+        temp_min: parseFloat(weather.mintempC) || 0,
+        temp_max: parseFloat(weather.maxtempC) || 0,
+        weather: weather.hourly?.[0]?.weatherDesc?.[0]?.value || 'N/A',
+        weather_icon: weather.hourly?.[0]?.weatherCode || '113',
+        wind_speed: parseFloat(weather.hourly?.[0]?.windspeedKmph) || 0,
+        rain: parseFloat(weather.hourly?.[0]?.precipMM) || 0,
+        humidity: parseFloat(weather.hourly?.[0]?.humidity) || 0,
+        pressure: parseFloat(weather.hourly?.[0]?.pressure) || 0
       };
     } catch (e) { return null; }
   };
@@ -4491,7 +4516,7 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
       if (!city) city = 'Stoccolma';
       
       let weather = null;
-      if (city && apiKeys['OpenWeatherMap']) {
+      if (city && apiKeys['WorldWeatherOnline']) {
         weather = await fetchWeather(city, match.data);
         setWeatherData(weather);
       }
@@ -4851,9 +4876,9 @@ Genera un'analisi in formato JSON:
           fontSize: '13px'
         }}>
           ⚠️ Dati meteo non disponibili
-          {!apiKeys['OpenWeatherMap'] && (
+          {!apiKeys['WorldWeatherOnline'] && (
             <span style={{display:'block', marginTop:'4px'}}>
-              💡 Configura OpenWeatherMap nel tab API KEY
+              💡 Configura WorldWeatherOnline nel tab API KEY
             </span>
           )}
         </div>
@@ -5483,8 +5508,8 @@ function App() {
       if (name === 'GROQ') {
         const r = await fetch('https://api.groq.com/openai/v1/models', { headers: { 'Authorization': `Bearer ${key}` } });
         setApiTestResult({ ...apiTestResult, [name]: r.ok ? 'OK' : 'FAIL' });
-      } else if (name === 'OpenWeatherMap') {
-        const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Rome&appid=${key}`);
+      } else if (name === 'WorldWeatherOnline') {
+        const r = await fetch(`https://api.worldweatheronline.com/premium/v1/weather.ashx?q=Rome&format=json&key=${key}`);
         setApiTestResult({ ...apiTestResult, [name]: r.ok ? 'OK' : 'FAIL' });
       } else if (name === 'API-Football') {
         const r = await fetch('https://v3.football.api-sports.io/teams?search=Arsenal', { headers: { 'x-apisports-key': key } });
@@ -5495,8 +5520,8 @@ function App() {
       } else if (name === 'SportsAPIPro') {
         const r = await fetch('https://api.sportsapipro.com/v1/sports', { headers: { 'X-API-Key': key } });
         setApiTestResult({ ...apiTestResult, [name]: r.status === 200 ? 'OK' : 'FAIL' });
-      } else if (name === 'WorldWeatherOnline') {
-        const r = await fetch(`https://api.worldweatheronline.com/premium/v1/weather.ashx?q=Rome&format=json&key=${key}`);
+      } else if (name === 'OpenWeatherMap') {
+        const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Rome&appid=${key}`);
         setApiTestResult({ ...apiTestResult, [name]: r.ok ? 'OK' : 'FAIL' });
       }
     } catch(e) { setApiTestResult({ ...apiTestResult, [name]: 'ERROR' }); }
@@ -5982,11 +6007,11 @@ function App() {
         {tab === 'API KEY' && (
           <div>
             <h2 style={{marginBottom:'14px'}}>🔑 Gestione API Key</h2>
-            <div className="alert alert-info">💡 <b>GROQ</b> per l'AI. <b>OpenWeatherMap</b> per il meteo. <b>API-Football</b> per infortuni e statistiche avanzate. <b>Football-data.org</b> per Champions League e campionati extra. <b>SportsAPIPro</b> per Veikkausliiga e altri campionati nordici. <b>WorldWeatherOnline</b> per meteo alternativo.</div>
-            {['GROQ','OpenWeatherMap','API-Football','Football-data.org','SportsAPIPro','WorldWeatherOnline'].map(name => (
+            <div className="alert alert-info">💡 <b>GROQ</b> per l'AI. <b>WorldWeatherOnline</b> per il meteo. <b>API-Football</b> per infortuni e statistiche avanzate. <b>Football-data.org</b> per Champions League e campionati extra. <b>SportsAPIPro</b> per Veikkausliiga e altri campionati nordici. <b>OpenWeatherMap</b> per meteo alternativo.</div>
+            {['GROQ','WorldWeatherOnline','API-Football','Football-data.org','SportsAPIPro','OpenWeatherMap'].map(name => (
               <div key={name} className="card" style={name === 'Football-data.org' ? {border: '2px solid #0d9488'} : name === 'SportsAPIPro' ? {border: '2px solid #8b5cf6'} : name === 'WorldWeatherOnline' ? {border: '2px solid #f39c12'} : {}}>
                 <h3 style={name === 'Football-data.org' ? {color: '#0d9488'} : name === 'SportsAPIPro' ? {color: '#8b5cf6'} : name === 'WorldWeatherOnline' ? {color: '#f39c12'} : {}}>
-                  {name === 'GROQ' && '🧠'} {name === 'OpenWeatherMap' && '🌤️'} {name === 'API-Football' && '⚽'} {name === 'Football-data.org' && '⚽'} {name === 'SportsAPIPro' && '🏟️'} {name === 'WorldWeatherOnline' && '🌦️'} {name}
+                  {name === 'GROQ' && '🧠'} {name === 'WorldWeatherOnline' && '🌦️'} {name === 'API-Football' && '⚽'} {name === 'Football-data.org' && '⚽'} {name === 'SportsAPIPro' && '🏟️'} {name === 'OpenWeatherMap' && '🌤️'} {name}
                 </h3>
                 <div className="form-group" style={{marginTop:'10px'}}>
                   <label>API Key</label>
