@@ -37,16 +37,16 @@
     display: inline-block;
     font-weight: bold;
     font-size: 14px;
-    padding: 0px 4px;
+    padding: 2px 10px;
+    border-radius: 6px;
+    color: #000 !important;
   }
-  .giocata-pct.flag-red { color: #eb5757 !important; }
-  .giocata-pct.flag-white { color: #8b949e !important; }
-  .giocata-pct.flag-green { color: #6fcf97 !important; }
+  .giocata-pct.flag-red { background: #eb5757; color: #000 !important; }
+  .giocata-pct.flag-white { background: #8b949e; color: #000 !important; }
+  .giocata-pct.flag-green { background: #6fcf97; color: #000 !important; }
   .giocata-pct.flag-bomb { 
-    color: #000 !important; 
     background: #f39c12; 
-    padding: 2px 10px; 
-    border-radius: 6px; 
+    color: #000 !important; 
     animation: bomb-glow 1s infinite alternate; 
     box-shadow: 0 0 15px rgba(243, 156, 18, 0.4);
   }
@@ -107,34 +107,33 @@
   .match-tab { background: var(--card); border-radius: 12px; padding: 14px 16px; margin-bottom: 0; border: 1px solid var(--border); border-left-width: 6px; box-shadow: 0 3px 10px rgba(0,0,0,0.4); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position: relative; }
   .match-tab:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.6); }
   
-  /* Modifica lo score-badge per contenere sia la percentuale che la bomba */
-.match-tab .score-badge { 
-  position: absolute; 
-  top: 10px; 
-  right: 12px; 
-  background: var(--accent); 
-  color: #000; 
-  font-weight: bold; 
-  font-size: 18px; 
-  padding: 2px 10px; 
-  border-radius: 20px; 
-  border: 2px solid var(--accent2);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  z-index: 10;
-}
-.match-tab .score-badge .giocata-pct { 
-  font-size: 16px; 
-  padding: 0px 4px; 
-  background: transparent;
-}
-.match-tab .score-badge .bomb-inline { 
-  font-size: 22px; 
-  animation: bomb-bounce 1s infinite ease-in-out;
-  line-height: 1;
-  display: inline-block;
-}
+  .match-tab .score-badge { 
+    position: absolute; 
+    top: 10px; 
+    right: 12px; 
+    background: var(--accent); 
+    color: #000; 
+    font-weight: bold; 
+    font-size: 18px; 
+    padding: 2px 10px; 
+    border-radius: 20px; 
+    border: 2px solid var(--accent2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 10;
+  }
+  .match-tab .score-badge .giocata-pct { 
+    font-size: 16px; 
+    padding: 0px 4px; 
+    background: transparent;
+  }
+  .match-tab .score-badge .bomb-inline { 
+    font-size: 22px; 
+    animation: bomb-bounce 1s infinite ease-in-out;
+    line-height: 1;
+    display: inline-block;
+  }
   
   .match-tab-history { background: var(--card); border-radius: 12px; padding: 14px 16px; margin-bottom: 0; border: 1px solid var(--border); border-left-width: 6px; box-shadow: 0 3px 10px rgba(0,0,0,0.4); flex: 1; min-width: 300px; max-width: 420px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
   .match-tab-history:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.6); }
@@ -555,15 +554,32 @@ const MAIN_TABS = ['Home','Palinsesto','Statistiche','Storico','API KEY','Impost
 const SETTINGS_TABS = ['Temi','API KEY','Dati Locali','Importa Campionato','Grandezza Caratteri','Città Meteo','Visuale'];
 
 const CHAMPIONSHIP_COLORS = {
-  'Allsvenskan': '#e74c3c', 'Premier League': '#3498db', 'Serie A': '#2ecc71',
-  'Bundesliga': '#f39c12', 'Ligue 1': '#9b59b6', 'Brasileirão': '#1abc9c',
-  'Eredivisie': '#e67e22', 'Primeira Liga': '#34495e', 'Cina': '#c0392b',
-  'Irlanda': '#27ae60', 'Eliteserien': '#2980b9', 'FIFA World Cup 2026': '#f1c40f',
-  'Championship': '#6c3483', 'La Liga': '#e74c3c', 'Liga MX': '#16a085',
-  'Veikkausliiga': '#e67e22', 'Danish Superliga': '#27ae60', 'Pro League': '#2980b9',
-  'J1 League': '#e74c3c', 'K League 1': '#f39c12', 'Swiss Super League': '#8e44ad',
-  'Austrian Bundesliga': '#2c3e50', 'Chinese Super League': '#1a8a3f',
-  'Premier Division': '#16a085', 'Besta deild': '#d35400', 'Liga Portugal Betclic': '#1abc9c'
+  'Allsvenskan': '#e74c3c', 
+  'Premier League': '#3498db', 
+  'Serie A': '#2ecc71',
+  'Bundesliga': '#f39c12', 
+  'Ligue 1': '#9b59b6', 
+  'Brasileirão': '#1abc9c',
+  'Eredivisie': '#e67e22', 
+  'Primeira Liga': '#34495e', 
+  'Cina': '#c0392b',
+  'Irlanda': '#27ae60', 
+  'Eliteserien': '#2980b9', 
+  'FIFA World Cup 2026': '#f1c40f',
+  'Championship': '#6c3483', 
+  'La Liga': '#e74c3c', 
+  'Liga MX': '#16a085',
+  'Veikkausliiga': '#e67e22', 
+  'Danish Superliga': '#27ae60', 
+  'Pro League': '#2980b9',
+  'J1 League': '#e74c3c', 
+  'K League 1': '#f39c12', 
+  'Swiss Super League': '#8e44ad',
+  'Austrian Bundesliga': '#2c3e50', 
+  'Chinese Super League': '#1a8a3f',
+  'Premier Division': '#16a085', 
+  'Besta deild': '#d35400', 
+  'Liga Portugal Betclic': '#1abc9c'
 };
 
 const CHAMPIONSHIP_COUNTRY = {
@@ -578,16 +594,32 @@ const CHAMPIONSHIP_COUNTRY = {
 
 const getCountryFlagHtml = (champName) => {
   if (!champName) return '<span class="flag-emoji">🌍</span>';
+  
   let countryCode = null;
-  for (const [key, code] of Object.entries(CHAMPIONSHIP_COUNTRY)) {
-    if (champName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(champName.toLowerCase())) {
+  
+  // ORDINE DI RICERCA: prima le corrispondenze PIÙ SPECIFICHE
+  const entries = Object.entries(CHAMPIONSHIP_COUNTRY).sort((a, b) => b[0].length - a[0].length);
+  const lowerChamp = champName.toLowerCase();
+  
+  for (const [key, code] of entries) {
+    if (lowerChamp.includes(key.toLowerCase()) || key.toLowerCase().includes(lowerChamp)) {
       countryCode = code;
       break;
     }
   }
+  
   if (!countryCode) return '<span class="flag-emoji">🌍</span>';
+  
   const codeLower = countryCode.toLowerCase();
-  return `<img src="https://flagcdn.com/${codeLower}.svg" alt="${countryCode}" class="flag-icon" width="20" height="15" loading="lazy" style="display:inline-block; vertical-align:middle; margin-right:6px; width:20px; height:15px; border-radius:2px; object-fit:cover; box-shadow: 0 1px 2px rgba(0,0,0,0.3);" />`;
+  
+  // Per la Russia, usa l'immagine SVG da flagcdn.com (più affidabile dell'emoji)
+  return `<img src="https://flagcdn.com/${codeLower}.svg" 
+               alt="${countryCode}" 
+               class="flag-icon" 
+               width="20" 
+               height="15" 
+               loading="lazy" 
+               style="display:inline-block; vertical-align:middle; margin-right:6px; width:20px; height:15px; border-radius:2px; object-fit:cover; box-shadow: 0 1px 2px rgba(0,0,0,0.3);" />`;
 };
 
 const getPercentualeClasse = (valore) => {
@@ -597,12 +629,11 @@ const getPercentualeClasse = (valore) => {
   return 'flag-red';
 };
 
-// Funzione per ottenere il colore in base alla percentuale (per i testi)
 const getColorForPct = (valore) => {
-  if (valore >= 90) return '#f39c12';  // Giallo per la bomba
-  if (valore >= 66.67) return '#6fcf97'; // Verde
-  if (valore >= 33.34) return '#8b949e'; // Grigio
-  return '#eb5757'; // Rosso
+  if (valore >= 90) return '#f39c12';
+  if (valore >= 66.67) return '#6fcf97';
+  if (valore >= 33.34) return '#8b949e';
+  return '#eb5757';
 };
 
 const getXgClasse = (valore) => {
@@ -611,6 +642,46 @@ const getXgClasse = (valore) => {
   if (num >= 2) return 'xg-blue';
   if (num >= 1) return 'xg-white';
   return 'xg-red';
+};
+
+// ============================================================
+// FUNZIONI PER LA GESTIONE DELLE DATE
+// ============================================================
+
+const normalizeDate = (dateStr) => {
+  if (!dateStr) return null;
+  if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+    return dateStr;
+  }
+  if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}/)) {
+    const parts = dateStr.split('/');
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  }
+  try {
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      return date.toISOString().slice(0, 10);
+    }
+  } catch(e) {}
+  return dateStr;
+};
+
+const compareDates = (dateStr1, dateStr2) => {
+  const d1 = normalizeDate(dateStr1);
+  const d2 = normalizeDate(dateStr2);
+  if (!d1 || !d2) return 0;
+  return d1.localeCompare(d2);
+};
+
+const getTodayStr = () => {
+  const today = new Date();
+  return today.toISOString().slice(0, 10);
+};
+
+const addDaysToDateStr = (dateStr, days) => {
+  const date = new Date(dateStr + 'T00:00:00');
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
 };
 
 const CITTÀ_PER_CAMPIONATO = {
@@ -625,10 +696,20 @@ const CITTÀ_PER_CAMPIONATO = {
 };
 
 const SOFASCORE_LEAGUE_IDS = {
-  'Allsvenskan': 40, 'Eliteserien': 20, 'Veikkausliiga': 41, 'Danish Superliga': 39,
-  'Premier Division': 192, 'Chinese Super League': 649, 'Pro League': 38,
-  'Austrian Bundesliga': 45, 'K League 1': 410, 'J1 League': 196, 'Besta deild': 188,
-  'Liga Portugal Betclic': 238, 'Russian Premier League': 203, 'Swiss Super League': 215
+  'Allsvenskan': 40, 
+  'Eliteserien': 20, 
+  'Veikkausliiga': 41,
+  'Danish Superliga': 39,
+  'Premier Division': 192, 
+  'Chinese Super League': 649, 
+  'Pro League': 38,
+  'Austrian Bundesliga': 45, 
+  'K League 1': 410, 
+  'J1 League': 196, 
+  'Besta deild': 188,
+  'Liga Portugal Betclic': 238, 
+  'Russian Premier League': 203, 
+  'Swiss Super League': 215
 };
 
 const TEAM_CITY_MAP = {
@@ -776,6 +857,7 @@ const fetchSofaScoreMatches = async (leagueId, seasonYear) => {
     if (!seasonsRes.ok) throw new Error('Errore nel recupero stagioni');
     const seasonsData = await seasonsRes.json();
     let targetSeasonId = null;
+    
     if (seasonsData.seasons) {
       for (const season of seasonsData.seasons) {
         const seasonName = season.name || '';
@@ -783,12 +865,17 @@ const fetchSofaScoreMatches = async (leagueId, seasonYear) => {
         if (seasonYear === '25/26' && seasonName.includes('2025/2026')) { targetSeasonId = season.id; break; }
         if (seasonYear === '24/25' && seasonName.includes('2024/2025')) { targetSeasonId = season.id; break; }
         if (seasonYear === '23/24' && seasonName.includes('2023/2024')) { targetSeasonId = season.id; break; }
+        if (seasonYear === '2027' && seasonName.includes('2027')) { targetSeasonId = season.id; break; }
+        if (seasonYear === '2026' && seasonName.includes('2026')) { targetSeasonId = season.id; break; }
       }
     }
+    
     if (!targetSeasonId && seasonsData.seasons && seasonsData.seasons.length > 0) {
       targetSeasonId = seasonsData.seasons[0].id;
     }
+    
     if (!targetSeasonId) throw new Error('Nessuna stagione disponibile');
+    
     let allEvents = [];
     let round = 1;
     let hasMore = true;
@@ -796,7 +883,10 @@ const fetchSofaScoreMatches = async (leagueId, seasonYear) => {
       try {
         const url = `https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/season/${targetSeasonId}/events/round/${round}`;
         const res = await fetch(url);
-        if (!res.ok) { if (res.status === 404) { hasMore = false; break; } throw new Error(`HTTP ${res.status}`); }
+        if (!res.ok) { 
+          if (res.status === 404) { hasMore = false; break; } 
+          throw new Error(`HTTP ${res.status}`); 
+        }
         const data = await res.json();
         if (data.events && data.events.length > 0) allEvents = [...allEvents, ...data.events];
         round++;
@@ -804,7 +894,10 @@ const fetchSofaScoreMatches = async (leagueId, seasonYear) => {
       } catch (e) { hasMore = false; }
     }
     return allEvents;
-  } catch (e) { console.error('Errore fetch SofaScore:', e); return []; }
+  } catch (e) { 
+    console.error('Errore fetch SofaScore:', e); 
+    return []; 
+  }
 };
 
 const parseDate = (dateStr, timeStr = '00:00') => {
@@ -1169,7 +1262,6 @@ const Standings = ({ matches, filterChampionship, highlightTeams = [] }) => {
   );
 };
 
-// ---------- MATCH TAB MODIFICATO ----------
 const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) => {
   if (!match) return null;
   const homeForm = calcFormAndStats(allMatches, match.casa);
@@ -1216,14 +1308,6 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
     return <span className={`xg-value ${cls}`}>{num.toFixed(1)}</span>;
   };
 
-  // Funzione per ottenere il colore in base alla percentuale (per i testi delle giocate)
-  const getColorForPct = (valore) => {
-    if (valore >= 90) return '#f39c12';
-    if (valore >= 66.67) return '#6fcf97';
-    if (valore >= 33.34) return '#8b949e';
-    return '#eb5757';
-  };
-
   return (
     <div className="match-tab" style={{borderLeftColor: champColor}} onClick={handleClick}>
       <div className="score-badge">
@@ -1266,13 +1350,11 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
       </div>
       
       <div className="bet-row-vertical">
-        {/* Giocata 1: 12+U4.5 */}
         <div className="bet-item-vertical" onClick={addBet1}>
           <span className="bet-label" style={{color: getColorForPct(pct12Under45)}}>12+U4.5</span>
           <span className="bet-value">{renderPct(pct12Under45)}</span>
         </div>
         
-        {/* Giocata 2: Combinata */}
         <div className="bet-item-vertical" onClick={addBet2}>
           <span className="bet-label" style={{color: getColorForPct(mediaCombinata)}}>COMBINATA</span>
           <span className="bet-value">
@@ -1292,7 +1374,6 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
           </span>
         </div>
         
-        {/* Giocata 3: Over 1.5 */}
         <div className="bet-item-vertical" onClick={addBet3}>
           <span className="bet-label" style={{color: getColorForPct(over15Pct)}}>OVER 1.5</span>
           <span className="bet-value">{renderPct(over15Pct)}</span>
@@ -1460,6 +1541,10 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
     </div>
   );
 };
+
+// ============================================================
+// CONTINUAZIONE COMPONENTI
+// ============================================================
 
 const RisultatiFrequenti = ({ teamName, allMatches }) => {
   const getFrequenti = (team) => {
@@ -2079,8 +2164,17 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
           <div style={{display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'12px'}}>
             <input type="text" value={newLeagueName} onChange={e => setNewLeagueName(e.target.value)} placeholder="Nome campionato" style={{flex:1, minWidth:'150px'}} />
             <input type="number" value={newLeagueId} onChange={e => setNewLeagueId(e.target.value)} placeholder="ID SofaScore" style={{width:'120px'}} />
-            <select value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} style={{width:'120px', padding:'8px'}}>
-              <option value="26/27">26/27</option><option value="25/26">25/26</option><option value="24/25">24/25</option><option value="23/24">23/24</option>
+            <select value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} style={{width:'130px', padding:'8px'}}>
+              <optgroup label="🏆 Stagioni Solari">
+                <option value="2027">2027 (Solare)</option>
+                <option value="2026">2026 (Solare)</option>
+              </optgroup>
+              <optgroup label="📅 Stagioni Europee">
+                <option value="26/27">26/27</option>
+                <option value="25/26">25/26</option>
+                <option value="24/25">24/25</option>
+                <option value="23/24">23/24</option>
+              </optgroup>
             </select>
             <button className="btn" onClick={addAndImportLeague} disabled={isChecking || loading}>{isChecking ? '⏳ Controllo...' : '➕ Aggiungi e Importa'}</button>
             <button className="btn btn-secondary" onClick={refreshList} disabled={loading} style={{fontSize:'12px', padding:'8px 14px'}}>🔄 Aggiorna</button>
@@ -2098,7 +2192,18 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
                       <td style={{textAlign:'center', padding:'6px 8px'}}><span style={{fontSize:'10px', padding:'2px 8px', borderRadius:'10px', background: league.isDefault ? 'var(--surface)' : 'var(--accent)', color: league.isDefault ? 'var(--text-muted)' : '#000'}}>{league.isDefault ? 'Predefinito' : 'Personalizzato'}</span></td>
                       <td style={{textAlign:'center', padding:'6px 8px'}}>{matchCount > 0 ? <span style={{color:'var(--win)', fontWeight:'bold'}}>{matchCount}</span> : <span style={{color:'var(--text-muted)'}}>0</span>}</td>
                       <td style={{textAlign:'center', padding:'6px 8px'}}>
-                        <select value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} style={{width:'80px', padding:'2px 4px', fontSize:'11px', marginRight:'4px'}}><option value="26/27">26/27</option><option value="25/26">25/26</option><option value="24/25">24/25</option><option value="23/24">23/24</option></select>
+                        <select value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} style={{width:'90px', padding:'2px 4px', fontSize:'11px', marginRight:'4px'}}>
+                          <optgroup label="🏆 Solari">
+                            <option value="2027">2027</option>
+                            <option value="2026">2026</option>
+                          </optgroup>
+                          <optgroup label="📅 Europee">
+                            <option value="26/27">26/27</option>
+                            <option value="25/26">25/26</option>
+                            <option value="24/25">24/25</option>
+                            <option value="23/24">23/24</option>
+                          </optgroup>
+                        </select>
                         <button className="btn btn-secondary" style={{fontSize:'11px', padding:'2px 8px', marginRight:'4px'}} onClick={() => onImport(league.name, selectedSeason)} disabled={loading}>📥 Importa</button>
                         <button className="btn btn-danger" style={{fontSize:'11px', padding:'2px 8px'}} onClick={() => removeLeague(league.id, league.name)}>✖</button>
                       </td>
@@ -2115,6 +2220,21 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
           <div style={{display:'flex', gap:'8px', marginBottom:'12px'}}>
             <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Cerca campionato" style={{flex:1}} onKeyDown={e => e.key === 'Enter' && searchSofaLeagues()} />
             <button className="btn" onClick={searchSofaLeagues} disabled={searching || isChecking}>{searching ? '⏳ Cercando...' : '🔍 Cerca'}</button>
+          </div>
+          <div style={{display:'flex', gap:'8px', marginBottom:'12px'}}>
+            <select value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} style={{width:'130px', padding:'8px'}}>
+              <optgroup label="🏆 Stagioni Solari">
+                <option value="2027">2027 (Solare)</option>
+                <option value="2026">2026 (Solare)</option>
+              </optgroup>
+              <optgroup label="📅 Stagioni Europee">
+                <option value="26/27">26/27</option>
+                <option value="25/26">25/26</option>
+                <option value="24/25">24/25</option>
+                <option value="23/24">23/24</option>
+              </optgroup>
+            </select>
+            <span style={{fontSize:'12px', color:'var(--text-muted)', alignSelf:'center'}}>Stagione per l'importazione</span>
           </div>
           {searchResults.length > 0 && (
             <div style={{maxHeight:'300px', overflowY:'auto'}}>
@@ -2235,7 +2355,10 @@ const WeatherProfessionale = ({ weatherData, city, matchDate }) => {
   );
 };
 
-// AIAnalysis - versione semplificata (senza meteo)
+// ============================================================
+// AIAnalysis, CittaMeteo e App
+// ============================================================
+
 const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -2348,7 +2471,10 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
       const pct12Under45 = get12Under45(allMatches, match.casa, match.ospiti);
       const homeRange = getMultigolRange(match.casa, allMatches);
       const awayRange = getMultigolRange(match.ospiti, allMatches);
-      const freeCombo = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
+      let over15Pct = 0;
+      if (!stats.error && stats.underOver && stats.underOver[0]) {
+        over15Pct = Math.round(stats.underOver[0].over);
+      }
 
       let tactics = null;
       if (apiKeys['API-Football']) { tactics = await fetchTacticsFromApiFootball(match.casa, match.ospiti, match.data); }
@@ -2435,7 +2561,7 @@ Genera un'analisi in formato JSON:
   "consigli_giocate": [
     {"tipo":"singola","giocata":"12+U4.5","percentuale":${Math.round(pct12Under45)}},
     {"tipo":"combinata","giocata":"COMBINATA: ${match.casa} ${homeRange.label} + ${match.ospiti} ${awayRange.label}","percentuale":${Math.round((homeRange.pct + awayRange.pct) / 2)}},
-    {"tipo":"libera","giocata":"LIBERA: ${freeCombo.label}","percentuale":${freeCombo.pct}}
+    {"tipo":"over","giocata":"Over 1.5","percentuale":${over15Pct}}
   ],
   "indice_rischio": 5,
   "valutazione_giocata": "Valutazione"
@@ -2450,7 +2576,7 @@ Genera un'analisi in formato JSON:
       if (parsed.consigli_giocate && parsed.consigli_giocate.length >= 3) {
         parsed.consigli_giocate[0] = { tipo: "singola", giocata: `12+U4.5`, percentuale: Math.round(pct12Under45) };
         parsed.consigli_giocate[1] = { tipo: "combinata", giocata: `COMBINATA: ${match.casa} ${homeRange.label} + ${match.ospiti} ${awayRange.label}`, percentuale: Math.round((homeRange.pct + awayRange.pct) / 2) };
-        parsed.consigli_giocate[2] = { tipo: "libera", giocata: `LIBERA: ${freeCombo.label}`, percentuale: freeCombo.pct };
+        parsed.consigli_giocate[2] = { tipo: "over", giocata: `Over 1.5`, percentuale: over15Pct };
       }
 
       const storageKey = `ft_ai_${match.id}`;
@@ -2502,6 +2628,12 @@ Genera un'analisi in formato JSON:
   const hasRealInjuries = (injuriesDataLocal.home && injuriesDataLocal.home.length > 0) || (injuriesDataLocal.away && injuriesDataLocal.away.length > 0);
 
   const apiNameMap = { 'API-Football': 'API-Football 🏆', 'SofaScore': 'SofaScore 📊' };
+
+  const renderPct = (value) => {
+    const rounded = Math.round(value);
+    const cls = getPercentualeClasse(rounded);
+    return <span className={`giocata-pct ${cls}`}>{rounded}%</span>;
+  };
 
   return (
     <div className="ai-analysis-box">
@@ -2598,11 +2730,17 @@ Genera un'analisi in formato JSON:
           <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px'}}>
             {consigli_giocate.map((c, idx) => {
               const isBomb = c.percentuale >= 90;
+              const pct = c.percentuale || 0;
+              const cls = getPercentualeClasse(pct);
               return (
                 <div key={idx} style={{background:'var(--card)', padding:'12px', borderRadius:'6px', border: isBomb ? '2px solid var(--accent)' : '1px solid var(--border)', textAlign:'center'}}>
-                  <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>{idx === 0 && '🎯 12+U4.5'}{idx === 1 && '🔗 COMBINATA'}{idx === 2 && '⭐ LIBERA'}</div>
+                  <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>{idx === 0 && '🎯 12+U4.5'}{idx === 1 && '🔗 COMBINATA'}{idx === 2 && '⚽ OVER 1.5'}</div>
                   <div style={{fontSize:'14px', fontWeight:'bold', color:'#ffff00', margin:'4px 0'}}>{c.giocata}</div>
-                  <div style={{fontSize:'22px', fontWeight:'bold'}}><span className={`giocata-pct ${isBomb ? 'flag-bomb' : getPercentualeClasse(c.percentuale)}`}>{c.percentuale || 0}%</span></div>
+                  <div style={{fontSize:'22px', fontWeight:'bold', marginTop:'4px'}}>
+                    <span className={`giocata-pct ${cls}`}>
+                      {Math.round(pct)}% {isBomb && <span className="bomb-icon">💣</span>}
+                    </span>
+                  </div>
                 </div>
               );
             })}
@@ -2715,7 +2853,7 @@ function App() {
   const [fontSize, setFontSize] = useState(() => { const saved = localStorage.getItem('ft_font_size'); return saved ? parseInt(saved) : 100; });
   const [numMatches, setNumMatches] = useState(3);
   const [schedinaChamp, setSchedinaChamp] = useState('Tutti');
-  const [daysRange, setDaysRange] = useState(0);
+  const [daysRange, setDaysRange] = useState(1);
   const [schedinaMatches, setSchedinaMatches] = useState([]);
   const [schedinaSelections, setSchedinaSelections] = useState({});
   const [schedinaEntries, setSchedinaEntries] = useState([]);
@@ -2729,7 +2867,6 @@ function App() {
     return saved || 'pc';
   });
 
-  // Salvo la modalità visuale
   useEffect(() => {
     localStorage.setItem('ft_view_mode', viewMode);
     if (viewMode === 'mobile') {
@@ -2864,136 +3001,6 @@ function App() {
     showAlert('success', '✅ Giocata aggiunta alla Schedina!');
   };
 
-  const addToSchedinaDirect = (matchId, giocata) => {
-    const match = matches.find(m => m.id === matchId);
-    if (!match) return;
-    const entry = `${match.casa} vs ${match.ospiti} - ${giocata}`;
-    if (schedinaEntries.includes(entry)) { showAlert('info', '⚠️ Giocata già presente nella schedina.'); return; }
-    setSchedinaEntries(prev => [...prev, entry]);
-    const key = `${matchId}_${giocata}`;
-    setSchedinaSelections(prev => ({ ...prev, [key]: true }));
-    showAlert('success', '✅ Giocata aggiunta alla schedina!');
-  };
-
-  const resetCards = () => { setUsedMatchIds(new Set()); generateSchedina(); showAlert('info', '🔄 CARD ricalcolate!'); };
-
-  const generateSchedina = () => {
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const maxDate = new Date(today); maxDate.setDate(maxDate.getDate() + daysRange);
-    let filtered = matches.filter(m => {
-      if (m.stato !== 'Futura') return false;
-      if (!m.data) return false;
-      const matchDate = parseDate(m.data);
-      if (isNaN(matchDate.getTime())) return false;
-      matchDate.setHours(0, 0, 0, 0);
-      return matchDate >= today && matchDate <= maxDate;
-    });
-    if (schedinaChamp !== 'Tutti') filtered = filtered.filter(m => m.campionato === schedinaChamp);
-    if (filtered.length === 0) {
-      setUsedMatchIds(new Set());
-      const allFiltered = matches.filter(m => { if (m.stato !== 'Futura') return false; if (!m.data) return false; const matchDate = parseDate(m.data); if (isNaN(matchDate.getTime())) return false; matchDate.setHours(0, 0, 0, 0); return matchDate >= today; });
-      if (allFiltered.length === 0) { showAlert('error', '❌ Nessuna partita futura disponibile.'); setSchedinaMatches([]); return; }
-      filtered = allFiltered;
-    }
-    let available = filtered.filter(m => !usedMatchIds.has(m.id));
-    if (available.length === 0) { setUsedMatchIds(new Set()); available = filtered; }
-    const scoredMatches = available.map(m => {
-      const pct12Under45 = get12Under45(matches, m.casa, m.ospiti);
-      const homeRange = getMultigolRange(m.casa, matches);
-      const awayRange = getMultigolRange(m.ospiti, matches);
-      const stats = computeMatchStats(m, matches);
-      let freeCombo = { label: 'N/A', pct: 0 };
-      if (!stats.error) freeCombo = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
-      const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + freeCombo.pct) / 4);
-      return { ...m, score, homeRange, awayRange, pct12Under45, freeCombo };
-    });
-    scoredMatches.sort((a, b) => b.score - a.score);
-    const selected = scoredMatches.slice(0, numMatches);
-    const newUsed = new Set(usedMatchIds);
-    selected.forEach(m => newUsed.add(m.id));
-    setUsedMatchIds(newUsed);
-    setSchedinaMatches(selected);
-    setSchedinaSelections({});
-  };
-
-  const resetSchedina = () => { setSchedinaMatches([]); setSchedinaSelections({}); setSchedinaEntries([]); };
-
-  const saveSchedinaLocal = () => {
-    const data = { timestamp: new Date().toISOString(), entries: schedinaEntries, total: schedinaEntries.length };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `schedina_${Date.now()}.json`; a.click();
-    showAlert('success', '💾 Schedina salvata in locale!');
-  };
-
-  const saveSchedinaWithResult = (status, profitto = 0) => {
-    if (schedinaEntries.length === 0) { showAlert('info', 'ℹ️ Nessuna giocata da salvare.'); return; }
-    const entry = { timestamp: new Date().toISOString(), entries: schedinaEntries, total: schedinaEntries.length, status, profitto };
-    setSchedineHistory(prev => [...prev, entry]);
-    showAlert('success', `✅ Schedina salvata come ${status === 'win' ? 'VINTA' : 'PERSA'}!`);
-  };
-
-  const copySchedinaText = () => {
-    const text = schedinaEntries.map((e, i) => `${i+1}. ${e}`).join('\n');
-    navigator.clipboard.writeText(text).then(() => showAlert('success', '📋 Schedina copiata negli appunti!')).catch(() => showAlert('error', '❌ Errore durante la copia.'));
-  };
-
-  const exportSchedinaImage = async () => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const width = 600, lineHeight = 30, padding = 20;
-    const entries = schedinaEntries.length || 1;
-    const height = padding * 2 + (entries + 2) * lineHeight + 40;
-    canvas.width = width; canvas.height = height;
-    ctx.fillStyle = '#1a2028'; ctx.fillRect(0, 0, width, height);
-    ctx.fillStyle = '#f39c12'; ctx.font = 'bold 20px Arial'; ctx.fillText('📋 Schedina GesssAI-Pro', padding, 40);
-    ctx.fillStyle = '#8b949e'; ctx.font = '14px Arial'; ctx.fillText(`Data: ${new Date().toLocaleString()}`, padding, 70);
-    ctx.fillStyle = '#e6edf3'; ctx.font = '14px Arial';
-    entries.forEach((entry, i) => { const y = 100 + i * lineHeight; ctx.fillText(`${i+1}. ${entry}`, padding, y); });
-    ctx.fillStyle = '#f39c12'; ctx.font = 'bold 16px Arial'; ctx.fillText(`Totale: ${entries} giocate`, padding, 100 + entries * lineHeight + 10);
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-    if (!blob) { showAlert('error', '❌ Impossibile creare l\'immagine.'); return; }
-    try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); showAlert('success', '🖼️ Immagine copiata negli appunti!'); } catch (err) { const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `schedina_${Date.now()}.png`; link.click(); URL.revokeObjectURL(link.href); showAlert('success', '🖼️ Schedina esportata come immagine (download)!'); }
-  };
-
-  useEffect(() => { saveState({ championships, matches, apiKeys, theme, customTheme, schedineHistory }); }, [championships, matches, apiKeys, theme, customTheme, schedineHistory]);
-
-  useEffect(() => {
-    const t = theme === 'Custom' ? customTheme : THEMES[theme] || THEMES['Scuro Blu Notte'];
-    const root = document.documentElement;
-    Object.entries(t).forEach(([k, v]) => { root.style.setProperty(`--${k.replace(/([A-Z])/g, '-$1').toLowerCase()}`, v); });
-  }, [theme, customTheme]);
-
-  // Funzione per caricare il meteo
-  const fetchWeatherForMatch = async (match) => {
-    if (!match || !apiKeys['WorldWeatherOnline']) return null;
-    const city = getCityForMatch(match.casa, match.campionato);
-    if (!city) return null;
-    try {
-      const today = new Date();
-      const dateToUse = match.data || today.toISOString().slice(0, 10);
-      const r = await fetch(
-        `https://api.worldweatheronline.com/premium/v1/weather.ashx?q=${encodeURIComponent(city)}&format=json&date=${dateToUse}&key=${apiKeys['WorldWeatherOnline']}`
-      );
-      if (!r.ok) return null;
-      const data = await r.json();
-      const weather = data.data?.weather?.[0];
-      if (!weather) return null;
-      const hourly = weather.hourly?.[0] || {};
-      return {
-        temp: parseFloat(weather.tempC) || 0,
-        temp_min: parseFloat(weather.mintempC) || 0,
-        temp_max: parseFloat(weather.maxtempC) || 0,
-        weather: hourly.weatherDesc?.[0]?.value || weather.weatherDesc?.[0]?.value || 'N/A',
-        wind_speed: parseFloat(hourly.windspeedKmph) || parseFloat(weather.windspeedKmph) || 0,
-        rain: parseFloat(hourly.precipMM) || parseFloat(weather.precipMM) || 0,
-        humidity: parseFloat(hourly.humidity) || parseFloat(weather.humidity) || 0,
-        pressure: parseFloat(hourly.pressure) || parseFloat(weather.pressure) || 0,
-        forecast_date: dateToUse
-      };
-    } catch (e) { return null; }
-  };
-
   const showAlert = (type, text) => { setMessage({ type, text }); setTimeout(() => setMessage(null), 4000); };
   const selectMatch = (matchId) => { setSelectedMatchId(matchId); setTab('Statistiche'); };
   const testApiKey = async (name) => {
@@ -3041,17 +3048,52 @@ function App() {
 
   const selectedMatch = matches.find(m => m.id === selectedMatchId);
 
-  // Carica meteo quando si seleziona una partita
   useEffect(() => {
     if (selectedMatch && apiKeys['WorldWeatherOnline']) {
       const weatherKey = `${selectedMatch.campionato}_${selectedMatch.data}`;
       if (!weatherCache[weatherKey]) {
+        const fetchWeatherForMatch = async (match) => {
+          if (!match || !apiKeys['WorldWeatherOnline']) return null;
+          const city = getCityForMatch(match.casa, match.campionato);
+          if (!city) return null;
+          try {
+            const today = new Date();
+            const dateToUse = match.data || today.toISOString().slice(0, 10);
+            const r = await fetch(
+              `https://api.worldweatheronline.com/premium/v1/weather.ashx?q=${encodeURIComponent(city)}&format=json&date=${dateToUse}&key=${apiKeys['WorldWeatherOnline']}`
+            );
+            if (!r.ok) return null;
+            const data = await r.json();
+            const weather = data.data?.weather?.[0];
+            if (!weather) return null;
+            const hourly = weather.hourly?.[0] || {};
+            return {
+              temp: parseFloat(weather.tempC) || 0,
+              temp_min: parseFloat(weather.mintempC) || 0,
+              temp_max: parseFloat(weather.maxtempC) || 0,
+              weather: hourly.weatherDesc?.[0]?.value || weather.weatherDesc?.[0]?.value || 'N/A',
+              wind_speed: parseFloat(hourly.windspeedKmph) || parseFloat(weather.windspeedKmph) || 0,
+              rain: parseFloat(hourly.precipMM) || parseFloat(weather.precipMM) || 0,
+              humidity: parseFloat(hourly.humidity) || parseFloat(weather.humidity) || 0,
+              pressure: parseFloat(hourly.pressure) || parseFloat(weather.pressure) || 0,
+              forecast_date: dateToUse
+            };
+          } catch (e) { return null; }
+        };
         fetchWeatherForMatch(selectedMatch).then(w => {
           if (w) setWeatherCache(prev => ({ ...prev, [weatherKey]: w }));
         });
       }
     }
   }, [selectedMatch, apiKeys]);
+
+  useEffect(() => { saveState({ championships, matches, apiKeys, theme, customTheme, schedineHistory }); }, [championships, matches, apiKeys, theme, customTheme, schedineHistory]);
+
+  useEffect(() => {
+    const t = theme === 'Custom' ? customTheme : THEMES[theme] || THEMES['Scuro Blu Notte'];
+    const root = document.documentElement;
+    Object.entries(t).forEach(([k, v]) => { root.style.setProperty(`--${k.replace(/([A-Z])/g, '-$1').toLowerCase()}`, v); });
+  }, [theme, customTheme]);
 
   return (
     <div>
@@ -3128,9 +3170,12 @@ function App() {
               <div className="form-group" style={{maxWidth: '200px', marginBottom: '0', flex: '1'}}>
                 <label>Range Giorni</label>
                 <select value={daysRange} onChange={e => setDaysRange(parseInt(e.target.value))}>
-                  <option value="0">Oggi (0)</option><option value="1">Oggi - Domani (0-1)</option>
-                  <option value="2">Oggi - Dopodomani (0-2)</option><option value="3">Oggi - +3 giorni (0-3)</option>
-                  <option value="4">Oggi - +4 giorni (0-4)</option><option value="5">Oggi - +5 giorni (0-5)</option>
+                  <option value="0">Oggi (0)</option>
+                  <option value="1">Oggi - Domani (0-1)</option>
+                  <option value="2">Oggi - Dopodomani (0-2)</option>
+                  <option value="3">Oggi - +3 giorni (0-3)</option>
+                  <option value="4">Oggi - +4 giorni (0-4)</option>
+                  <option value="5">Oggi - +5 giorni (0-5)</option>
                   <option value="6">Oggi - +6 giorni (0-6)</option>
                 </select>
               </div>
@@ -3140,15 +3185,19 @@ function App() {
               try {
                 let futureMatches = matches.filter(m => m.stato === 'Futura');
                 if (selectedChamp !== 'Tutti') { futureMatches = futureMatches.filter(m => m.campionato === selectedChamp); }
-                const today = new Date(); today.setHours(0, 0, 0, 0);
-                const maxDate = new Date(today); maxDate.setDate(maxDate.getDate() + daysRange);
+                const todayStr = getTodayStr();
+                const maxDateStr = addDaysToDateStr(todayStr, daysRange);
                 const filteredByDays = futureMatches.filter(m => {
                   if (!m.data) return false;
-                  const matchDate = parseDate(m.data, m.ora || '00:00');
-                  if (isNaN(matchDate.getTime())) return false;
-                  matchDate.setHours(0, 0, 0, 0);
-                  return matchDate >= today && matchDate <= maxDate;
-                }).sort((a, b) => { const dateA = parseDate(a.data, a.ora || '00:00'); const dateB = parseDate(b.data, b.ora || '00:00'); return dateA - dateB; });
+                  const normalized = normalizeDate(m.data);
+                  if (!normalized) return false;
+                  return normalized >= todayStr && normalized <= maxDateStr;
+                }).sort((a, b) => {
+                  const dateA = normalizeDate(a.data);
+                  const dateB = normalizeDate(b.data);
+                  if (!dateA || !dateB) return 0;
+                  return dateA.localeCompare(dateB);
+                });
                 if (!filteredByDays || filteredByDays.length === 0) { return <div className="empty-state">Nessuna partita nei prossimi {daysRange + 1} giorni.</div>; }
                 return <div className="matches-grid">{filteredByDays.map(m => { const weatherKey = `${m.campionato}_${m.data}`; const weather = weatherCache[weatherKey] || null; return <MatchTab key={m.id} match={m} allMatches={matches} onSelect={selectMatch} addToSchedina={addToSchedina} weatherData={weather} />; })}</div>;
               } catch (e) { console.error('Errore rendering Palinsesto:', e); return <div className="empty-state">Errore nel caricamento delle partite: {e.message}</div>; }
@@ -3176,7 +3225,6 @@ function App() {
               <div>
                 {selectedMatch ? (
                   <div>
-                    {/* METEO PROFESSIONALE PER PRIMO */}
                     {(() => {
                       const city = getCityForMatch(selectedMatch.casa, selectedMatch.campionato);
                       const weatherKey = `${selectedMatch.campionato}_${selectedMatch.data}`;
@@ -3226,7 +3274,12 @@ function App() {
             {(() => {
               let playedMatches = matches.filter(m => m.stato === 'Giocata');
               if (selectedChamp !== 'Tutti') { playedMatches = playedMatches.filter(m => m.campionato === selectedChamp); }
-              playedMatches.sort((a, b) => { const dateA = parseDate(a.data, a.ora || '00:00'); const dateB = parseDate(b.data, b.ora || '00:00'); return dateB - dateA; });
+              playedMatches.sort((a, b) => {
+                const dateA = normalizeDate(a.data);
+                const dateB = normalizeDate(b.data);
+                if (!dateA || !dateB) return 0;
+                return dateB.localeCompare(dateA);
+              });
               if (playedMatches.length === 0) { return <div className="empty-state">Nessuna partita giocata.</div>; }
               return <div className="matches-grid">{playedMatches.map(m => <MatchTabHistory key={m.id} match={m} onSelect={selectMatch} />)}</div>;
             })()}
@@ -3374,7 +3427,6 @@ function App() {
         )}
       </div>
 
-      {/* Pulsante Home in sovraimpressione */}
       <button 
         className="home-btn-overlay" 
         onClick={() => setTab('Home')}
