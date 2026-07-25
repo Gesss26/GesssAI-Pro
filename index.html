@@ -26,18 +26,56 @@
     --pct-neutro: #8b949e;
     --pct-verde: #6fcf97;
     --pct-oro: #f39c12;
+    --xG-red: #eb5757;
+    --xG-white: #8b949e;
+    --xG-blue: #3498db;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
   body { background: var(--bg); color: var(--text); min-height: 100vh; }
+  
+  .giocata-pct {
+    display: inline-block;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 0px 4px;
+  }
+  .giocata-pct.flag-red { color: #eb5757 !important; }
+  .giocata-pct.flag-white { color: #8b949e !important; }
+  .giocata-pct.flag-green { color: #6fcf97 !important; }
+  .giocata-pct.flag-bomb { 
+    color: #000 !important; 
+    background: #f39c12; 
+    padding: 2px 10px; 
+    border-radius: 6px; 
+    animation: bomb-glow 1s infinite alternate; 
+    box-shadow: 0 0 15px rgba(243, 156, 18, 0.4);
+  }
+  
+  .xg-value {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 13px;
+    color: #000 !important;
+  }
+  .xg-value.xg-red { background: #eb5757; color: #000 !important; }
+  .xg-value.xg-white { background: #8b949e; color: #000 !important; }
+  .xg-value.xg-blue { background: #3498db; color: #000 !important; }
+  
+  @keyframes bomb-glow {
+    0% { box-shadow: 0 0 8px rgba(243, 156, 18, 0.4); }
+    50% { box-shadow: 0 0 25px rgba(243, 156, 18, 0.8); transform: scale(1.05); }
+    100% { box-shadow: 0 0 8px rgba(243, 156, 18, 0.4); }
+  }
+  .bomb-icon { display: inline-block; font-size: 18px; margin-left: 4px; animation: bomb-bounce 0.8s infinite ease-in-out; transform-origin: center; }
+  @keyframes bomb-bounce { 0% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.3) rotate(10deg); } 100% { transform: scale(1) rotate(0deg); } }
+  
   .pct-rosso { color: var(--pct-rosso) !important; font-weight: bold; }
   .pct-neutro { color: var(--pct-neutro) !important; font-weight: bold; }
   .pct-verde { color: var(--pct-verde) !important; font-weight: bold; }
   .pct-oro { color: var(--pct-oro) !important; font-weight: bold; text-shadow: 0 0 10px rgba(243, 156, 18, 0.3); }
-  .giocata-pct.flag-red { color: #eb5757; font-weight: bold; }
-  .giocata-pct.flag-neutral { color: #8b949e; font-weight: bold; }
-  .giocata-pct.flag-green { color: #6fcf97; font-weight: bold; }
-  .giocata-pct.flag-gold { color: #f39c12; font-weight: bold; text-shadow: 0 0 12px rgba(243, 156, 18, 0.5); }
-  .giocata-pct.flag-bomb { color: #000; font-weight: bold; background: var(--accent); padding: 2px 8px; border-radius: 6px; animation: bomb-glow 1s infinite alternate; }
+  
   .multigol-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; color: #000; margin: 0 2px; }
   .multigol-badge.range-01 { background: #8b949e; }
   .multigol-badge.range-02 { background: #f2c94c; }
@@ -46,6 +84,7 @@
   .multigol-badge.range-25 { background: #e67e22; }
   .multigol-badge.range-36 { background: #eb5757; }
   .multigol-badge.range-default { background: var(--accent); }
+  
   .header { background: var(--banner); padding: 16px 24px; border-bottom: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; gap: 16px; position: relative; }
   .header .header-left { position: absolute; left: 24px; display: flex; align-items: center; gap: 16px; }
   .header .header-center { text-align: center; }
@@ -64,10 +103,39 @@
   .matches-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
   @media (max-width: 1024px) { .matches-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 768px) { .matches-grid { grid-template-columns: 1fr; } }
+  
   .match-tab { background: var(--card); border-radius: 12px; padding: 14px 16px; margin-bottom: 0; border: 1px solid var(--border); border-left-width: 6px; box-shadow: 0 3px 10px rgba(0,0,0,0.4); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position: relative; }
   .match-tab:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.6); }
-  .match-tab .score-badge { position: absolute; top: 10px; right: 12px; background: var(--accent); color: #000; font-weight: bold; font-size: 18px; padding: 2px 10px; border-radius: 20px; border: 2px solid var(--accent2); }
-  .match-tab .bomb-indicator { position: absolute; top: 8px; left: 12px; font-size: 24px; animation: bomb-bounce 1s infinite ease-in-out; }
+  
+  /* Modifica lo score-badge per contenere sia la percentuale che la bomba */
+.match-tab .score-badge { 
+  position: absolute; 
+  top: 10px; 
+  right: 12px; 
+  background: var(--accent); 
+  color: #000; 
+  font-weight: bold; 
+  font-size: 18px; 
+  padding: 2px 10px; 
+  border-radius: 20px; 
+  border: 2px solid var(--accent2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 10;
+}
+.match-tab .score-badge .giocata-pct { 
+  font-size: 16px; 
+  padding: 0px 4px; 
+  background: transparent;
+}
+.match-tab .score-badge .bomb-inline { 
+  font-size: 22px; 
+  animation: bomb-bounce 1s infinite ease-in-out;
+  line-height: 1;
+  display: inline-block;
+}
+  
   .match-tab-history { background: var(--card); border-radius: 12px; padding: 14px 16px; margin-bottom: 0; border: 1px solid var(--border); border-left-width: 6px; box-shadow: 0 3px 10px rgba(0,0,0,0.4); flex: 1; min-width: 300px; max-width: 420px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
   .match-tab-history:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.6); }
   .match-tab-history .teams-row { display: flex; justify-content: space-around; align-items: center; padding: 4px 0; }
@@ -75,10 +143,12 @@
   .match-tab-history .score-win { color: var(--win); }
   .match-tab-history .score-draw { color: var(--draw); }
   .match-tab-history .score-loss { color: var(--lose); }
+  
   .teams-row { display: flex; justify-content: space-around; align-items: center; padding: 8px 0; }
   .team { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
   .team-name { font-weight: bold; font-size: 20px; text-align: center; }
   .vs { font-size: 18px; color: var(--accent); font-weight: bold; padding: 0 8px; }
+  
   .form-row-compact { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; margin-bottom: 6px; }
   .form-block-compact { text-align: center; padding: 8px 6px; background: var(--surface); border-radius: 6px; }
   .form-block-compact .form-label { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; font-weight: 600; }
@@ -92,20 +162,75 @@
   .form-bar-fill { height: 100%; background: linear-gradient(90deg, var(--win), var(--accent)); transition: width 0.3s; }
   .form-diff { text-align: center; font-size: 16px; font-weight: bold; color: var(--text-muted); margin-top: 6px; padding: 4px 8px; background: var(--surface); border-radius: 6px; }
   .form-diff span { font-weight: bold; color: var(--accent); font-size: 18px; }
+  
   .form-xg { display: flex; justify-content: space-around; align-items: center; padding: 4px 0; margin-top: 2px; font-size: 13px; color: var(--text-muted); background: var(--surface); border-radius: 6px; }
   .form-xg .xg-home { color: var(--accent); font-weight: bold; }
   .form-xg .xg-away { color: var(--accent); font-weight: bold; }
-  .bet-row { display: flex; justify-content: space-around; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
-  .bet-item { background: var(--surface); padding: 4px 8px; border-radius: 6px; font-size: 11px; border: 1px solid var(--border); text-align: center; flex: 1; min-width: 60px; cursor: pointer; transition: background 0.2s; }
-  .bet-item:hover { background: var(--card); }
-  .bet-item .bet-label { font-size: 9px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.2px; color: var(--text-muted); }
-  .bet-item .bet-value { font-weight: bold; font-size: 13px; color: var(--text); }
-  .bet-item.bomb { border-color: var(--accent); background: var(--accent); animation: bomb-glow 1s infinite alternate; }
-  .bet-item.bomb .bet-value { color: #000 !important; }
-  .bet-item.bomb .bet-label { color: #000 !important; }
-  .bet-item.bomb .bet-value .pct-verde, .bet-item.bomb .bet-value .pct-oro, .bet-item.bomb .bet-value .pct-neutro, .bet-item.bomb .bet-value .pct-rosso { color: #000 !important; }
+  
+  .bet-row-vertical { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 4px; 
+    margin-top: 8px; 
+  }
+  .bet-item-vertical { 
+    background: var(--surface); 
+    padding: 4px 10px; 
+    border-radius: 6px; 
+    font-size: 12px; 
+    border: 1px solid var(--border); 
+    text-align: center; 
+    cursor: pointer; 
+    transition: background 0.2s; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  .bet-item-vertical:hover { background: var(--card); }
+  .bet-item-vertical .bet-label { 
+    font-size: 11px; 
+    text-transform: uppercase; 
+    font-weight: 600; 
+    letter-spacing: 0.2px; 
+    color: var(--text-muted);
+    flex: 0 0 auto;
+  }
+  .bet-item-vertical .bet-value { 
+    font-weight: bold; 
+    font-size: 13px; 
+    color: var(--text);
+    flex: 1;
+    text-align: right;
+  }
+  .bet-item-vertical .bet-value .giocata-pct { 
+    font-size: 14px; 
+    padding: 2px 8px; 
+    border-radius: 4px; 
+    display: inline-block; 
+  }
+  .bet-item-vertical.bomb { 
+    border-color: var(--accent); 
+    background: var(--accent); 
+    animation: bomb-glow 1s infinite alternate; 
+  }
+  .bet-item-vertical.bomb .bet-value { color: #000 !important; }
+  .bet-item-vertical.bomb .bet-label { color: #000 !important; }
+  .bet-item-vertical .bet-value .combinata-detail {
+    font-size: 11px;
+    line-height: 1.4;
+    text-align: right;
+  }
+  .bet-item-vertical .bet-value .combinata-detail .team-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    align-items: center;
+  }
+  
   .tab-header { padding: 4px 12px; border-radius: 6px; margin-bottom: 6px; text-align: center; color: #fff; font-weight: bold; font-size: 13px; display: inline-block; }
   .match-info { text-align: center; color: var(--text-muted); font-size: 12px; margin-bottom: 6px; }
+  
   .standings-table-wrap { overflow-x: auto; }
   .standings-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 600px; }
   .standings-table th { background: var(--surface); color: var(--text-muted); padding: 8px 6px; text-align: left; border-bottom: 2px solid var(--border); font-weight: 600; text-transform: uppercase; font-size: 11px; white-space: nowrap; }
@@ -116,9 +241,11 @@
   .standings-table .team-name { font-weight: bold; }
   .standings-table .num { text-align: center; }
   .standings-table .points { font-weight: bold; color: var(--accent); text-align: center; }
+  
   .sub-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
   .sub-tabs button { padding: 8px 16px; background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 13px; }
   .sub-tabs button.active { background: var(--accent); color: #000; border-color: var(--accent); }
+  
   .detail-section { margin-bottom: 20px; }
   .detail-section h4 { color: var(--accent); margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
   .detail-stat-box { padding: 8px 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border); background: var(--surface); transition: background 0.2s, transform 0.1s; min-width: 60px; flex: 1; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -136,10 +263,10 @@
   .detail-stat-box.flag-gold .value { color: #000; }
   .detail-stat-box.flag-bomb { background: var(--accent); animation: bomb-glow 1s infinite alternate; }
   .detail-stat-box.flag-bomb .value { color: #000; }
-  @keyframes bomb-bounce { 0% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.3) rotate(10deg); } 100% { transform: scale(1) rotate(0deg); } }
-  @keyframes bomb-glow { 0% { box-shadow: 0 0 8px var(--accent); } 100% { box-shadow: 0 0 30px #ffaa00; } }
+  
   .detail-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
   .detail-row .detail-stat-box { flex: 1; min-width: 60px; }
+  
   .opponents-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin: 8px 0; }
   .opponents-col { flex: 1; min-width: 120px; background: var(--surface); padding: 8px; border-radius: 6px; }
   .opponents-col .opp-item { font-size: 12px; padding: 2px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
@@ -151,9 +278,24 @@
   .opp-form-pct { font-size: 24px; font-weight: bold; color: var(--accent); text-align: center; margin-top: 6px; }
   .opp-form-bar { height: 8px; background: var(--card); border-radius: 4px; overflow: hidden; margin-top: 4px; }
   .opp-form-bar-fill { height: 100%; background: linear-gradient(90deg, var(--win), var(--accent)); transition: width 0.3s; }
+  
   .stats-two-col { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; }
   @media (max-width: 768px) { .stats-two-col { grid-template-columns: 1fr; } }
   .stats-placeholder { text-align: center; padding: 40px; color: var(--text-muted); font-size: 16px; }
+  
+  .ai-analysis-box .weather-display { background: var(--card); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; border: 1px solid var(--border); }
+  .ai-analysis-box .weather-display .weather-main { display: flex; align-items: center; gap: 12px; }
+  .ai-analysis-box .weather-display .weather-icon { font-size: 32px; }
+  .ai-analysis-box .weather-display .weather-temp { font-size: 24px; font-weight: bold; color: var(--accent); }
+  .ai-analysis-box .weather-display .weather-desc { font-size: 13px; color: var(--text-muted); }
+  .ai-analysis-box .weather-display .weather-details { display: flex; gap: 16px; font-size: 12px; color: var(--text-muted); }
+  @media (max-width: 768px) { .ai-analysis-box .weather-display { flex-direction: column; align-items: flex-start; } .ai-analysis-box .weather-display .weather-details { flex-wrap: wrap; gap: 8px; } }
+  
+  .ai-analysis-loading { text-align: center; padding: 20px; color: var(--text-muted); font-size: 14px; }
+  .ai-analysis-error { background: var(--surface); padding: 14px 16px; border-radius: 8px; margin-top: 16px; border-left: 4px solid var(--lose); text-align: center; }
+  .ai-analysis-error .btn-go-key { margin-top: 8px; background: var(--accent); border: none; padding: 6px 16px; border-radius: 6px; color: #000; font-weight: bold; cursor: pointer; }
+  .ai-analysis-error .btn-go-key:hover { background: var(--accent2); }
+  
   .freq-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -8px; padding: 0 8px; }
   .freq-table { width: 100%; min-width: 400px; border-collapse: collapse; font-size: 16px; }
   .freq-table th { background: var(--surface); color: var(--text-muted); padding: 10px 12px; text-align: center; border-bottom: 2px solid var(--border); font-weight: 700; font-size: 14px; text-transform: uppercase; white-space: nowrap; }
@@ -168,8 +310,10 @@
   .freq-result-badge.draw { background: var(--draw); color: #000; }
   .freq-result-badge.loss { background: var(--lose); color: #fff; }
   .card:has(.freq-table) h4, .card:has(.freq-table-wrap) h4 { font-size: 18px !important; }
+  
   @media (max-width: 768px) { .freq-table { font-size: 14px; min-width: 350px; } .freq-table th { font-size: 12px; padding: 6px 6px; } .freq-table td { font-size: 14px; padding: 6px 6px; } .freq-table td:first-child { font-size: 15px; } .freq-table td:nth-child(2) { font-size: 19px; } .freq-table td:nth-child(3) { font-size: 15px; } .freq-table td:nth-child(4) { font-size: 15px; } .freq-table td:nth-child(4) .form-bar { height: 6px; width: 40px; } }
   @media (max-width: 480px) { .freq-table { font-size: 12px; min-width: 280px; } .freq-table th { font-size: 10px; padding: 4px 4px; } .freq-table td { font-size: 12px; padding: 4px 4px; } .freq-table td:first-child { font-size: 13px; } .freq-table td:nth-child(2) { font-size: 16px; } .freq-table td:nth-child(3) { font-size: 13px; } .freq-table td:nth-child(4) { font-size: 13px; } .freq-table td:nth-child(4) .form-bar { height: 5px; width: 30px; } }
+  
   .intervalli-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 8px; }
   .interval-item { background: var(--surface); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
   .weather-impact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 8px; }
@@ -178,6 +322,7 @@
   .weather-stat .weather-label { font-size: 12px; font-weight: bold; text-transform: capitalize; margin: 4px 0; }
   .weather-stat .weather-pct { font-size: 11px; margin: 4px 0; }
   .weather-stat .weather-count { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+  
   .schedina-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
   .schedina-controls .left-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .schedina-controls .left-group select { padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; min-width: 150px; }
@@ -190,6 +335,7 @@
   .schedina-controls .btn-generate:hover { background: var(--accent2); }
   .schedina-controls .btn-reset-cards { background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
   .schedina-controls .btn-reset-cards:hover { border-color: var(--accent); background: var(--card); }
+  
   .schedina-match-card { background: var(--card); border: 1px solid var(--border); border-left-width: 6px; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.4); transition: transform 0.15s, box-shadow 0.15s; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
   .schedina-match-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.6); }
   .schedina-match-card .match-info { flex: 1; min-width: 150px; }
@@ -200,6 +346,7 @@
   .schedina-match-card .giocate .giocata-btn:hover { border-color: var(--accent); background: var(--card); }
   .schedina-match-card .giocate .giocata-btn.disabled { opacity: 0.4; cursor: not-allowed; background: #3a3f4a; border-color: #3a3f4a; color: #888; }
   .schedina-match-card .giocate .giocata-btn.disabled:hover { border-color: #3a3f4a; background: #3a3f4a; }
+  
   .schedina-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
   .schedina-actions button { padding: 6px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; transition: all 0.2s; font-size: 13px; }
   .schedina-actions button:hover { border-color: var(--accent); background: var(--card); }
@@ -207,10 +354,12 @@
   .schedina-actions .btn-reset:hover { background: var(--lose); color: #fff; }
   .schedina-actions .btn-save { border-color: var(--win); color: var(--win); }
   .schedina-actions .btn-save:hover { background: var(--win); color: #000; }
+  
   .schedina-list { margin-top: 16px; background: var(--surface); padding: 12px; border-radius: 8px; border-left: 4px solid var(--accent); }
   .schedina-list .entry { padding: 4px 0; border-bottom: 1px solid var(--border); font-size: 14px; display: flex; justify-content: space-between; }
   .schedina-list .entry:last-child { border-bottom: none; }
   .schedina-list .entry .remove-btn { color: var(--lose); cursor: pointer; margin-left: 8px; }
+  
   .schedina-output { background: var(--surface); padding: 16px; border-radius: 8px; white-space: pre-wrap; font-family: monospace; font-size: 13px; margin-top: 12px; border-left: 4px solid var(--accent); }
   .ai-result { background: var(--surface); padding: 16px; border-radius: 8px; margin-top: 16px; border-left: 4px solid var(--accent); }
   .ai-result h2 { margin-bottom: 8px; font-size: 18px; }
@@ -222,6 +371,7 @@
   .ai-result .consiglio-card .percentuale { font-size: 28px; font-weight: bold; margin-top: 4px; }
   .ai-result .consiglio-card .percentuale.flag-bomb { animation: bomb-glow 1s infinite alternate; display: inline-block; }
   .ai-result .analisi-testo { margin-top: 10px; font-size: 13px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 10px; }
+  
   .schedina-history-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 8px; }
   .schedina-history-item:last-child { border-bottom: none; }
   .schedina-history-item .date { font-size: 12px; color: var(--text-muted); }
@@ -230,50 +380,64 @@
   .schedina-history-item .status.win { background: var(--win); color: #000; }
   .schedina-history-item .status.loss { background: var(--lose); color: #fff; }
   .schedina-history-item .status.pending { background: var(--draw); color: #000; }
+  
   .perf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 12px 0; }
   .perf-card { background: var(--surface); padding: 16px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
   .perf-card .perf-value { font-size: 28px; font-weight: bold; }
   .perf-card .perf-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  
   .heatmap-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
   .heatmap-table th { background: var(--surface); color: var(--text-muted); padding: 8px 6px; text-align: center; border-bottom: 2px solid var(--border); font-weight: 600; font-size: 11px; }
   .heatmap-table td { padding: 6px; text-align: center; border-bottom: 1px solid var(--border); }
   .heatmap-table tr:hover td { background: var(--card); }
   .heatmap-table tr.clickable { cursor: pointer; }
   .heatmap-table tr.clickable:hover td { background: var(--surface); }
+  
   .home-widget { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 2px solid var(--accent); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
   .home-widget .day-selector { display: flex; gap: 4px; background: var(--surface); border-radius: 8px; padding: 3px; }
   .home-widget .day-selector button { padding: 4px 12px; border: none; background: transparent; color: var(--text-muted); border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
   .home-widget .day-selector button.active { background: var(--accent); color: #000; font-weight: bold; }
   .home-widget .day-selector button:hover:not(.active) { color: var(--text); }
+  
   .top-pick { animation: slideIn 0.3s ease-out; background: var(--surface); padding: 12px 16px; border-radius: 8px; margin: 12px 0; border-left: 4px solid var(--accent); }
   @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  
   .giocata-item { padding: 8px 12px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s; border-radius: 6px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .giocata-item:hover { background: var(--surface); }
+  
   .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
   .theme-card { padding: 16px; border-radius: 10px; cursor: pointer; text-align: center; border: 2px solid var(--border); transition: all 0.2s; }
   .theme-card:hover { transform: translateY(-2px); }
   .theme-card.active { border-color: var(--accent); box-shadow: 0 0 12px var(--accent); }
   .theme-name { font-weight: bold; margin-bottom: 6px; }
+  
   .champ-list { margin-top: 14px; }
   .champ-item { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 12px; border-radius: 8px; margin-bottom: 8px; }
+  
   .tabs-sub { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
   .tabs-sub button { padding: 8px 16px; background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 13px; }
   .tabs-sub button.active { background: var(--accent); color: #000; border-color: var(--accent); }
+  
   .alert { padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; }
   .alert-info { background: #2980b9; color: #fff; }
   .alert-success { background: var(--win); color: #000; }
   .alert-error { background: var(--lose); color: #fff; }
+  
   .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
   input, select, textarea { width: 100%; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-size: 14px; }
   input:focus, select:focus { outline: none; border-color: var(--accent); }
+  
   button.btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; background: var(--accent); color: #000; transition: all 0.2s; font-size: 14px; }
   button.btn:hover { background: var(--accent2); transform: translateY(-1px); }
   button.btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
   button.btn-danger { background: var(--lose); color: #fff; }
+  
   .form-group { margin-bottom: 14px; }
   .form-group label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-muted); font-weight: 600; }
+  
   .color-picker-row { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
   .color-picker-row input[type="color"] { width: 60px; height: 40px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
+  
   .heatmap-detail-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
   .heatmap-detail-modal { background: var(--card); border: 2px solid var(--accent); border-radius: 16px; padding: 24px; max-width: 700px; width: 100%; max-height: 80vh; overflow-y: auto; position: relative; }
   .heatmap-detail-modal .close-btn { position: absolute; top: 12px; right: 16px; background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; }
@@ -297,8 +461,10 @@
     height: auto !important;
   }
   .home-btn-overlay:hover { transform: scale(1.2) !important; }
-  @media (max-width: 768px) { .home-btn-overlay { font-size: 38px !important; bottom: 20px; right: 20px; } }
-
+  @media (max-width: 768px) {
+    .home-btn-overlay { font-size: 38px !important; bottom: 20px; right: 20px; }
+  }
+  
   .weather-professionale {
     background: linear-gradient(135deg, var(--card), var(--surface));
     border-radius: 16px;
@@ -325,7 +491,7 @@
   .risk-badge.low { background: var(--win); color: #000; }
   .risk-badge.medium { background: var(--draw); color: #000; }
   .risk-badge.high { background: var(--lose); color: #fff; }
-
+  
   .analisi-compact { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
   .analisi-compact .card { padding: 12px; margin-bottom: 0; height: auto; min-height: auto; }
   .analisi-compact .card h4 { font-size: 13px; margin-bottom: 4px; }
@@ -336,20 +502,38 @@
   .analisi-compact .freq-table td:nth-child(2) { font-size: 16px; }
   .analisi-compact .form-bar { height: 4px; }
   @media (max-width: 768px) { .analisi-compact { grid-template-columns: 1fr; } }
+  
   .analisi-compact .weather-impact-grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
   .analisi-compact .weather-stat { padding: 8px; }
   .analisi-compact .weather-stat .weather-icon { font-size: 20px; }
   .analisi-compact .weather-stat .weather-label { font-size: 10px; }
   .analisi-compact .weather-stat .weather-pct { font-size: 10px; }
-
+  
   .citta-meteo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-top: 8px; max-height: 300px; overflow-y: auto; padding-right: 8px; }
   .citta-meteo-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; background: var(--surface); border-radius: 6px; border: 1px solid var(--border); font-size: 13px; }
   .citta-meteo-item .citta-nome { font-weight: bold; color: var(--text); }
   .citta-meteo-item .citta-squadre { font-size: 11px; color: var(--text-muted); }
   .citta-meteo-item .citta-weather { color: var(--accent); }
-
-  @media (max-width: 768px) { .match-tab, .match-tab-history { min-width: 100%; max-width: 100%; } .header { flex-direction: column; align-items: center; padding: 12px; } .header .header-left { position: static; } .clock { position: static; width: 100%; text-align: center; margin-top: 8px; } .schedina-controls .btn-generate { margin-left: 0; } .schedina-controls .right-group { margin-left: 0; width: 100%; } .schedina-match-card { flex-direction: column; align-items: stretch; } .schedina-match-card .giocate { justify-content: center; } .stats-two-col { grid-template-columns: 1fr; } .home-widget .day-selector { flex-direction: row; flex-wrap: wrap; } .giocata-item { flex-direction: column; align-items: stretch; text-align: center; } .heatmap-detail-modal { padding: 16px; margin: 10px; max-height: 90vh; } .freq-table { min-width: 280px; font-size: 11px; } .freq-table th, .freq-table td { padding: 4px 3px; font-size: 10px; } .standings-table { min-width: 400px; font-size: 11px; } }
-  @media (max-width: 480px) { .freq-table { min-width: 220px; font-size: 10px; } .standings-table { min-width: 300px; font-size: 10px; } .standings-table th, .standings-table td { padding: 3px 2px; } .match-tab .score-badge { font-size: 14px; padding: 1px 8px; } .team-name { font-size: 16px; } .detail-stat-box .value { font-size: 16px; } }
+  
+  .flag-icon {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 6px;
+    width: 20px;
+    height: 15px;
+    border-radius: 2px;
+    object-fit: cover;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  .campionato-con-bandiera {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  
+  @media (max-width: 768px) { .match-tab, .match-tab-history { min-width: 100%; max-width: 100%; } .header { flex-direction: column; align-items: center; padding: 12px; } .header .header-left { position: static; } .clock { position: static; width: 100%; text-align: center; margin-top: 8px; } .schedina-controls .btn-generate { margin-left: 0; } .schedina-controls .right-group { margin-left: 0; width: 100%; } .schedina-match-card { flex-direction: column; align-items: stretch; } .schedina-match-card .giocate { justify-content: center; } .stats-two-col { grid-template-columns: 1fr; } .home-widget .day-selector { flex-direction: row; flex-wrap: wrap; } .giocata-item { flex-direction: column; align-items: stretch; text-align: center; } .heatmap-detail-modal { padding: 16px; margin: 10px; max-height: 90vh; } .ai-analysis-box .pronostico-mini { grid-template-columns: 1fr 1fr; } .freq-table { min-width: 280px; font-size: 11px; } .freq-table th, .freq-table td { padding: 4px 3px; font-size: 10px; } .affidabilita-grid { grid-template-columns: 1fr 1fr; } .intervalli-grid { grid-template-columns: 1fr 1fr; } .weather-impact-grid { grid-template-columns: 1fr 1fr; } .ai-analysis-box .consigli-grid { grid-template-columns: 1fr; } .ai-result .consigli-grid { grid-template-columns: 1fr; } .standings-table { min-width: 400px; font-size: 11px; } }
+  @media (max-width: 480px) { .affidabilita-grid { grid-template-columns: 1fr; } .intervalli-grid { grid-template-columns: 1fr; } .weather-impact-grid { grid-template-columns: 1fr; } .ai-analysis-box .pronostico-mini { grid-template-columns: 1fr; } .freq-table { min-width: 220px; font-size: 10px; } .standings-table { min-width: 300px; font-size: 10px; } .standings-table th, .standings-table td { padding: 3px 2px; } .match-tab .score-badge { font-size: 14px; padding: 1px 8px; } .team-name { font-size: 16px; } .detail-stat-box .value { font-size: 16px; } }
 </style>
 </head>
 <body>
@@ -378,8 +562,55 @@ const CHAMPIONSHIP_COLORS = {
   'Championship': '#6c3483', 'La Liga': '#e74c3c', 'Liga MX': '#16a085',
   'Veikkausliiga': '#e67e22', 'Danish Superliga': '#27ae60', 'Pro League': '#2980b9',
   'J1 League': '#e74c3c', 'K League 1': '#f39c12', 'Swiss Super League': '#8e44ad',
-  'Austrian Bundesliga': '#2c3e50', 'Chinese Super League': '#c0392b',
+  'Austrian Bundesliga': '#2c3e50', 'Chinese Super League': '#1a8a3f',
   'Premier Division': '#16a085', 'Besta deild': '#d35400', 'Liga Portugal Betclic': '#1abc9c'
+};
+
+const CHAMPIONSHIP_COUNTRY = {
+  'Serie A': 'IT', 'Premier League': 'GB', 'Bundesliga': 'DE', 'Ligue 1': 'FR', 'La Liga': 'ES',
+  'Eredivisie': 'NL', 'Primeira Liga': 'PT', 'Allsvenskan': 'SE', 'Eliteserien': 'NO',
+  'Danish Superliga': 'DK', 'Pro League': 'BE', 'Championship': 'GB', 'Liga MX': 'MX',
+  'Brasileirão': 'BR', 'J1 League': 'JP', 'K League 1': 'KR', 'Swiss Super League': 'CH',
+  'Austrian Bundesliga': 'AT', 'Chinese Super League': 'CN', 'Premier Division': 'IE',
+  'Besta deild': 'IS', 'Liga Portugal Betclic': 'PT', 'FIFA World Cup 2026': 'US',
+  'Veikkausliiga': 'FI', 'Russian Premier League': 'RU',
+};
+
+const getCountryFlagHtml = (champName) => {
+  if (!champName) return '<span class="flag-emoji">🌍</span>';
+  let countryCode = null;
+  for (const [key, code] of Object.entries(CHAMPIONSHIP_COUNTRY)) {
+    if (champName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(champName.toLowerCase())) {
+      countryCode = code;
+      break;
+    }
+  }
+  if (!countryCode) return '<span class="flag-emoji">🌍</span>';
+  const codeLower = countryCode.toLowerCase();
+  return `<img src="https://flagcdn.com/${codeLower}.svg" alt="${countryCode}" class="flag-icon" width="20" height="15" loading="lazy" style="display:inline-block; vertical-align:middle; margin-right:6px; width:20px; height:15px; border-radius:2px; object-fit:cover; box-shadow: 0 1px 2px rgba(0,0,0,0.3);" />`;
+};
+
+const getPercentualeClasse = (valore) => {
+  if (valore >= 90) return 'flag-bomb';
+  if (valore >= 66.67) return 'flag-green';
+  if (valore >= 33.34) return 'flag-white';
+  return 'flag-red';
+};
+
+// Funzione per ottenere il colore in base alla percentuale (per i testi)
+const getColorForPct = (valore) => {
+  if (valore >= 90) return '#f39c12';  // Giallo per la bomba
+  if (valore >= 66.67) return '#6fcf97'; // Verde
+  if (valore >= 33.34) return '#8b949e'; // Grigio
+  return '#eb5757'; // Rosso
+};
+
+const getXgClasse = (valore) => {
+  const num = parseFloat(valore);
+  if (isNaN(num)) return 'xg-white';
+  if (num >= 2) return 'xg-blue';
+  if (num >= 1) return 'xg-white';
+  return 'xg-red';
 };
 
 const CITTÀ_PER_CAMPIONATO = {
@@ -526,9 +757,9 @@ const getCityForMatch = (homeTeam, championship) => {
 };
 
 const getBlacklist = () => { try { return JSON.parse(localStorage.getItem('ft_sofablacklist') || '[]'); } catch(e) { return []; } };
-const saveBlacklist = (blacklist) => { try { localStorage.setItem('ft_sofablacklist', JSON.stringify(blacklist)); } catch(e) {} };
+const saveBlacklist = (blacklist) => localStorage.setItem('ft_sofablacklist', JSON.stringify(blacklist));
 const getCustomSofaLeagues = () => { try { return JSON.parse(localStorage.getItem('ft_sofaleagues') || '[]'); } catch(e) { return []; } };
-const saveCustomSofaLeagues = (leagues) => { try { localStorage.setItem('ft_sofaleagues', JSON.stringify(leagues)); } catch(e) {} };
+const saveCustomSofaLeagues = (leagues) => localStorage.setItem('ft_sofaleagues', JSON.stringify(leagues));
 
 const getVisibleLeagues = (customLeagues) => {
   const blacklist = getBlacklist();
@@ -597,13 +828,6 @@ const parseDate = (dateStr, timeStr = '00:00') => {
     return new Date(year, month, day, hours, minutes);
   }
   try { return new Date(dateStr + ' ' + (timeStr || '00:00')); } catch(e) { return new Date(0); }
-};
-
-const getPercentualeClasse = (valore) => {
-  if (valore < 33.34) return 'flag-red';
-  if (valore < 66.67) return 'flag-neutral';
-  if (valore < 90) return 'flag-green';
-  return 'flag-gold';
 };
 
 const calcFormAndStats = (matches, teamName) => {
@@ -945,36 +1169,74 @@ const Standings = ({ matches, filterChampionship, highlightTeams = [] }) => {
   );
 };
 
+// ---------- MATCH TAB MODIFICATO ----------
 const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) => {
   if (!match) return null;
   const homeForm = calcFormAndStats(allMatches, match.casa);
   const awayForm = calcFormAndStats(allMatches, match.ospiti);
   const champColor = getChampColor(match.campionato);
+  const flagHtml = getCountryFlagHtml(match.campionato);
   const diff = Math.abs(homeForm.pct - awayForm.pct);
+  
   const renderFormSquares = (formStr) => {
     if (!formStr) return <span>N/D</span>;
     return [...formStr].map((letter, idx) => <div key={idx} className={`form-square form-square-${letter}`}>{letter}</div>);
   };
+  
   const pct12Under45 = get12Under45(allMatches, match.casa, match.ospiti);
   const homeRange = getMultigolRange(match.casa, allMatches);
   const awayRange = getMultigolRange(match.ospiti, allMatches);
   const stats = computeMatchStats(match, allMatches);
-  let freeCombo = { label: 'N/A', pct: 0 };
-  if (!stats.error) freeCombo = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
-  const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + freeCombo.pct) / 4);
+  let over15Pct = 0;
+  if (!stats.error && stats.underOver && stats.underOver[0]) {
+    over15Pct = Math.round(stats.underOver[0].over);
+  }
+  const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + over15Pct) / 4);
   const mediaCombinata = Math.round((homeRange.pct + awayRange.pct) / 2);
-  const hasBomb = pct12Under45 >= 90 || homeRange.pct >= 90 || awayRange.pct >= 90 || freeCombo.pct >= 90;
+  const hasBomb = pct12Under45 >= 90 || homeRange.pct >= 90 || awayRange.pct >= 90 || over15Pct >= 90;
+  
   const handleClick = (e) => { e.stopPropagation(); onSelect(match.id); };
   const addBet1 = (e) => { e.stopPropagation(); const text = `Giocata 12+U4.5: ${Math.round(pct12Under45)}% (${match.casa} vs ${match.ospiti})`; addToSchedina(text); };
-  const addBet2 = (e) => { e.stopPropagation(); const text = `Combinata:\n${match.casa}: (${homeRange.label})\n${match.ospiti}: (${awayRange.label})\nMedia: ${mediaCombinata}%`; addToSchedina(text); };
-  const addBet3 = (e) => { e.stopPropagation(); const text = `Libera: ${freeCombo.label} (${freeCombo.pct}%) - ${match.casa} vs ${match.ospiti}`; addToSchedina(text); };
+  const addBet2 = (e) => { e.stopPropagation(); const text = `Combinata:\n${match.casa}: (${homeRange.label}) - ${homeRange.pct}%\n${match.ospiti}: (${awayRange.label}) - ${awayRange.pct}%\nMedia: ${mediaCombinata}%`; addToSchedina(text); };
+  const addBet3 = (e) => { e.stopPropagation(); const text = `Over 1.5: ${over15Pct}% (${match.casa} vs ${match.ospiti})`; addToSchedina(text); };
+  
   const formattedDate = match.data ? formatDateEU(match.data) : 'N/D';
   const matchTime = match.ora || 'TBD';
+
+  const renderPct = (value) => {
+    const rounded = Math.round(value);
+    const cls = getPercentualeClasse(rounded);
+    return <span className={`giocata-pct ${cls}`}>{rounded}%</span>;
+  };
+
+  const renderXgValue = (value) => {
+    const num = parseFloat(value);
+    if (isNaN(num)) return <span className="xg-value xg-white">N/A</span>;
+    const cls = getXgClasse(num);
+    return <span className={`xg-value ${cls}`}>{num.toFixed(1)}</span>;
+  };
+
+  // Funzione per ottenere il colore in base alla percentuale (per i testi delle giocate)
+  const getColorForPct = (valore) => {
+    if (valore >= 90) return '#f39c12';
+    if (valore >= 66.67) return '#6fcf97';
+    if (valore >= 33.34) return '#8b949e';
+    return '#eb5757';
+  };
+
   return (
     <div className="match-tab" style={{borderLeftColor: champColor}} onClick={handleClick}>
-      {hasBomb && <div className="bomb-indicator">💣</div>}
-      <div className="score-badge">{isNaN(score) ? 0 : score}%</div>
-      <div className="tab-header" style={{background: champColor}}>📊 {match.campionato || 'N/D'}</div>
+      <div className="score-badge">
+        <span className={`giocata-pct ${getPercentualeClasse(score)}`}>{isNaN(score) ? 0 : score}%</span>
+        {hasBomb && <span className="bomb-inline">💣</span>}
+      </div>
+      
+      <div className="tab-header" style={{background: champColor}}>
+        <span className="campionato-con-bandiera">
+          <span dangerouslySetInnerHTML={{ __html: flagHtml }} />
+          {match.campionato || 'N/D'}
+        </span>
+      </div>
       <div className="match-info">{match.campionato || 'N/D'} - Giornata: {match.round || 'N/A'}</div>
       <div className="match-info">📅 {formattedDate} - ⏰ {matchTime}</div>
       {weatherData && <div className="match-info"><WeatherBadge weatherData={weatherData} city={getCityForMatch(match.casa, match.campionato)} /></div>}
@@ -999,25 +1261,41 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
       </div>
       <div className="form-diff">📊 Differenza forma: <span>{isNaN(diff) ? 0 : diff}%</span></div>
       <div className="form-xg">
-        <span className="xg-home">⚽ xG {match.casa}: {homeForm.mediaGolFatti || '0.0'}</span>
-        <span className="xg-away">⚽ xG {match.ospiti}: {awayForm.mediaGolFatti || '0.0'}</span>
+        <span className="xg-home">⚽ xG {match.casa}: {renderXgValue(homeForm.mediaGolFatti || 0)}</span>
+        <span className="xg-away">⚽ xG {match.ospiti}: {renderXgValue(awayForm.mediaGolFatti || 0)}</span>
       </div>
-      <div className="bet-row">
-        <div className={`bet-item ${Math.round(pct12Under45) >= 90 ? 'bomb' : ''}`} onClick={addBet1}>
-          <div className="bet-label">12+U4.5</div>
-          <div className="bet-value">{Math.round(pct12Under45)}% {Math.round(pct12Under45) >= 90 ? '💣' : ''}</div>
+      
+      <div className="bet-row-vertical">
+        {/* Giocata 1: 12+U4.5 */}
+        <div className="bet-item-vertical" onClick={addBet1}>
+          <span className="bet-label" style={{color: getColorForPct(pct12Under45)}}>12+U4.5</span>
+          <span className="bet-value">{renderPct(pct12Under45)}</span>
         </div>
-        <div className={`bet-item ${mediaCombinata >= 90 ? 'bomb' : ''}`} style={{flex: 2}} onClick={addBet2}>
-          <div className="bet-label">COMBINATA</div>
-          <div className="bet-value" style={{fontSize: '11px'}}>
-            <div>{match.casa}: ({homeRange.label})</div>
-            <div>{match.ospiti}: ({awayRange.label})</div>
-            <div style={{color: 'var(--accent)', fontWeight: 'bold'}}>Media: {mediaCombinata}% {mediaCombinata >= 90 ? '💣' : ''}</div>
-          </div>
+        
+        {/* Giocata 2: Combinata */}
+        <div className="bet-item-vertical" onClick={addBet2}>
+          <span className="bet-label" style={{color: getColorForPct(mediaCombinata)}}>COMBINATA</span>
+          <span className="bet-value">
+            <div className="combinata-detail">
+              <div className="team-row">
+                <span style={{color: getColorForPct(homeRange.pct), fontWeight: 'bold'}}>{match.casa}</span>
+                <span>({homeRange.label}) - {renderPct(homeRange.pct)}</span>
+              </div>
+              <div className="team-row">
+                <span style={{color: getColorForPct(awayRange.pct), fontWeight: 'bold'}}>{match.ospiti}</span>
+                <span>({awayRange.label}) - {renderPct(awayRange.pct)}</span>
+              </div>
+              <div className="team-row" style={{justifyContent: 'flex-end', marginTop: '2px'}}>
+                <span style={{color: 'var(--accent)', fontWeight: 'bold'}}>Media: {renderPct(mediaCombinata)}</span>
+              </div>
+            </div>
+          </span>
         </div>
-        <div className={`bet-item ${freeCombo.pct >= 90 ? 'bomb' : ''}`} onClick={addBet3}>
-          <div className="bet-label">LIBERA</div>
-          <div className="bet-value">{freeCombo.label} ({freeCombo.pct}%) {freeCombo.pct >= 90 ? '💣' : ''}</div>
+        
+        {/* Giocata 3: Over 1.5 */}
+        <div className="bet-item-vertical" onClick={addBet3}>
+          <span className="bet-label" style={{color: getColorForPct(over15Pct)}}>OVER 1.5</span>
+          <span className="bet-value">{renderPct(over15Pct)}</span>
         </div>
       </div>
     </div>
@@ -1027,6 +1305,7 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
 const MatchTabHistory = ({ match, onSelect }) => {
   if (!match) return null;
   const champColor = getChampColor(match.campionato);
+  const flagHtml = getCountryFlagHtml(match.campionato);
   let scoreClass = '';
   if (match.golCasa > match.golOspite) scoreClass = 'score-win';
   else if (match.golCasa === match.golOspite) scoreClass = 'score-draw';
@@ -1034,7 +1313,12 @@ const MatchTabHistory = ({ match, onSelect }) => {
   const formattedDate = match.data ? formatDateEU(match.data) : 'N/D';
   return (
     <div className="match-tab-history" style={{borderLeftColor: champColor}} onClick={() => onSelect(match.id)}>
-      <div className="tab-header" style={{background: champColor}}>📊 {match.campionato || 'N/D'}</div>
+      <div className="tab-header" style={{background: champColor}}>
+        <span className="campionato-con-bandiera">
+          <span dangerouslySetInnerHTML={{ __html: flagHtml }} />
+          {match.campionato || 'N/D'}
+        </span>
+      </div>
       <div className="match-info">{match.campionato || 'N/D'} - Giornata: {match.round || 'N/A'}</div>
       <div className="match-info">📅 {formattedDate} - ⏰ {match.ora || 'TBD'}</div>
       <div className="teams-row">
@@ -1070,7 +1354,7 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
   const renderStatBox = (label, value, onClickLabel = null) => {
     const numValue = typeof value === 'number' ? value : 0;
     const roundedValue = Math.round(numValue);
-    const cls = numValue >= 90 ? 'flag-bomb' : (numValue >= 66.67 ? 'flag-green' : (numValue >= 33.34 ? 'flag-neutral' : 'flag-red'));
+    const cls = numValue >= 90 ? 'flag-bomb' : (numValue >= 66.67 ? 'flag-green' : (numValue >= 33.34 ? 'flag-white' : 'flag-red'));
     const isBomb = numValue >= 90;
     const handleClick = () => { if (onClickLabel) { const text = `${onClickLabel}: ${roundedValue}% (${match.casa} vs ${match.ospiti})`; addToSchedina(text); } };
     return (
@@ -1090,7 +1374,7 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
           {Object.entries(data).map(([label, value]) => {
             const pct = Math.round(value);
             const displayLabel = label === '2-4' ? 'Over 1,5' : label;
-            const cls = pct >= 90 ? 'flag-bomb' : (pct >= 66.67 ? 'flag-green' : (pct >= 33.34 ? 'flag-neutral' : 'flag-red'));
+            const cls = pct >= 90 ? 'flag-bomb' : (pct >= 66.67 ? 'flag-green' : (pct >= 33.34 ? 'flag-white' : 'flag-red'));
             return (
               <div key={label} className={`detail-stat-box ${cls}`} style={{flex: 1, minWidth: '60px'}}>
                 <span className="label" style={{fontSize: '11px'}}>{displayLabel}</span>
@@ -1102,6 +1386,14 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
       </div>
     );
   };
+  
+  const renderXgValue = (value) => {
+    const num = parseFloat(value);
+    if (isNaN(num)) return <span className="xg-value xg-white">N/A</span>;
+    const cls = getXgClasse(num);
+    return <span className={`xg-value ${cls}`}>{num.toFixed(1)}</span>;
+  };
+  
   return (
     <div>
       <div className="card">
@@ -1125,6 +1417,7 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
             </div>
             <div>Partite giocate: {stats.homeGames.length}</div>
             <div>V-P-S: {stats.homeStats.wins}-{stats.homeStats.draws}-{stats.homeStats.losses}</div>
+            <div>xG: {renderXgValue(homeForm.mediaGolFatti || 0)}</div>
           </div>
           <div style={{flex:1, minWidth:'200px'}}>
             <h4 style={{color: getChampColor(match.campionato)}}>{match.ospiti}</h4>
@@ -1134,6 +1427,7 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
             </div>
             <div>Partite giocate: {stats.awayGames.length}</div>
             <div>V-P-S: {stats.awayStats.wins}-{stats.awayStats.draws}-{stats.awayStats.losses}</div>
+            <div>xG: {renderXgValue(awayForm.mediaGolFatti || 0)}</div>
           </div>
         </div>
         <div className="opponents-row">
@@ -1449,6 +1743,13 @@ const StoricoSchedine = ({ schedineHistory, setSchedineHistory }) => {
 const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
   const [selectedDay, setSelectedDay] = useState('oggi');
   const [expanded, setExpanded] = useState(true);
+  
+  const renderPct = (value) => {
+    const rounded = Math.round(value);
+    const cls = getPercentualeClasse(rounded);
+    return <span className={`giocata-pct ${cls}`}>{rounded}%</span>;
+  };
+  
   const getGiocateDelGiorno = () => {
     const today = new Date(); today.setHours(0,0,0,0);
     const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
@@ -1467,15 +1768,17 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
       const pct12Under45 = get12Under45(matches, m.casa, m.ospiti);
       const homeRange = getMultigolRange(m.casa, matches);
       const awayRange = getMultigolRange(m.ospiti, matches);
-      const freeCombo = getBestFreeCombo(stats, stats.homeMG, stats.awayMG, stats.mgTot);
-      const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + freeCombo.pct) / 4);
+      let over15Pct = 0;
+      if (!stats.error && stats.underOver && stats.underOver[0]) {
+        over15Pct = Math.round(stats.underOver[0].over);
+      }
+      const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + over15Pct) / 4);
       const giocate = [];
       const pct1 = Math.round(pct12Under45);
       giocate.push({ label: '12+U4.5', pct: pct1, type: '12+U4.5', isBomb: pct1 >= 90 });
       const combPct = Math.round((homeRange.pct + awayRange.pct) / 2);
       giocate.push({ label: `COMBINATA: ${m.casa} ${homeRange.label} + ${m.ospiti} ${awayRange.label}`, pct: combPct, type: 'Combinata', isBomb: combPct >= 90 });
-      giocate.push({ label: `LIBERA: ${freeCombo.label}`, pct: freeCombo.pct, type: 'Libera', isBomb: freeCombo.pct >= 90 });
-      if (stats.underOver && stats.underOver[0]) { const over15 = Math.round(stats.underOver[0].over); giocate.push({ label: 'Over 1.5', pct: over15, type: 'Over', isBomb: over15 >= 90 }); }
+      giocate.push({ label: 'Over 1.5', pct: over15Pct, type: 'Over', isBomb: over15Pct >= 90 });
       if (stats.underOver && stats.underOver[2]) { const under35 = Math.round(stats.underOver[2].under); giocate.push({ label: 'Under 3.5', pct: under35, type: 'Under', isBomb: under35 >= 90 }); }
       if (stats.homeMG) { for (const [key, value] of Object.entries(stats.homeMG)) { const pct = Math.round(value); const displayKey = key === '2-4' ? 'Over 1,5' : key; giocate.push({ label: `MG Casa ${displayKey}`, pct: pct, type: 'MG Casa', isBomb: pct >= 90 }); } }
       if (stats.awayMG) { for (const [key, value] of Object.entries(stats.awayMG)) { const pct = Math.round(value); const displayKey = key === '2-4' ? 'Over 1,5' : key; giocate.push({ label: `MG Ospite ${displayKey}`, pct: pct, type: 'MG Ospite', isBomb: pct >= 90 }); } }
@@ -1522,7 +1825,7 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
                 <span style={{background: 'var(--accent)', color: '#000', padding: '2px 12px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold'}}>⭐ TOP PICK 💣</span>
                 <span style={{fontWeight: 'bold', color: 'var(--text)'}}>{giocateDelGiorno[0].casa} vs {giocateDelGiorno[0].ospiti}</span>
                 <span style={{color: 'var(--text-muted)', fontSize: '13px'}}>{formatDateEU(giocateDelGiorno[0].data)}</span>
-                <span style={{marginLeft: 'auto', fontSize: '20px', fontWeight: 'bold', color: 'var(--accent)'}}>Score: {giocateDelGiorno[0].score}%</span>
+                <span style={{marginLeft: 'auto', fontSize: '20px', fontWeight: 'bold', color: 'var(--accent)'}}>Score: {renderPct(giocateDelGiorno[0].score)}</span>
               </div>
               <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px'}}>
                 {giocateDelGiorno[0].giocate.map((g, idx) => {
@@ -1530,7 +1833,7 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
                   return (
                     <div key={idx} style={{background: 'var(--surface)', padding: '4px 10px', borderRadius: '4px', textAlign: 'center', border: isMax && g.isBomb ? '2px solid var(--accent)' : '1px solid var(--border)', cursor: 'pointer', transition: 'all 0.2s', fontSize: '11px', flex: '1', minWidth: '80px'}} onClick={(e) => { e.stopPropagation(); const text = `${g.label}: ${g.pct}% (${giocateDelGiorno[0].casa} vs ${giocateDelGiorno[0].ospiti})`; addToSchedina(text); }}>
                       <div style={{fontWeight: 'bold', color: 'var(--text)', fontSize: '10px'}}>{g.label.length > 25 ? g.label.slice(0, 22) + '...' : g.label}</div>
-                      <div style={{fontWeight: 'bold', fontSize: '14px'}}><span className={`giocata-pct ${isMax ? 'flag-gold' : getPercentualeClasse(g.pct)}`}>{g.pct}% {g.isBomb && '💣'}</span></div>
+                      <div style={{fontWeight: 'bold', fontSize: '14px'}}>{renderPct(g.pct)}</div>
                     </div>
                   );
                 })}
@@ -1553,12 +1856,12 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
                       return (
                         <div key={gi} style={{background: 'var(--surface)', padding: '3px 8px', borderRadius: '4px', textAlign: 'center', border: isMax && g.isBomb ? '2px solid var(--accent)' : '1px solid var(--border)', cursor: 'pointer', transition: 'all 0.2s', fontSize: '10px', flex: '1', minWidth: '60px', maxWidth: '160px'}} onClick={(e) => { e.stopPropagation(); const text = `${g.label}: ${g.pct}% (${match.casa} vs ${match.ospiti})`; addToSchedina(text); }}>
                           <div style={{fontWeight: 'bold', color: 'var(--text)', fontSize: '9px', lineHeight: '1.2'}}>{g.label.length > 18 ? g.label.slice(0, 15) + '..' : g.label}</div>
-                          <div style={{fontWeight: 'bold', fontSize: '13px'}}><span className={`giocata-pct ${isMax ? 'flag-gold' : getPercentualeClasse(g.pct)}`}>{g.pct}% {g.isBomb && '💣'}</span></div>
+                          <div style={{fontWeight: 'bold', fontSize: '13px'}}>{renderPct(g.pct)}</div>
                         </div>
                       );
                     })}
                   </div>
-                  <div style={{textAlign: 'center', minWidth: '35px'}}><div style={{fontSize: '14px', fontWeight: 'bold', color: 'var(--accent)'}}>{match.score}%</div><div style={{fontSize: '8px', color: 'var(--text-muted)'}}>Score</div></div>
+                  <div style={{textAlign: 'center', minWidth: '35px'}}><div style={{fontSize: '14px', fontWeight: 'bold', color: 'var(--accent)'}}>{renderPct(match.score)}</div><div style={{fontSize: '8px', color: 'var(--text-muted)'}}>Score</div></div>
                 </div>
               );
             })}
@@ -1694,33 +1997,14 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
   const [isChecking, setIsChecking] = useState(false);
 
   const saveLeagues = (leagues) => { setCustomLeagues(leagues); saveCustomSofaLeagues(leagues); };
-  
   const removeLeague = (id, name) => {
     const isDefault = Object.values(SOFASCORE_LEAGUE_IDS).includes(id);
     const matchCount = matches ? matches.filter(m => m.campionato === name).length : 0;
     if (matchCount > 0 && !confirm(`⚠️ Il campionato "${name}" ha ${matchCount} partite importate. Eliminarlo cancellerà anche le partite. Continuare?`)) return;
-    if (matchCount > 0) {
-      const newMatches = matches.filter(m => m.campionato !== name);
-      setMatches(newMatches);
-      localStorage.setItem('ft_matches', JSON.stringify(newMatches));
-    }
-    if (isDefault) { 
-      const blacklist = getBlacklist(); 
-      if (!blacklist.includes(id)) { 
-        blacklist.push(id); 
-        saveBlacklist(blacklist); 
-      }
-      setCustomLeagues(getCustomSofaLeagues());
-    } else {
-      const newCustom = customLeagues.filter(l => l.id !== id);
-      saveLeagues(newCustom);
-    }
-    // Rimuovi il campionato dalla lista dei campionati importati
-    const currentChamps = JSON.parse(localStorage.getItem('ft_champs') || '[]');
-    const newChamps = currentChamps.filter(c => c.name !== name);
-    localStorage.setItem('ft_champs', JSON.stringify(newChamps));
-    // Forza refresh
-    window.location.reload();
+    if (matchCount > 0) setMatches(prev => prev.filter(m => m.campionato !== name));
+    if (isDefault) { const blacklist = getBlacklist(); if (!blacklist.includes(id)) { blacklist.push(id); saveBlacklist(blacklist); } }
+    else { saveLeagues(customLeagues.filter(l => l.id !== id)); }
+    setCustomLeagues(getCustomSofaLeagues());
   };
 
   const checkLeagueHasMatches = async (leagueId, seasonYear) => {
@@ -1743,7 +2027,6 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
       saveLeagues([...customLeagues, { name: leagueName, id: id }]);
       await onImport(leagueName, selectedSeason);
       setNewLeagueName(''); setNewLeagueId('');
-      alert(`✅ Campionato "${leagueName}" aggiunto e importato con ${checkResult.count} partite!`);
     } catch (e) { console.error('Errore:', e); alert(`❌ Errore durante l'aggiunta: ${e.message}`); }
     setIsChecking(false);
   };
@@ -1776,7 +2059,6 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
       saveLeagues([...customLeagues, { name, id }]);
       await onImport(name, selectedSeason);
       setSearchResults(searchResults.filter(r => r.id !== id));
-      alert(`✅ Campionato "${name}" aggiunto!`);
     } catch (e) { console.error('Errore:', e); alert(`❌ Errore durante l'aggiunta: ${e.message}`); }
     setIsChecking(false);
   };
@@ -1806,7 +2088,7 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
           <div style={{maxHeight:'300px', overflowY:'auto'}}>
             {allLeagues.length === 0 ? <p style={{color:'var(--text-muted)', textAlign:'center', padding:'20px'}}>Nessun campionato configurato.</p> : (
               <table className="standings-table" style={{fontSize:'13px'}}>
-                <thead><tr><th>Campionato</th><th style={{textAlign:'center'}}>ID</th><th style={{textAlign:'center'}}>Tipo</th><th style={{textAlign:'center'}}>Azioni</th></tr></thead>
+                <thead><tr><th>Campionato</th><th style={{textAlign:'center'}}>ID</th><th style={{textAlign:'center'}}>Tipo</th><th style={{textAlign:'center'}}>Partite</th><th style={{textAlign:'center'}}>Azioni</th></tr></thead>
                 <tbody>
                   {allLeagues.map(league => {
                     const matchCount = matches ? matches.filter(m => m.campionato === league.name).length : 0;
@@ -1814,7 +2096,9 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
                       <td style={{padding:'6px 8px'}}><span style={{color: league.isDefault ? 'var(--text)' : 'var(--accent)'}}>{league.isDefault ? '📌 ' : '⭐ '}{league.name}</span></td>
                       <td style={{textAlign:'center', padding:'6px 8px'}}>{league.id}</td>
                       <td style={{textAlign:'center', padding:'6px 8px'}}><span style={{fontSize:'10px', padding:'2px 8px', borderRadius:'10px', background: league.isDefault ? 'var(--surface)' : 'var(--accent)', color: league.isDefault ? 'var(--text-muted)' : '#000'}}>{league.isDefault ? 'Predefinito' : 'Personalizzato'}</span></td>
+                      <td style={{textAlign:'center', padding:'6px 8px'}}>{matchCount > 0 ? <span style={{color:'var(--win)', fontWeight:'bold'}}>{matchCount}</span> : <span style={{color:'var(--text-muted)'}}>0</span>}</td>
                       <td style={{textAlign:'center', padding:'6px 8px'}}>
+                        <select value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} style={{width:'80px', padding:'2px 4px', fontSize:'11px', marginRight:'4px'}}><option value="26/27">26/27</option><option value="25/26">25/26</option><option value="24/25">24/25</option><option value="23/24">23/24</option></select>
                         <button className="btn btn-secondary" style={{fontSize:'11px', padding:'2px 8px', marginRight:'4px'}} onClick={() => onImport(league.name, selectedSeason)} disabled={loading}>📥 Importa</button>
                         <button className="btn btn-danger" style={{fontSize:'11px', padding:'2px 8px'}} onClick={() => removeLeague(league.id, league.name)}>✖</button>
                       </td>
@@ -1856,7 +2140,6 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
   );
 };
 
-// WeatherProfessionale - componente meteo professionale
 const WeatherProfessionale = ({ weatherData, city, matchDate }) => {
   if (!weatherData) {
     return (
@@ -2446,6 +2729,7 @@ function App() {
     return saved || 'pc';
   });
 
+  // Salvo la modalità visuale
   useEffect(() => {
     localStorage.setItem('ft_view_mode', viewMode);
     if (viewMode === 'mobile') {
@@ -2459,17 +2743,6 @@ function App() {
     localStorage.setItem('ft_font_size', String(fontSize));
     document.documentElement.style.fontSize = fontSize + '%';
   }, [fontSize]);
-
-  useEffect(() => {
-    const t = theme === 'Custom' ? customTheme : THEMES[theme] || THEMES['Scuro Blu Notte'];
-    const root = document.documentElement;
-    Object.entries(t).forEach(([k, v]) => { root.style.setProperty(`--${k.replace(/([A-Z])/g, '-$1').toLowerCase()}`, v); });
-  }, [theme, customTheme]);
-
-  useEffect(() => { saveState({ championships, matches, apiKeys, theme, customTheme, schedineHistory }); }, [championships, matches, apiKeys, theme, customTheme, schedineHistory]);
-
-  const showAlert = (type, text) => { setMessage({ type, text }); setTimeout(() => setMessage(null), 4000); };
-  const selectMatch = (matchId) => { setSelectedMatchId(matchId); setTab('Statistiche'); };
 
   const importFromSofaScore = async (champName, seasonYear = '26/27') => {
     let leagueId = SOFASCORE_LEAGUE_IDS[champName];
@@ -2578,15 +2851,11 @@ function App() {
   const clearAllChampionshipsWithSofaReset = () => {
     if (championships.length === 0) { showAlert('info', 'ℹ️ Non ci sono campionati da eliminare.'); return; }
     if (confirm(`⚠️ Sei sicuro di voler eliminare TUTTI i ${championships.length} campionati e tutte le ${matches.length} partite associate?\n\nVerrà anche resettata la lista dei campionati SofaScore!`)) {
-      setChampionships([]); 
-      setMatches([]);
+      setChampionships([]); setMatches([]);
       saveCustomSofaLeagues([]);
       saveBlacklist([]);
       setRefreshSofaTrigger(prev => prev + 1);
-      localStorage.removeItem('ft_champs');
-      localStorage.removeItem('ft_matches');
       showAlert('success', '🗑️ Tutti i campionati, le partite e la lista SofaScore sono stati resettati.');
-      setTimeout(() => window.location.reload(), 500);
     }
   };
 
@@ -2687,23 +2956,13 @@ function App() {
     try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); showAlert('success', '🖼️ Immagine copiata negli appunti!'); } catch (err) { const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `schedina_${Date.now()}.png`; link.click(); URL.revokeObjectURL(link.href); showAlert('success', '🖼️ Schedina esportata come immagine (download)!'); }
   };
 
-  const resetAllData = () => {
-    if (confirm('⚠️ Sei sicuro di voler resettare TUTTI i dati?\n\nVerranno eliminati:\n- Tutti i campionati importati\n- Tutte le partite\n- La lista dei campionati SofaScore\n- Le API Keys\n- Lo storico delle schedine')) {
-      localStorage.clear();
-      saveBlacklist([]);
-      saveCustomSofaLeagues([]);
-      setChampionships([]);
-      setMatches([]);
-      setApiKeys({});
-      setTempKeys({});
-      setSchedineHistory([]);
-      setRefreshSofaTrigger(prev => prev + 1);
-      showAlert('success', '🗑️ Tutti i dati sono stati resettati completamente!');
-      setTimeout(() => window.location.reload(), 500);
-    }
-  };
+  useEffect(() => { saveState({ championships, matches, apiKeys, theme, customTheme, schedineHistory }); }, [championships, matches, apiKeys, theme, customTheme, schedineHistory]);
 
-  const selectedMatch = matches.find(m => m.id === selectedMatchId);
+  useEffect(() => {
+    const t = theme === 'Custom' ? customTheme : THEMES[theme] || THEMES['Scuro Blu Notte'];
+    const root = document.documentElement;
+    Object.entries(t).forEach(([k, v]) => { root.style.setProperty(`--${k.replace(/([A-Z])/g, '-$1').toLowerCase()}`, v); });
+  }, [theme, customTheme]);
 
   // Funzione per caricare il meteo
   const fetchWeatherForMatch = async (match) => {
@@ -2734,6 +2993,53 @@ function App() {
       };
     } catch (e) { return null; }
   };
+
+  const showAlert = (type, text) => { setMessage({ type, text }); setTimeout(() => setMessage(null), 4000); };
+  const selectMatch = (matchId) => { setSelectedMatchId(matchId); setTab('Statistiche'); };
+  const testApiKey = async (name) => {
+    const key = tempKeys[name];
+    if (!key) { showAlert('error', `❌ Inserisci la chiave API ${name}`); return; }
+    try {
+      if (name === 'GROQ') { const r = await fetch('https://api.groq.com/openai/v1/models', { headers: { 'Authorization': `Bearer ${key}` } }); setApiTestResult({ ...apiTestResult, [name]: r.ok ? 'OK' : 'FAIL' }); }
+      else if (name === 'WorldWeatherOnline') { const r = await fetch(`https://api.worldweatheronline.com/premium/v1/weather.ashx?q=Rome&format=json&key=${key}`); setApiTestResult({ ...apiTestResult, [name]: r.ok ? 'OK' : 'FAIL' }); }
+      else if (name === 'API-Football') { const r = await fetch('https://v3.football.api-sports.io/teams?search=Arsenal', { headers: { 'x-apisports-key': key } }); setApiTestResult({ ...apiTestResult, [name]: r.ok ? 'OK' : 'FAIL' }); }
+    } catch(e) { setApiTestResult({ ...apiTestResult, [name]: 'ERROR' }); }
+  };
+
+  const confirmApiKey = (name) => {
+    setApiKeys({ ...apiKeys, [name]: tempKeys[name] });
+    localStorage.setItem('ft_apikeys', JSON.stringify({ ...apiKeys, [name]: tempKeys[name] }));
+    showAlert('success', `✅ ${name} salvata!`);
+  };
+
+  const saveLocal = () => {
+    const data = { championships, matches, apiKeys, theme, customTheme, schedineHistory, exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `gesssai-backup-${Date.now()}.json`; a.click();
+    showAlert('success', '💾 Backup scaricato!');
+  };
+
+  const loadLocal = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.championships) setChampionships(data.championships);
+        if (data.matches) setMatches(data.matches);
+        if (data.apiKeys) { setApiKeys(data.apiKeys); setTempKeys(data.apiKeys); }
+        if (data.theme) setTheme(data.theme);
+        if (data.customTheme) setCustomTheme(data.customTheme);
+        if (data.schedineHistory) setSchedineHistory(data.schedineHistory);
+        showAlert('success', '📂 Dati caricati!');
+      } catch(err) { showAlert('error', 'File non valido'); }
+    };
+    reader.readAsText(file);
+  };
+
+  const clearAllChampionships = () => { clearAllChampionshipsWithSofaReset(); };
+
+  const selectedMatch = matches.find(m => m.id === selectedMatchId);
 
   // Carica meteo quando si seleziona una partita
   useEffect(() => {
@@ -2977,7 +3283,7 @@ function App() {
                   <label style={{display:'block', marginBottom:'6px'}}>📂 Carica Backup JSON</label>
                   <input type="file" accept=".json" onChange={e => e.target.files[0] && loadLocal(e.target.files[0])} />
                   <hr style={{margin:'14px 0', borderColor:'var(--border)'}}/>
-                  <button className="btn btn-danger" onClick={resetAllData}>🗑️ Reset Completo</button>
+                  <button className="btn btn-danger" onClick={() => { if (confirm('Vuoi davvero resettare TUTTI i dati?')) { localStorage.clear(); saveBlacklist([]); saveCustomSofaLeagues([]); localStorage.removeItem('ft_football_data_imported'); localStorage.removeItem('ft_sportsapipro_imported'); setChampionships([]); setMatches([]); setApiKeys({}); setTempKeys({}); setSchedineHistory([]); setRefreshSofaTrigger(prev => prev + 1); showAlert('success', '🗑️ Dati resettati completamente.'); } }}>🗑️ Reset Completo</button>
                 </div>
               </div>
             )}
@@ -2987,10 +3293,10 @@ function App() {
                 <SofaScoreManager onImport={importFromSofaScore} loading={loading} matches={matches} setMatches={setMatches} refreshTrigger={refreshSofaTrigger} />
                 <hr style={{borderColor:'var(--border)', margin:'20px 0'}}/>
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', margin:'20px 0 12px', flexWrap:'wrap', gap:'10px'}}>
-                  <h3 style={{margin:0}}>📋 Campionati Importati ({championships.length})</h3>
+                  <h3 style={{margin:0}}>📋 Campionati Importati</h3>
                   <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
                     <button className="btn" style={{background: 'var(--accent)', color: '#000'}} onClick={importAllFromSofaScore} disabled={loading}>📥 Importa Tutti</button>
-                    <button className="btn btn-danger btn-sm" onClick={clearAllChampionshipsWithSofaReset}>🗑️ Elimina Tutti</button>
+                    <button className="btn btn-danger btn-sm" onClick={clearAllChampionships}>🗑️ Elimina Tutti</button>
                   </div>
                 </div>
                 {championships.length === 0 ? <div className="empty-state">Nessun campionato importato.</div> : (
@@ -3002,7 +3308,7 @@ function App() {
                       return (
                         <div key={c.name} className="champ-item" style={{borderLeft: `4px solid ${getChampColor(c.name)}`, paddingLeft:'12px'}}>
                           <div><b>{c.name}</b><div style={{fontSize:'11px', color:'var(--text-muted)'}}>{totalMatches} partite ({futureMatches} future, {playedMatches} giocate) <span style={{marginLeft:'8px', fontSize:'10px', color:'var(--text-muted)'}}>📅 {new Date(c.importedAt).toLocaleDateString()}</span></div></div>
-                          <button className="btn btn-danger btn-sm" onClick={() => { if (confirm(`Eliminare ${c.name} e tutte le sue partite?`)) { setChampionships(championships.filter(x => x.name !== c.name)); setMatches(matches.filter(m => m.campionato !== c.name)); localStorage.setItem('ft_champs', JSON.stringify(championships.filter(x => x.name !== c.name))); localStorage.setItem('ft_matches', JSON.stringify(matches.filter(m => m.campionato !== c.name))); showAlert('success', `🗑️ ${c.name} eliminato!`); } }}>🗑️ Elimina</button>
+                          <button className="btn btn-danger btn-sm" onClick={() => { if (confirm(`Eliminare ${c.name} e tutte le sue partite?`)) { setChampionships(championships.filter(x => x.name !== c.name)); setMatches(matches.filter(m => m.campionato !== c.name)); } }}>🗑️ Elimina</button>
                         </div>
                       );
                     })}
