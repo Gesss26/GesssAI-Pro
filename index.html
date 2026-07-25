@@ -3428,12 +3428,14 @@ function App() {
       </div>
 
       <button 
-        className="home-btn-overlay" 
-        onClick={() => setTab('Home')}
-        title="Torna alla Home"
-      >
-        🏠
-      </button>
+  className="home-btn-overlay" 
+  onClick={() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }}
+  title="Torna su"
+>
+  🏠
+</button>
     </div>
   );
 }
