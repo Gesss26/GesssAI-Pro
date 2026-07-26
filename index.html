@@ -180,14 +180,11 @@
     font-size: 12px; 
     border: 1px solid var(--border); 
     text-align: center; 
-    cursor: pointer; 
-    transition: background 0.2s; 
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
   }
-  .bet-item-vertical:hover { background: var(--card); }
   .bet-item-vertical .bet-label { 
     font-size: 11px; 
     text-transform: uppercase; 
@@ -217,15 +214,10 @@
   .bet-item-vertical.bomb .bet-value { color: #000 !important; }
   .bet-item-vertical.bomb .bet-label { color: #000 !important; }
   .bet-item-vertical .bet-value .combinata-detail {
-    font-size: 11px;
-    line-height: 1.4;
+    font-size: 10px;
+    line-height: 1.2;
     text-align: right;
-  }
-  .bet-item-vertical .bet-value .combinata-detail .team-row {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    align-items: center;
+    color: var(--text-muted);
   }
   
   .tab-header { padding: 4px 12px; border-radius: 6px; margin-bottom: 6px; text-align: center; color: #fff; font-weight: bold; font-size: 13px; display: inline-block; }
@@ -248,7 +240,7 @@
   
   .detail-section { margin-bottom: 20px; }
   .detail-section h4 { color: var(--accent); margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
-  .detail-stat-box { padding: 8px 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border); background: var(--surface); transition: background 0.2s, transform 0.1s; min-width: 60px; flex: 1; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .detail-stat-box { padding: 8px 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border); background: var(--surface); transition: background 0.2s, transform 0.1s; min-width: 60px; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .detail-stat-box:hover { transform: scale(1.02); }
   .detail-stat-box .label { display: block; font-size: 14px; font-weight: 600; color: #ffff00; margin-bottom: 2px; }
   .detail-stat-box .value { display: block; font-size: 20px; font-weight: bold; }
@@ -610,6 +602,85 @@
     }
   }
   
+  /* Giocate selector styles - Famiglie */
+  .giocate-selector-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 1024px) {
+    .giocate-selector-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 600px) {
+    .giocate-selector-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .giocate-category {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 12px 14px;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .giocate-category:hover {
+    border-color: var(--accent);
+  }
+  .giocate-category.active {
+    border-color: var(--accent);
+    background: rgba(243, 156, 18, 0.1);
+    box-shadow: 0 0 20px rgba(243, 156, 18, 0.15);
+  }
+  .giocate-category .category-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .giocate-category .category-title .icon {
+    font-size: 18px;
+  }
+  .giocate-category .category-title .badge {
+    font-size: 10px;
+    background: var(--card);
+    padding: 1px 8px;
+    border-radius: 10px;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+  .giocate-category .category-sub {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .giocate-category .category-preview {
+    font-size: 11px;
+    color: var(--accent);
+    margin-top: 6px;
+    padding: 4px 8px;
+    background: var(--card);
+    border-radius: 4px;
+    display: inline-block;
+  }
+  
+  .selected-count {
+    font-size: 13px;
+    color: var(--text-muted);
+    padding: 6px 12px;
+    background: var(--surface);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .selected-count .count-num {
+    font-weight: bold;
+    color: var(--accent);
+  }
+  
   @media (max-width: 768px) { .match-tab, .match-tab-history { min-width: 100%; max-width: 100%; } .header { flex-direction: column; align-items: center; padding: 12px; } .header .header-left { position: static; } .clock { position: static; width: 100%; text-align: center; margin-top: 8px; } .schedina-controls .btn-generate { margin-left: 0; } .schedina-controls .right-group { margin-left: 0; width: 100%; } .schedina-match-card { flex-direction: column; align-items: stretch; } .schedina-match-card .giocate { justify-content: center; } .stats-two-col { grid-template-columns: 1fr; } .home-widget .day-selector { flex-direction: row; flex-wrap: wrap; } .giocata-item { flex-direction: column; align-items: stretch; text-align: center; } .heatmap-detail-modal { padding: 16px; margin: 10px; max-height: 90vh; } .ai-analysis-box .pronostico-mini { grid-template-columns: 1fr 1fr; } .freq-table { min-width: 280px; font-size: 11px; } .freq-table th, .freq-table td { padding: 4px 3px; font-size: 10px; } .affidabilita-grid { grid-template-columns: 1fr 1fr; } .intervalli-grid { grid-template-columns: 1fr 1fr; } .weather-impact-grid { grid-template-columns: 1fr 1fr; } .ai-analysis-box .consigli-grid { grid-template-columns: 1fr; } .ai-result .consigli-grid { grid-template-columns: 1fr; } .standings-table { min-width: 400px; font-size: 11px; } }
   @media (max-width: 480px) { .affidabilita-grid { grid-template-columns: 1fr; } .intervalli-grid { grid-template-columns: 1fr; } .weather-impact-grid { grid-template-columns: 1fr; } .ai-analysis-box .pronostico-mini { grid-template-columns: 1fr; } .freq-table { min-width: 220px; font-size: 10px; } .standings-table { min-width: 300px; font-size: 10px; } .standings-table th, .standings-table td { padding: 3px 2px; } .match-tab .score-badge { font-size: 14px; padding: 1px 8px; } .team-name { font-size: 16px; } .detail-stat-box .value { font-size: 16px; } }
 </style>
@@ -634,7 +705,7 @@ const THEMES = {
 };
 
 const MAIN_TABS = ['Home','Palinsesto','Statistiche','Storico','API KEY','Impostazioni'];
-const SETTINGS_TABS = ['Temi','API KEY','Dati Locali','Importa Campionato','Grandezza Caratteri','Città Meteo','Visuale'];
+const SETTINGS_TABS = ['Temi','API KEY','Dati Locali','Importa Campionato','Giocate','Grandezza Caratteri','Città Meteo','Visuale'];
 
 const CHAMPIONSHIP_COLORS = {
   'Allsvenskan': '#e74c3c', 'Premier League': '#3498db', 'Serie A': '#2ecc71',
@@ -773,6 +844,99 @@ const CITTÀ_PER_CAMPIONATO = {
   'Chinese Super League': 'Pechino', 'Premier Division': 'Dublino', 'Besta deild': 'Reykjavik',
   'Liga Portugal Betclic': 'Lisbona', 'FIFA World Cup 2026': 'New York'
 };
+
+// ============================================================
+// DEFINIZIONE FAMIGLIE GIOCATE
+// ============================================================
+
+const FAMIGLIE_GIOCATE = {
+  fisse: {
+    id: 'fisse',
+    label: 'FISSE',
+    icon: '🎯',
+    desc: 'Sceglie la migliore tra 1, X, 2',
+    options: ['1', 'X', '2']
+  },
+  dc: {
+    id: 'dc',
+    label: 'DOPPIA CHANCE',
+    icon: '🛡️',
+    desc: 'Sceglie la migliore tra 1X, 12, X2',
+    options: ['1X', '12', 'X2']
+  },
+  over: {
+    id: 'over',
+    label: 'OVER',
+    icon: '⬆️',
+    desc: 'Sceglie la migliore tra Over 1.5, 2.5, 3.5, 4.5',
+    options: ['Over 1.5', 'Over 2.5', 'Over 3.5', 'Over 4.5']
+  },
+  under: {
+    id: 'under',
+    label: 'UNDER',
+    icon: '⬇️',
+    desc: 'Sceglie la migliore tra Under 1.5, 2.5, 3.5, 4.5',
+    options: ['Under 1.5', 'Under 2.5', 'Under 3.5', 'Under 4.5']
+  },
+  multigol: {
+    id: 'multigol',
+    label: 'MULTIGOL',
+    icon: '📊',
+    desc: 'Sceglie la migliore tra 0-2, 1-3, 1-4, 2-5',
+    options: ['0-2', '1-3', '1-4', '2-5']
+  },
+  dc_over: {
+    id: 'dc_over',
+    label: 'DC + OVER',
+    icon: '🔗',
+    desc: 'Sceglie la migliore tra tutte le 12 combinazioni DC+Over',
+    options: [
+      '1X+O1.5', '12+O1.5', 'X2+O1.5',
+      '1X+O2.5', '12+O2.5', 'X2+O2.5',
+      '1X+O3.5', '12+O3.5', 'X2+O3.5',
+      '1X+O4.5', '12+O4.5', 'X2+O4.5'
+    ]
+  },
+  dc_under: {
+    id: 'dc_under',
+    label: 'DC + UNDER',
+    icon: '🔗',
+    desc: 'Sceglie la migliore tra tutte le 12 combinazioni DC+Under',
+    options: [
+      '1X+U1.5', '12+U1.5', 'X2+U1.5',
+      '1X+U2.5', '12+U2.5', 'X2+U2.5',
+      '1X+U3.5', '12+U3.5', 'X2+U3.5',
+      '1X+U4.5', '12+U4.5', 'X2+U4.5'
+    ]
+  },
+  mg_casa_ospite: {
+    id: 'mg_casa_ospite',
+    label: 'MG CASA + OSPITE',
+    icon: '⚔️',
+    desc: 'Sceglie la migliore tra tutte le 16 combinazioni',
+    options: [
+      '0-2+0-2', '0-2+1-3', '0-2+1-4', '0-2+2-5',
+      '1-3+0-2', '1-3+1-3', '1-3+1-4', '1-3+2-5',
+      '1-4+0-2', '1-4+1-3', '1-4+1-4', '1-4+2-5',
+      '2-5+0-2', '2-5+1-3', '2-5+1-4', '2-5+2-5'
+    ]
+  },
+  dc_multigol: {
+    id: 'dc_multigol',
+    label: 'DC + MULTIGOL',
+    icon: '🔗',
+    desc: 'Sceglie la migliore tra tutte le 12 combinazioni DC+MG',
+    options: [
+      '1X+0-2', '12+0-2', 'X2+0-2',
+      '1X+1-3', '12+1-3', 'X2+1-3',
+      '1X+1-4', '12+1-4', 'X2+1-4',
+      '1X+2-5', '12+2-5', 'X2+2-5'
+    ]
+  }
+};
+
+// Default: 3 famiglie
+const DEFAULT_FAMIGLIE = ['dc_under', 'mg_casa_ospite', 'over'];
 
 // ============================================================
 // FUNZIONI DI UTILITÀ
@@ -1136,51 +1300,125 @@ const calcTeamMG = (matches, teamName) => {
   return `${(scored/played.length).toFixed(1)}-${(conceded/played.length).toFixed(1)}`;
 };
 
-const getBestFreeCombo = (stats, homeMG, awayMG, mgTot) => {
-  if (stats.error) return { label: 'N/A', pct: 0 };
-  const { p1X, p12, pX2, underOver } = stats;
-  const over15 = underOver[0].over;
-  const under35 = underOver[2].under;
-  const candidates = [];
-  candidates.push({ label: '1X', pct: p1X });
-  candidates.push({ label: '12', pct: p12 });
-  candidates.push({ label: 'X2', pct: pX2 });
-  candidates.push({ label: 'Over 1.5', pct: over15 });
-  candidates.push({ label: 'Under 3.5', pct: under35 });
-  for (const [label, pct] of Object.entries(mgTot)) {
-    let displayLabel = label === '2-4' ? 'Over 1,5' : label;
-    candidates.push({ label: `MG Tot ${displayLabel}`, pct });
+// ============================================================
+// FUNZIONI PER IL CALCOLO DELLE PERCENTUALI DELLE GIOCATE
+// ============================================================
+
+const getGiocataPct = (giocata, stats, homeMG, awayMG, mgTot) => {
+  if (stats.error) return 0;
+  
+  const { p1, pX, p2, p1X, p12, pX2, underOver } = stats;
+  
+  // FISSE
+  if (giocata === '1') return Math.round(p1);
+  if (giocata === 'X') return Math.round(pX);
+  if (giocata === '2') return Math.round(p2);
+  
+  // DOPPIA CHANCE
+  if (giocata === '1X') return Math.round(p1X);
+  if (giocata === '12') return Math.round(p12);
+  if (giocata === 'X2') return Math.round(pX2);
+  
+  // OVER
+  if (giocata === 'Over 1.5') return Math.round(underOver[0]?.over || 0);
+  if (giocata === 'Over 2.5') return Math.round(underOver[1]?.over || 0);
+  if (giocata === 'Over 3.5') return Math.round(underOver[2]?.over || 0);
+  if (giocata === 'Over 4.5') return Math.round(underOver[3]?.over || 0);
+  
+  // UNDER
+  if (giocata === 'Under 1.5') return Math.round(underOver[0]?.under || 0);
+  if (giocata === 'Under 2.5') return Math.round(underOver[1]?.under || 0);
+  if (giocata === 'Under 3.5') return Math.round(underOver[2]?.under || 0);
+  if (giocata === 'Under 4.5') return Math.round(underOver[3]?.under || 0);
+  
+  // MULTIGOL
+  if (giocata === '0-2') return Math.round(homeMG['0-2'] || 0);
+  if (giocata === '1-3') return Math.round(homeMG['1-3'] || 0);
+  if (giocata === '1-4') return Math.round(mgTot['1-4'] || 0);
+  if (giocata === '2-5') return Math.round(mgTot['2-5'] || 0);
+  
+  // DC+OVER (es: 1X+O1.5)
+  if (giocata.startsWith('1X+O')) { const over = giocata.replace('1X+O', 'Over '); return Math.round((p1X + getGiocataPct(over, stats, homeMG, awayMG, mgTot)) / 2); }
+  if (giocata.startsWith('12+O')) { const over = giocata.replace('12+O', 'Over '); return Math.round((p12 + getGiocataPct(over, stats, homeMG, awayMG, mgTot)) / 2); }
+  if (giocata.startsWith('X2+O')) { const over = giocata.replace('X2+O', 'Over '); return Math.round((pX2 + getGiocataPct(over, stats, homeMG, awayMG, mgTot)) / 2); }
+  
+  // DC+UNDER (es: 1X+U1.5)
+  if (giocata.startsWith('1X+U')) { const under = giocata.replace('1X+U', 'Under '); return Math.round((p1X + getGiocataPct(under, stats, homeMG, awayMG, mgTot)) / 2); }
+  if (giocata.startsWith('12+U')) { const under = giocata.replace('12+U', 'Under '); return Math.round((p12 + getGiocataPct(under, stats, homeMG, awayMG, mgTot)) / 2); }
+  if (giocata.startsWith('X2+U')) { const under = giocata.replace('X2+U', 'Under '); return Math.round((pX2 + getGiocataPct(under, stats, homeMG, awayMG, mgTot)) / 2); }
+  
+  // MG CASA + OSPITE (es: 0-2+1-3)
+  if (giocata.includes('+') && !giocata.includes('X') && !giocata.includes('O') && !giocata.includes('U')) {
+    const parts = giocata.split('+');
+    const pct1 = getGiocataPct(parts[0], stats, homeMG, awayMG, mgTot);
+    const pct2 = getGiocataPct(parts[1], stats, homeMG, awayMG, mgTot);
+    return Math.round((pct1 + pct2) / 2);
   }
-  for (const [label, pct] of Object.entries(homeMG)) {
-    let displayLabel = label === '2-4' ? 'Over 1,5' : label;
-    candidates.push({ label: `MG Casa ${displayLabel}`, pct });
+  
+  // DC+MULTIGOL (es: 1X+0-2)
+  if (giocata.startsWith('1X+') && !giocata.includes('O') && !giocata.includes('U')) {
+    const mg = giocata.replace('1X+', '');
+    return Math.round((p1X + getGiocataPct(mg, stats, homeMG, awayMG, mgTot)) / 2);
   }
-  for (const [label, pct] of Object.entries(awayMG)) {
-    let displayLabel = label === '2-4' ? 'Over 1,5' : label;
-    candidates.push({ label: `MG Ospite ${displayLabel}`, pct });
+  if (giocata.startsWith('12+') && !giocata.includes('O') && !giocata.includes('U')) {
+    const mg = giocata.replace('12+', '');
+    return Math.round((p12 + getGiocataPct(mg, stats, homeMG, awayMG, mgTot)) / 2);
   }
-  candidates.push({ label: '1X+Over1.5', pct: (p1X + over15) / 2 });
-  candidates.push({ label: '12+Over1.5', pct: (p12 + over15) / 2 });
-  candidates.push({ label: 'X2+Over1.5', pct: (pX2 + over15) / 2 });
-  candidates.push({ label: '1X+Under3.5', pct: (p1X + under35) / 2 });
-  candidates.push({ label: '12+Under3.5', pct: (p12 + under35) / 2 });
-  candidates.push({ label: 'X2+Under3.5', pct: (pX2 + under35) / 2 });
-  for (const [mgLabel, mgPct] of Object.entries(mgTot)) {
-    let displayLabel = mgLabel === '2-4' ? 'Over 1,5' : mgLabel;
-    candidates.push({ label: `1X+MG Tot ${displayLabel}`, pct: (p1X + mgPct) / 2 });
-    candidates.push({ label: `12+MG Tot ${displayLabel}`, pct: (p12 + mgPct) / 2 });
-    candidates.push({ label: `X2+MG Tot ${displayLabel}`, pct: (pX2 + mgPct) / 2 });
+  if (giocata.startsWith('X2+') && !giocata.includes('O') && !giocata.includes('U')) {
+    const mg = giocata.replace('X2+', '');
+    return Math.round((pX2 + getGiocataPct(mg, stats, homeMG, awayMG, mgTot)) / 2);
   }
-  for (const [homeLabel, homePct] of Object.entries(homeMG)) {
-    for (const [awayLabel, awayPct] of Object.entries(awayMG)) {
-      let displayHome = homeLabel === '2-4' ? 'Over 1,5' : homeLabel;
-      let displayAway = awayLabel === '2-4' ? 'Over 1,5' : awayLabel;
-      candidates.push({ label: `MG Casa ${displayHome} + MG Ospite ${displayAway}`, pct: (homePct + awayPct) / 2 });
+  
+  return 0;
+};
+
+// ============================================================
+// FUNZIONE PER TROVARE LA MIGLIORE GIOCATA DI UNA FAMIGLIA
+// ============================================================
+
+const getBestBetForFamily = (familyId, stats, homeRange, awayRange, homeMG, awayMG, mgTot) => {
+  if (stats.error) return null;
+  
+  const family = FAMIGLIE_GIOCATE[familyId];
+  if (!family) return null;
+  
+  let best = null;
+  let bestPct = -1;
+  let bestLabel = '';
+  
+  family.options.forEach(opt => {
+    let pct = 0;
+    let label = opt;
+    
+    if (familyId === 'dc_under' && opt === '12+U4.5') {
+      // Caso speciale per 12+Under 4.5 (giocata specifica)
+      pct = Math.round(get12Under45(stats._allMatches, stats._homeTeam, stats._awayTeam) || 0);
+    } else if (familyId === 'mg_casa_ospite') {
+      // Per MG Casa+Ospite, mostriamo la combinazione con le etichette
+      const parts = opt.split('+');
+      pct = getGiocataPct(opt, stats, homeMG, awayMG, mgTot);
+      label = `${parts[0]}+${parts[1]}`;
+    } else {
+      pct = getGiocataPct(opt, stats, homeMG, awayMG, mgTot);
     }
+    
+    if (pct > bestPct) {
+      bestPct = pct;
+      best = opt;
+      bestLabel = label;
+    }
+  });
+  
+  if (best && bestPct > 0) {
+    return { 
+      giocata: best, 
+      label: bestLabel, 
+      pct: bestPct,
+      isBomb: bestPct >= 90
+    };
   }
-  let best = candidates.reduce((a, b) => a.pct > b.pct ? a : b);
-  best.pct = Math.round(best.pct);
-  return best;
+  
+  return null;
 };
 
 // ============================================================
@@ -1302,55 +1540,211 @@ const Standings = ({ matches, filterChampionship, highlightTeams = [] }) => {
 };
 
 // ============================================================
-// COMPONENTE MATCH TAB
+// COMPONENTE FAMIGLIE SELECTOR (per il TAB Impostazioni)
 // ============================================================
 
-const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) => {
+const FamiglieSelector = ({ selectedFamiglie, setSelectedFamiglie, showAlert }) => {
+  const [tempSelected, setTempSelected] = useState(selectedFamiglie);
+  
+  const toggleFamiglia = (familyId) => {
+    setTempSelected(prev => {
+      if (prev.includes(familyId)) {
+        return prev.filter(id => id !== familyId);
+      } else {
+        if (prev.length >= 3) {
+          showAlert('error', '⚠️ Puoi selezionare massimo 3 famiglie!');
+          return prev;
+        }
+        return [...prev, familyId];
+      }
+    });
+  };
+  
+  const isActive = (familyId) => tempSelected.includes(familyId);
+  
+  const confirmFamiglie = () => {
+    if (tempSelected.length === 0) {
+      showAlert('error', '⚠️ Seleziona almeno una famiglia!');
+      return;
+    }
+    setSelectedFamiglie(tempSelected);
+    const names = tempSelected.map(id => FAMIGLIE_GIOCATE[id].label);
+    showAlert('success', `✅ Famiglie selezionate: ${names.join(', ')}`);
+  };
+  
+  const resetToDefault = () => {
+    setTempSelected(DEFAULT_FAMIGLIE);
+    setSelectedFamiglie(DEFAULT_FAMIGLIE);
+    const names = DEFAULT_FAMIGLIE.map(id => FAMIGLIE_GIOCATE[id].label);
+    showAlert('info', `🔄 Famiglie ripristinate al default: ${names.join(', ')}`);
+  };
+  
+  return (
+    <div>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px'}}>
+        <div>
+          <h3 style={{margin: 0, color: 'var(--accent)'}}>🎯 Seleziona Famiglie di Giocate</h3>
+          <div style={{fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px'}}>
+            Ogni famiglia mostra la MIGLIORE giocata calcolata per la partita (max 3 famiglie)
+          </div>
+        </div>
+        <div style={{display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap'}}>
+          <span className="selected-count">
+            Selezionate: <span className="count-num">{tempSelected.length}</span>/3
+          </span>
+          <button className="btn btn-secondary" onClick={resetToDefault} style={{fontSize: '12px', padding: '6px 14px'}}>
+            🔄 Default
+          </button>
+          <button className="btn" onClick={confirmFamiglie} style={{fontSize: '12px', padding: '6px 18px'}}>
+            ✅ Conferma
+          </button>
+        </div>
+      </div>
+      
+      <div className="giocate-selector-grid">
+        {Object.entries(FAMIGLIE_GIOCATE).map(([key, family]) => (
+          <div 
+            key={key} 
+            className={`giocate-category ${isActive(key) ? 'active' : ''}`}
+            onClick={() => toggleFamiglia(key)}
+          >
+            <div className="category-title">
+              <span className="icon">{family.icon}</span>
+              {family.label}
+              <span className="badge">{family.options.length} opzioni</span>
+            </div>
+            <div className="category-sub">{family.desc}</div>
+            {isActive(key) && (
+              <div className="category-preview">
+                ✅ Attiva - sceglie la migliore tra {family.options.length} opzioni
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      
+      {tempSelected.length > 0 && (
+        <div style={{marginTop: '16px', padding: '12px 16px', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--border)'}}>
+          <div style={{fontSize: '13px', color: 'var(--text-muted)'}}>
+            🔥 Famiglie attive: 
+            {tempSelected.map((id, i) => {
+              const family = FAMIGLIE_GIOCATE[id];
+              return (
+                <span key={i} style={{display: 'inline-block', margin: '2px 4px', padding: '2px 10px', background: 'var(--accent)', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold'}}>
+                  {family.icon} {family.label}
+                </span>
+              );
+            })}
+          </div>
+          <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px'}}>
+            {tempSelected.length === 3 ? '✅ Numero famiglie completo' : `⚠️ Puoi aggiungere ancora ${3 - tempSelected.length} famiglia/e`}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ============================================================
+// COMPONENTE MATCH TAB (con famiglie dinamiche)
+// ============================================================
+
+const MatchTab = ({ match, allMatches, onSelect, selectedFamiglie, weatherData }) => {
   if (!match) return null;
+  
   const homeForm = calcFormAndStats(allMatches, match.casa);
   const awayForm = calcFormAndStats(allMatches, match.ospiti);
   const champColor = getChampColor(match.campionato);
   const flagHtml = getCountryFlagHtml(match.campionato);
   const diff = Math.abs(homeForm.pct - awayForm.pct);
+  const stats = computeMatchStats(match, allMatches);
+  
+  // Aggiungi all'oggetto stats le informazioni necessarie per le giocate speciali
+  stats._allMatches = allMatches;
+  stats._homeTeam = match.casa;
+  stats._awayTeam = match.ospiti;
   
   const renderFormSquares = (formStr) => {
     if (!formStr) return <span>N/D</span>;
     return [...formStr].map((letter, idx) => <div key={idx} className={`form-square form-square-${letter}`}>{letter}</div>);
   };
   
-  const pct12Under45 = get12Under45(allMatches, match.casa, match.ospiti);
-  const homeRange = getMultigolRange(match.casa, allMatches);
-  const awayRange = getMultigolRange(match.ospiti, allMatches);
-  const stats = computeMatchStats(match, allMatches);
-  let over15Pct = 0;
-  if (!stats.error && stats.underOver && stats.underOver[0]) {
-    over15Pct = Math.round(stats.underOver[0].over);
-  }
-  const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + over15Pct) / 4);
-  const mediaCombinata = Math.round((homeRange.pct + awayRange.pct) / 2);
-  const hasBomb = pct12Under45 >= 90 || homeRange.pct >= 90 || awayRange.pct >= 90 || over15Pct >= 90;
-  
-  const handleClick = (e) => { e.stopPropagation(); onSelect(match.id); };
-  const addBet1 = (e) => { e.stopPropagation(); const text = `Giocata 12+U4.5: ${Math.round(pct12Under45)}% (${match.casa} vs ${match.ospiti})`; addToSchedina(text); };
-  const addBet2 = (e) => { e.stopPropagation(); const text = `Combinata:\n${match.casa}: (${homeRange.label}) - ${homeRange.pct}%\n${match.ospiti}: (${awayRange.label}) - ${awayRange.pct}%\nMedia: ${mediaCombinata}%`; addToSchedina(text); };
-  const addBet3 = (e) => { e.stopPropagation(); const text = `Over 1.5: ${over15Pct}% (${match.casa} vs ${match.ospiti})`; addToSchedina(text); };
-  
-  const formattedDate = match.data ? formatDateEU(match.data) : 'N/D';
-  const matchTime = match.ora || 'TBD';
-
   const renderPct = (value) => {
     const rounded = Math.round(value);
     const cls = getPercentualeClasse(rounded);
     return <span className={`giocata-pct ${cls}`}>{rounded}%</span>;
   };
-
+  
   const renderXgValue = (value) => {
     const num = parseFloat(value);
     if (isNaN(num)) return <span className="xg-value xg-white">N/A</span>;
     const cls = getXgClasse(num);
     return <span className={`xg-value ${cls}`}>{num.toFixed(1)}</span>;
   };
-
+  
+  const getColorForPct = (valore) => {
+    if (valore >= 90) return '#f39c12';
+    if (valore >= 66.67) return '#6fcf97';
+    if (valore >= 33.34) return '#8b949e';
+    return '#eb5757';
+  };
+  
+  // Calcola le giocate da mostrare per ogni famiglia selezionata
+  const getGiocateDaMostrare = () => {
+    if (stats.error) return [];
+    
+    const homeMG = stats.homeMG || {};
+    const awayMG = stats.awayMG || {};
+    const mgTot = stats.mgTot || {};
+    const homeRange = getMultigolRange(match.casa, allMatches);
+    const awayRange = getMultigolRange(match.ospiti, allMatches);
+    
+    const giocateDaMostrare = [];
+    
+    selectedFamiglie.forEach(familyId => {
+      const family = FAMIGLIE_GIOCATE[familyId];
+      if (!family) return;
+      
+      const best = getBestBetForFamily(familyId, stats, homeRange, awayRange, homeMG, awayMG, mgTot);
+      
+      if (best && best.pct > 0) {
+        let displayLabel = best.label;
+        let familyLabel = family.label;
+        
+        // Per DC+UNDER, mostra la giocata specifica
+        if (familyId === 'dc_under') {
+          // Mostra la giocata specifica (es. 12+U4.5)
+        }
+        // Per MG CASA+OSPITE, mostra la combinazione
+        else if (familyId === 'mg_casa_ospite') {
+          // Già gestito
+        }
+        
+        giocateDaMostrare.push({
+          familyId,
+          familyLabel: family.label,
+          familyIcon: family.icon,
+          label: displayLabel,
+          pct: best.pct,
+          isBomb: best.pct >= 90,
+          giocata: best.giocata
+        });
+      }
+    });
+    
+    // Ordina per percentuale decrescente
+    return giocateDaMostrare.sort((a, b) => b.pct - a.pct);
+  };
+  
+  const giocateDaMostrare = getGiocateDaMostrare();
+  const score = giocateDaMostrare.length > 0 ? Math.round(giocateDaMostrare.reduce((s, g) => s + g.pct, 0) / giocateDaMostrare.length) : 0;
+  const hasBomb = giocateDaMostrare.some(g => g.isBomb);
+  
+  const handleClick = (e) => { e.stopPropagation(); onSelect(match.id); };
+  
+  const formattedDate = match.data ? formatDateEU(match.data) : 'N/D';
+  const matchTime = match.ora || 'TBD';
+  
   return (
     <div className="match-tab" style={{borderLeftColor: champColor}} onClick={handleClick}>
       <div className="score-badge">
@@ -1393,44 +1787,30 @@ const MatchTab = ({ match, allMatches, onSelect, addToSchedina, weatherData }) =
       </div>
       
       <div className="bet-row-vertical">
-        <div className="bet-item-vertical" onClick={addBet1}>
-          <span className="bet-label" style={{color: getColorForPct(pct12Under45)}}>12+U4.5</span>
-          <span className="bet-value">{renderPct(pct12Under45)}</span>
-        </div>
-        
-        <div className="bet-item-vertical" onClick={addBet2}>
-          <span className="bet-label" style={{color: getColorForPct(mediaCombinata)}}>COMBINATA</span>
-          <span className="bet-value">
-            <div className="combinata-detail">
-              <div className="team-row">
-                <span style={{color: getColorForPct(homeRange.pct), fontWeight: 'bold'}}>{match.casa}</span>
-                <span>({homeRange.label}) - {renderPct(homeRange.pct)}</span>
-              </div>
-              <div className="team-row">
-                <span style={{color: getColorForPct(awayRange.pct), fontWeight: 'bold'}}>{match.ospiti}</span>
-                <span>({awayRange.label}) - {renderPct(awayRange.pct)}</span>
-              </div>
-              <div className="team-row" style={{justifyContent: 'flex-end', marginTop: '2px'}}>
-                <span style={{color: 'var(--accent)', fontWeight: 'bold'}}>Media: {renderPct(mediaCombinata)}</span>
-              </div>
+        {giocateDaMostrare.length > 0 ? (
+          giocateDaMostrare.map((g, idx) => (
+            <div key={idx} className={`bet-item-vertical ${g.isBomb ? 'bomb' : ''}`}>
+              <span className="bet-label" style={{color: getColorForPct(g.pct)}}>
+                {g.familyIcon} {g.familyLabel}
+              </span>
+              <span className="bet-value">
+                <span className={`giocata-pct ${getPercentualeClasse(g.pct)}`}>
+                  {g.pct}% {g.isBomb && <span className="bomb-icon">💣</span>}
+                </span>
+                <div className="combinata-detail">
+                  {g.label}
+                </div>
+              </span>
             </div>
-          </span>
-        </div>
-        
-        <div className="bet-item-vertical" onClick={addBet3}>
-          <span className="bet-label" style={{color: getColorForPct(over15Pct)}}>OVER 1.5</span>
-          <span className="bet-value">{renderPct(over15Pct)}</span>
-        </div>
+          ))
+        ) : (
+          <div className="bet-item-vertical" style={{textAlign: 'center', color: 'var(--text-muted)'}}>
+            <span>Nessuna giocata disponibile</span>
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-const getColorForPct = (valore) => {
-  if (valore >= 90) return '#f39c12';
-  if (valore >= 66.67) return '#6fcf97';
-  if (valore >= 33.34) return '#8b949e';
-  return '#eb5757';
 };
 
 // ============================================================
@@ -1469,7 +1849,7 @@ const MatchTabHistory = ({ match, onSelect }) => {
 // COMPONENTE MATCH DETAIL
 // ============================================================
 
-const MatchDetail = ({ match, allMatches, addToSchedina }) => {
+const MatchDetail = ({ match, allMatches }) => {
   const stats = computeMatchStats(match, allMatches);
   if (stats.error) return <div className="card"><p>{stats.error}</p></div>;
   const homeForm = calcFormAndStats(allMatches, match.casa);
@@ -1490,14 +1870,13 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
   };
   const last5Home = getLast5Games(match.casa);
   const last5Away = getLast5Games(match.ospiti);
-  const renderStatBox = (label, value, onClickLabel = null) => {
+  const renderStatBox = (label, value) => {
     const numValue = typeof value === 'number' ? value : 0;
     const roundedValue = Math.round(numValue);
     const cls = numValue >= 90 ? 'flag-bomb' : (numValue >= 66.67 ? 'flag-green' : (numValue >= 33.34 ? 'flag-white' : 'flag-red'));
     const isBomb = numValue >= 90;
-    const handleClick = () => { if (onClickLabel) { const text = `${onClickLabel}: ${roundedValue}% (${match.casa} vs ${match.ospiti})`; addToSchedina(text); } };
     return (
-      <div className={`detail-stat-box ${cls}`} onClick={handleClick}>
+      <div className={`detail-stat-box ${cls}`}>
         <span className="label">{label}</span>
         <span className="value" style={{color: '#000', fontSize: '20px', fontWeight: 'bold'}}>
           {roundedValue}%{isBomb && <span className="bomb-icon">💣</span>}
@@ -1592,9 +1971,9 @@ const MatchDetail = ({ match, allMatches, addToSchedina }) => {
           </div>
         </div>
       </div>
-      <div className="card detail-section"><h4>⚡ FISSE</h4><div className="detail-row">{renderStatBox('1', stats.p1, 'Fissa 1')}{renderStatBox('X', stats.pX, 'Fissa X')}{renderStatBox('2', stats.p2, 'Fissa 2')}</div></div>
-      <div className="card detail-section"><h4>🛡️ DOPPIA CHANCE</h4><div className="detail-row">{renderStatBox('1X', stats.p1X, 'Doppia Chance 1X')}{renderStatBox('12', stats.p12, 'Doppia Chance 12')}{renderStatBox('X2', stats.pX2, 'Doppia Chance X2')}</div></div>
-      <div className="card detail-section"><h4>📊 UNDER / OVER</h4>{stats.underOver.map(u => (<div key={u.threshold} className="detail-row"><div className="detail-stat-box" style={{flex:'0 0 70px', background:'var(--surface)'}}><span className="label" style={{color: '#ffff00'}}>Soglia</span><span className="value" style={{color: '#fff', fontSize:'14px'}}>{u.threshold}</span></div>{renderStatBox('Under', u.under, `Under ${u.threshold}`)}{renderStatBox('Over', u.over, `Over ${u.threshold}`)}</div>))}</div>
+      <div className="card detail-section"><h4>⚡ FISSE</h4><div className="detail-row">{renderStatBox('1', stats.p1)}{renderStatBox('X', stats.pX)}{renderStatBox('2', stats.p2)}</div></div>
+      <div className="card detail-section"><h4>🛡️ DOPPIA CHANCE</h4><div className="detail-row">{renderStatBox('1X', stats.p1X)}{renderStatBox('12', stats.p12)}{renderStatBox('X2', stats.pX2)}</div></div>
+      <div className="card detail-section"><h4>📊 UNDER / OVER</h4>{stats.underOver.map(u => (<div key={u.threshold} className="detail-row"><div className="detail-stat-box" style={{flex:'0 0 70px', background:'var(--surface)'}}><span className="label" style={{color: '#ffff00'}}>Soglia</span><span className="value" style={{color: '#fff', fontSize:'14px'}}>{u.threshold}</span></div>{renderStatBox('Under', u.under)}{renderStatBox('Over', u.over)}</div>))}</div>
       <div className="card detail-section"><h4>📊 MULTIGOL</h4>{renderMultigolRow(stats.homeMG, `🏠 ${match.casa}`, getChampColor(match.campionato))}{renderMultigolRow(stats.awayMG, `✈️ ${match.ospiti}`, getChampColor(match.campionato))}{renderMultigolRow(stats.mgTot, '📊 Totale', 'var(--accent)')}</div>
     </div>
   );
@@ -1874,44 +2253,18 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
 };
 
 // ============================================================
-// COMPONENTE STORICO SCHEDINE
+// COMPONENTE STORICO SCHEDINE (vuoto)
 // ============================================================
 
 const StoricoSchedine = ({ schedineHistory, setSchedineHistory }) => {
-  if (schedineHistory.length === 0) {
-    return <div className="card"><h4>📜 Storico Schedine</h4><div className="empty-state" style={{padding: '20px'}}><p>Nessuna schedina salvata. Le tue schedine appariranno qui dopo il salvataggio.</p></div></div>;
-  }
-  const removeHistoryItem = (index) => {
-    const newHistory = schedineHistory.filter((_, i) => i !== index);
-    setSchedineHistory(newHistory);
-  };
-  return (
-    <div className="card">
-      <h4>📜 Storico Schedine</h4>
-      {schedineHistory.slice().reverse().map((s, idx) => {
-        const originalIndex = schedineHistory.length - 1 - idx;
-        const statusClass = s.status === 'win' ? 'win' : (s.status === 'loss' ? 'loss' : 'pending');
-        return (
-          <div key={idx} className="schedina-history-item">
-            <div><div className="entries"><b>{s.entries.length} giocate</b></div><div className="date">📅 {new Date(s.timestamp).toLocaleDateString()} {new Date(s.timestamp).toLocaleTimeString()}</div></div>
-            <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
-              <span className={`status ${statusClass}`}>{s.status === 'win' ? '✅ Vinta' : (s.status === 'loss' ? '❌ Persa' : '⏳ In attesa')}</span>
-              {s.profitto !== undefined && <span style={{fontWeight: 'bold', color: s.profitto > 0 ? 'var(--win)' : 'var(--lose)'}}>{s.profitto > 0 ? '+' : ''}{s.profitto}x</span>}
-              <button className="btn btn-danger" style={{fontSize: '11px', padding: '2px 10px'}} onClick={() => removeHistoryItem(originalIndex)}>🗑️</button>
-            </div>
-          </div>
-        );
-      })}
-      <div style={{marginTop: '12px'}}><button className="btn btn-danger" onClick={() => { if (confirm('Eliminare tutto lo storico delle schedine?')) { setSchedineHistory([]); } }}>🗑️ Elimina tutto lo storico</button></div>
-    </div>
-  );
+  return null;
 };
 
 // ============================================================
-// COMPONENTE HOME WIDGET
+// COMPONENTE HOME WIDGET (con famiglie)
 // ============================================================
 
-const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
+const HomeWidget = ({ matches, onSelectMatch, setTab, selectedFamiglie }) => {
   const [selectedDay, setSelectedDay] = useState('oggi');
   const [expanded, setExpanded] = useState(true);
   
@@ -1936,29 +2289,38 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
     return targetMatches.map(m => {
       const stats = computeMatchStats(m, matches);
       if (stats.error) return { ...m, score: 0, giocate: [] };
-      const pct12Under45 = get12Under45(matches, m.casa, m.ospiti);
+      
+      stats._allMatches = matches;
+      stats._homeTeam = m.casa;
+      stats._awayTeam = m.ospiti;
+      
+      const homeMG = stats.homeMG || {};
+      const awayMG = stats.awayMG || {};
+      const mgTot = stats.mgTot || {};
       const homeRange = getMultigolRange(m.casa, matches);
       const awayRange = getMultigolRange(m.ospiti, matches);
-      let over15Pct = 0;
-      if (!stats.error && stats.underOver && stats.underOver[0]) {
-        over15Pct = Math.round(stats.underOver[0].over);
-      }
-      const score = Math.round((pct12Under45 + homeRange.pct + awayRange.pct + over15Pct) / 4);
+      
       const giocate = [];
-      const pct1 = Math.round(pct12Under45);
-      giocate.push({ label: '12+U4.5', pct: pct1, type: '12+U4.5', isBomb: pct1 >= 90 });
-      const combPct = Math.round((homeRange.pct + awayRange.pct) / 2);
-      giocate.push({ label: `COMBINATA: ${m.casa} ${homeRange.label} + ${m.ospiti} ${awayRange.label}`, pct: combPct, type: 'Combinata', isBomb: combPct >= 90 });
-      giocate.push({ label: 'Over 1.5', pct: over15Pct, type: 'Over', isBomb: over15Pct >= 90 });
-      if (stats.underOver && stats.underOver[2]) { const under35 = Math.round(stats.underOver[2].under); giocate.push({ label: 'Under 3.5', pct: under35, type: 'Under', isBomb: under35 >= 90 }); }
-      if (stats.homeMG) { for (const [key, value] of Object.entries(stats.homeMG)) { const pct = Math.round(value); const displayKey = key === '2-4' ? 'Over 1,5' : key; giocate.push({ label: `MG Casa ${displayKey}`, pct: pct, type: 'MG Casa', isBomb: pct >= 90 }); } }
-      if (stats.awayMG) { for (const [key, value] of Object.entries(stats.awayMG)) { const pct = Math.round(value); const displayKey = key === '2-4' ? 'Over 1,5' : key; giocate.push({ label: `MG Ospite ${displayKey}`, pct: pct, type: 'MG Ospite', isBomb: pct >= 90 }); } }
-      if (stats.p1X !== undefined) { const p1x = Math.round(stats.p1X); giocate.push({ label: '1X', pct: p1x, type: 'Doppia Chance', isBomb: p1x >= 90 }); const p12 = Math.round(stats.p12); giocate.push({ label: '12', pct: p12, type: 'Doppia Chance', isBomb: p12 >= 90 }); const px2 = Math.round(stats.pX2); giocate.push({ label: 'X2', pct: px2, type: 'Doppia Chance', isBomb: px2 >= 90 }); }
+      
+      selectedFamiglie.forEach(familyId => {
+        const best = getBestBetForFamily(familyId, stats, homeRange, awayRange, homeMG, awayMG, mgTot);
+        if (best && best.pct > 0) {
+          giocate.push({
+            familyId,
+            label: best.label,
+            pct: best.pct,
+            isBomb: best.pct >= 90
+          });
+        }
+      });
+      
       giocate.sort((a, b) => b.pct - a.pct);
-      const bombGiocate = giocate.filter(g => g.isBomb);
-      return { ...m, score, giocate: bombGiocate, stats };
+      const score = giocate.length > 0 ? Math.round(giocate.reduce((s, g) => s + g.pct, 0) / giocate.length) : 0;
+      
+      return { ...m, score, giocate: giocate.slice(0, 3) };
     }).filter(m => m.score > 0 && m.giocate.length > 0).sort((a,b) => b.score - a.score).slice(0, 5);
   };
+  
   const giocateDelGiorno = getGiocateDelGiorno();
   if (giocateDelGiorno.length === 0) {
     return (
@@ -1971,6 +2333,7 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
       </div>
     );
   }
+  
   return (
     <div className="home-widget">
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', cursor: 'pointer'}} onClick={() => setExpanded(!expanded)}>
@@ -2001,10 +2364,12 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
               <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px'}}>
                 {giocateDelGiorno[0].giocate.map((g, idx) => {
                   const isMax = g.pct === Math.max(...giocateDelGiorno[0].giocate.map(x => x.pct));
+                  const family = FAMIGLIE_GIOCATE[g.familyId];
                   return (
-                    <div key={idx} style={{background: 'var(--surface)', padding: '4px 10px', borderRadius: '4px', textAlign: 'center', border: isMax && g.isBomb ? '2px solid var(--accent)' : '1px solid var(--border)', cursor: 'pointer', transition: 'all 0.2s', fontSize: '11px', flex: '1', minWidth: '80px'}} onClick={(e) => { e.stopPropagation(); const text = `${g.label}: ${g.pct}% (${giocateDelGiorno[0].casa} vs ${giocateDelGiorno[0].ospiti})`; addToSchedina(text); }}>
-                      <div style={{fontWeight: 'bold', color: 'var(--text)', fontSize: '10px'}}>{g.label.length > 25 ? g.label.slice(0, 22) + '...' : g.label}</div>
+                    <div key={idx} style={{background: 'var(--surface)', padding: '4px 10px', borderRadius: '4px', textAlign: 'center', border: isMax && g.isBomb ? '2px solid var(--accent)' : '1px solid var(--border)', flex: '1', minWidth: '80px'}}>
+                      <div style={{fontWeight: 'bold', color: 'var(--text)', fontSize: '10px'}}>{family ? family.label : g.familyId}</div>
                       <div style={{fontWeight: 'bold', fontSize: '14px'}}>{renderPct(g.pct)}</div>
+                      <div style={{fontSize: '9px', color: 'var(--text-muted)'}}>{g.label}</div>
                     </div>
                   );
                 })}
@@ -2024,10 +2389,12 @@ const HomeWidget = ({ matches, addToSchedina, onSelectMatch, setTab }) => {
                   <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px', flex: '1', minWidth: '180px'}}>
                     {match.giocate.map((g, gi) => {
                       const isMax = g.pct === maxPct;
+                      const family = FAMIGLIE_GIOCATE[g.familyId];
                       return (
-                        <div key={gi} style={{background: 'var(--surface)', padding: '3px 8px', borderRadius: '4px', textAlign: 'center', border: isMax && g.isBomb ? '2px solid var(--accent)' : '1px solid var(--border)', cursor: 'pointer', transition: 'all 0.2s', fontSize: '10px', flex: '1', minWidth: '60px', maxWidth: '160px'}} onClick={(e) => { e.stopPropagation(); const text = `${g.label}: ${g.pct}% (${match.casa} vs ${match.ospiti})`; addToSchedina(text); }}>
-                          <div style={{fontWeight: 'bold', color: 'var(--text)', fontSize: '9px', lineHeight: '1.2'}}>{g.label.length > 18 ? g.label.slice(0, 15) + '..' : g.label}</div>
+                        <div key={gi} style={{background: 'var(--surface)', padding: '3px 8px', borderRadius: '4px', textAlign: 'center', border: isMax && g.isBomb ? '2px solid var(--accent)' : '1px solid var(--border)', flex: '1', minWidth: '60px', maxWidth: '160px'}}>
+                          <div style={{fontWeight: 'bold', color: 'var(--text)', fontSize: '9px', lineHeight: '1.2'}}>{family ? family.label : g.familyId}</div>
                           <div style={{fontWeight: 'bold', fontSize: '13px'}}>{renderPct(g.pct)}</div>
+                          <div style={{fontSize: '8px', color: 'var(--text-muted)'}}>{g.label}</div>
                         </div>
                       );
                     })}
@@ -2359,7 +2726,7 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
 };
 
 // ============================================================
-// COMPONENTE FILE IMPORTER (NUOVO)
+// COMPONENTE FILE IMPORTER
 // ============================================================
 
 const FileImporter = ({ matches, setMatches, championships, setChampionships, loading, setLoading, showAlert }) => {
@@ -2779,7 +3146,7 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
 };
 
 // ============================================================
-// COMPONENTE AI ANALYSIS (versione semplificata per spazio)
+// COMPONENTE AI ANALYSIS
 // ============================================================
 
 const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
@@ -3071,6 +3438,40 @@ const WeatherProfessionale = ({ weatherData, city, matchDate }) => {
 };
 
 // ============================================================
+// COMPONENTE CITTÀ METEO
+// ============================================================
+
+const CittaMeteo = ({ matches }) => {
+  const [cities, setCities] = useState([]);
+  useEffect(() => {
+    const uniqueCities = new Set();
+    matches.forEach(m => {
+      const city = getCityForMatch(m.casa, m.campionato);
+      if (city) uniqueCities.add(city);
+    });
+    setCities(Array.from(uniqueCities).sort());
+  }, [matches]);
+  return (
+    <div className="card">
+      <h4>🌍 Città Meteo ({cities.length})</h4>
+      <div className="citta-meteo-grid">
+        {cities.map(city => {
+          const squadre = matches.filter(m => getCityForMatch(m.casa, m.campionato) === city).map(m => m.casa);
+          const uniqueSquadre = [...new Set(squadre)];
+          return (
+            <div key={city} className="citta-meteo-item">
+              <span className="citta-nome">📍 {city}</span>
+              <span className="citta-squadre">{uniqueSquadre.slice(0, 3).join(', ')}{uniqueSquadre.length > 3 ? ` +${uniqueSquadre.length - 3}` : ''}</span>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px'}}>💡 Usa WorldWeatherOnline nel tab API KEY per i dati meteo</div>
+    </div>
+  );
+};
+
+// ============================================================
 // COMPONENTE APP
 // ============================================================
 
@@ -3083,8 +3484,9 @@ const loadState = () => {
       theme: JSON.parse(localStorage.getItem('ft_theme') || '"Scuro Blu Notte"'),
       customTheme: JSON.parse(localStorage.getItem('ft_custom_theme') || 'null'),
       schedineHistory: JSON.parse(localStorage.getItem('ft_schedine_history') || '[]'),
+      selectedFamiglie: JSON.parse(localStorage.getItem('ft_selected_famiglie') || '["dc_under","mg_casa_ospite","over"]'),
     };
-  } catch(e) { return { championships:[], matches:[], apiKeys:{}, theme:'Scuro Blu Notte', customTheme:null, schedineHistory:[] }; }
+  } catch(e) { return { championships:[], matches:[], apiKeys:{}, theme:'Scuro Blu Notte', customTheme:null, schedineHistory:[], selectedFamiglie:['dc_under','mg_casa_ospite','over'] }; }
 };
 
 const saveState = (data) => {
@@ -3094,6 +3496,7 @@ const saveState = (data) => {
   localStorage.setItem('ft_theme', JSON.stringify(data.theme));
   localStorage.setItem('ft_custom_theme', JSON.stringify(data.customTheme));
   localStorage.setItem('ft_schedine_history', JSON.stringify(data.schedineHistory || []));
+  localStorage.setItem('ft_selected_famiglie', JSON.stringify(data.selectedFamiglie || ['dc_under','mg_casa_ospite','over']));
 };
 
 function App() {
@@ -3122,6 +3525,7 @@ function App() {
     const saved = localStorage.getItem('ft_view_mode');
     return saved || 'pc';
   });
+  const [selectedFamiglie, setSelectedFamiglie] = useState(initial.selectedFamiglie || ['dc_under','mg_casa_ospite','over']);
 
   useEffect(() => {
     localStorage.setItem('ft_view_mode', viewMode);
@@ -3249,10 +3653,6 @@ function App() {
     }
   };
 
-  const addToSchedina = (text) => { 
-    showAlert('success', '✅ Giocata aggiunta alla Schedina!');
-  };
-
   const showAlert = (type, text) => { setMessage({ type, text }); setTimeout(() => setMessage(null), 4000); };
   const selectMatch = (matchId) => { setSelectedMatchId(matchId); setTab('Statistiche'); };
   const testApiKey = async (name) => {
@@ -3272,7 +3672,7 @@ function App() {
   };
 
   const saveLocal = () => {
-    const data = { championships, matches, apiKeys, theme, customTheme, schedineHistory, exportedAt: new Date().toISOString() };
+    const data = { championships, matches, apiKeys, theme, customTheme, schedineHistory, selectedFamiglie, exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `gesssai-backup-${Date.now()}.json`; a.click();
@@ -3290,6 +3690,7 @@ function App() {
         if (data.theme) setTheme(data.theme);
         if (data.customTheme) setCustomTheme(data.customTheme);
         if (data.schedineHistory) setSchedineHistory(data.schedineHistory);
+        if (data.selectedFamiglie) setSelectedFamiglie(data.selectedFamiglie);
         showAlert('success', '📂 Dati caricati!');
       } catch(err) { showAlert('error', 'File non valido'); }
     };
@@ -3337,7 +3738,7 @@ function App() {
     }
   }, [selectedMatch, apiKeys]);
 
-  useEffect(() => { saveState({ championships, matches, apiKeys, theme, customTheme, schedineHistory }); }, [championships, matches, apiKeys, theme, customTheme, schedineHistory]);
+  useEffect(() => { saveState({ championships, matches, apiKeys, theme, customTheme, schedineHistory, selectedFamiglie }); }, [championships, matches, apiKeys, theme, customTheme, schedineHistory, selectedFamiglie]);
 
   useEffect(() => {
     const t = theme === 'Custom' ? customTheme : THEMES[theme] || THEMES['Scuro Blu Notte'];
@@ -3378,7 +3779,7 @@ function App() {
 
         {tab === 'Home' && (
           <div>
-            <HomeWidget matches={matches} addToSchedina={addToSchedina} onSelectMatch={selectMatch} setTab={setTab} />
+            <HomeWidget matches={matches} onSelectMatch={selectMatch} setTab={setTab} selectedFamiglie={selectedFamiglie} />
             <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px'}}>
               <div><h3 style={{marginBottom: '12px'}}>📊 Statistiche Rapide</h3><div className="perf-grid" style={{gridTemplateColumns: '1fr 1fr'}}>
                 <div className="perf-card"><div className="perf-value" style={{color: 'var(--accent)'}}>{matches.filter(m => m.stato === 'Futura').length}</div><div className="perf-label">Partite Future</div></div>
@@ -3449,7 +3850,7 @@ function App() {
                   return dateA.localeCompare(dateB);
                 });
                 if (!filteredByDays || filteredByDays.length === 0) { return <div className="empty-state">Nessuna partita nei prossimi {daysRange + 1} giorni.</div>; }
-                return <div className="matches-grid">{filteredByDays.map(m => { const weatherKey = `${m.campionato}_${m.data}`; const weather = weatherCache[weatherKey] || null; return <MatchTab key={m.id} match={m} allMatches={matches} onSelect={selectMatch} addToSchedina={addToSchedina} weatherData={weather} />; })}</div>;
+                return <div className="matches-grid">{filteredByDays.map(m => { const weatherKey = `${m.campionato}_${m.data}`; const weather = weatherCache[weatherKey] || null; return <MatchTab key={m.id} match={m} allMatches={matches} onSelect={selectMatch} selectedFamiglie={selectedFamiglie} weatherData={weather} />; })}</div>;
               } catch (e) { console.error('Errore rendering Palinsesto:', e); return <div className="empty-state">Errore nel caricamento delle partite: {e.message}</div>; }
             })()}
           </div>
@@ -3464,7 +3865,7 @@ function App() {
             </div>
             {statsSubTab === 'Classifica' && (
               <div className="stats-two-col">
-                <div>{selectedMatch ? <MatchDetail match={selectedMatch} allMatches={matches} addToSchedina={addToSchedina} /> : <div className="stats-placeholder"><p>👈 Seleziona una partita dal <b>Palinsesto</b> o dallo <b>Storico</b> per vedere le statistiche dettagliate.</p></div>}</div>
+                <div>{selectedMatch ? <MatchDetail match={selectedMatch} allMatches={matches} /> : <div className="stats-placeholder"><p>👈 Seleziona una partita dal <b>Palinsesto</b> o dallo <b>Storico</b> per vedere le statistiche dettagliate.</p></div>}</div>
                 <div>{selectedMatch ? <><h3 style={{marginBottom:'12px', color: getChampColor(selectedMatch.campionato)}}>Classifica - {selectedMatch.campionato}</h3><Standings matches={matches} filterChampionship={selectedMatch.campionato} highlightTeams={[selectedMatch.casa, selectedMatch.ospiti]} /></> : <div className="stats-placeholder"><p>📊 Seleziona una partita per vedere la classifica.</p></div>}</div>
               </div>
             )}
@@ -3563,7 +3964,7 @@ function App() {
         {tab === 'Impostazioni' && (
           <div>
             <div className="tabs-sub">
-              {SETTINGS_TABS.map(t => <button key={t} className={settingsTab === t ? 'active' : ''} onClick={() => setSettingsTab(t)}>{t === 'Temi' && '🎨 '}{t === 'API KEY' && '🔑 '}{t === 'Dati Locali' && '💾 '}{t === 'Importa Campionato' && '📥 '}{t === 'Grandezza Caratteri' && '📏 '}{t === 'Città Meteo' && '🌍 '}{t === 'Visuale' && '📱 '}{t}</button>)}
+              {SETTINGS_TABS.map(t => <button key={t} className={settingsTab === t ? 'active' : ''} onClick={() => setSettingsTab(t)}>{t === 'Temi' && '🎨 '}{t === 'API KEY' && '🔑 '}{t === 'Dati Locali' && '💾 '}{t === 'Importa Campionato' && '📥 '}{t === 'Giocate' && '🎯 '}{t === 'Grandezza Caratteri' && '📏 '}{t === 'Città Meteo' && '🌍 '}{t === 'Visuale' && '📱 '}{t}</button>)}
             </div>
             {settingsTab === 'Temi' && (
               <div>
@@ -3630,6 +4031,11 @@ function App() {
                     })}
                   </div>
                 )}
+              </div>
+            )}
+            {settingsTab === 'Giocate' && (
+              <div>
+                <FamiglieSelector selectedFamiglie={selectedFamiglie} setSelectedFamiglie={setSelectedFamiglie} showAlert={showAlert} />
               </div>
             )}
             {settingsTab === 'Grandezza Caratteri' && (
