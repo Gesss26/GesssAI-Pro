@@ -1646,7 +1646,7 @@ const FamiglieSelector = ({ selectedFamiglie, setSelectedFamiglie, showAlert }) 
 };
 
 // ============================================================
-// COMPONENTE MATCH TAB (con famiglie dinamiche)
+// COMPONENTE MATCH TAB (con famiglie dinamiche) - MODIFICATO!
 // ============================================================
 
 const MatchTab = ({ match, allMatches, onSelect, selectedFamiglie, weatherData }) => {
@@ -1711,20 +1711,11 @@ const MatchTab = ({ match, allMatches, onSelect, selectedFamiglie, weatherData }
         let displayLabel = best.label;
         let familyLabel = family.label;
         
-        // Per DC+UNDER, mostra la giocata specifica
-        if (familyId === 'dc_under') {
-          // Mostra la giocata specifica (es. 12+U4.5)
-        }
-        // Per MG CASA+OSPITE, mostra la combinazione
-        else if (familyId === 'mg_casa_ospite') {
-          // Già gestito
-        }
-        
         giocateDaMostrare.push({
           familyId,
           familyLabel: family.label,
           familyIcon: family.icon,
-          label: displayLabel,
+          giocataLabel: displayLabel,  // Nome della giocata (es. 0-2+0-2)
           pct: best.pct,
           isBomb: best.pct >= 90,
           giocata: best.giocata
@@ -1790,15 +1781,18 @@ const MatchTab = ({ match, allMatches, onSelect, selectedFamiglie, weatherData }
         {giocateDaMostrare.length > 0 ? (
           giocateDaMostrare.map((g, idx) => (
             <div key={idx} className={`bet-item-vertical ${g.isBomb ? 'bomb' : ''}`}>
-              <span className="bet-label" style={{color: getColorForPct(g.pct)}}>
-                {g.familyIcon} {g.familyLabel}
+              {/* A SINISTRA: giocata (es. 0-2+0-2) - GRANDE */}
+              <span className="bet-label" style={{fontSize: '14px', fontWeight: 'bold', color: getColorForPct(g.pct), textTransform: 'none'}}>
+                {g.giocataLabel}
               </span>
+              {/* A DESTRA: percentuale (es. 92%) - GRANDE */}
               <span className="bet-value">
                 <span className={`giocata-pct ${getPercentualeClasse(g.pct)}`}>
                   {g.pct}% {g.isBomb && <span className="bomb-icon">💣</span>}
                 </span>
-                <div className="combinata-detail">
-                  {g.label}
+                {/* SOTTO LA PERCENTUALE: famiglia (es. MG CASA + OSPITE) - PICCOLA */}
+                <div className="combinata-detail" style={{fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px'}}>
+                  {g.familyIcon} {g.familyLabel}
                 </div>
               </span>
             </div>
