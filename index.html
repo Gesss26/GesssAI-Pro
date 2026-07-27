@@ -720,13 +720,31 @@ const CHAMPIONSHIP_COLORS = {
 };
 
 const CHAMPIONSHIP_COUNTRY = {
-  'Serie A': 'IT', 'Premier League': 'GB', 'Bundesliga': 'DE', 'Ligue 1': 'FR', 'La Liga': 'ES',
-  'Eredivisie': 'NL', 'Primeira Liga': 'PT', 'Allsvenskan': 'SE', 'Eliteserien': 'NO',
-  'Danish Superliga': 'DK', 'Pro League': 'BE', 'Championship': 'GB', 'Liga MX': 'MX',
-  'Brasileirão': 'BR', 'J1 League': 'JP', 'K League 1': 'KR', 'Swiss Super League': 'CH',
-  'Austrian Bundesliga': 'AT', 'Chinese Super League': 'CN', 'Premier Division': 'IE',
-  'Besta deild': 'IS', 'Liga Portugal Betclic': 'PT', 'FIFA World Cup 2026': 'US',
-  'Veikkausliiga': 'FI', 'Russian Premier League': 'RU',
+  'Serie A': 'IT',
+  'Premier League': 'GB',
+  'Bundesliga': 'DE',
+  'Ligue 1': 'FR',
+  'La Liga': 'ES',
+  'Eredivisie': 'NL',
+  'Primeira Liga': 'PT',
+  'Allsvenskan': 'SE',
+  'Eliteserien': 'NO',
+  'Danish Superliga': 'DK',
+  'Pro League': 'BE',
+  'Championship': 'GB',
+  'Liga MX': 'MX',
+  'Brasileirão': 'BR',
+  'J1 League': 'JP',
+  'K League 1': 'KR',
+  'Swiss Super League': 'CH',
+  'Austrian Bundesliga': 'AT',
+  'Chinese Super League': 'CN',
+  'Premier Division': 'IE',
+  'Besta deild': 'IS',
+  'Liga Portugal Betclic': 'PT',
+  'FIFA World Cup 2026': 'US',
+  'Veikkausliiga': 'FI',
+  'Russian Premier League': 'RU',
 };
 
 const SOFASCORE_LEAGUE_IDS = {
@@ -846,7 +864,7 @@ const CITTÀ_PER_CAMPIONATO = {
 };
 
 // ============================================================
-// DEFINIZIONE FAMIGLIE GIOCATE
+// DEFINIZIONE FAMIGLIE GIOCATE - CORRETTA
 // ============================================================
 
 const FAMIGLIE_GIOCATE = {
@@ -915,10 +933,10 @@ const FAMIGLIE_GIOCATE = {
     icon: '⚔️',
     desc: 'Sceglie la migliore tra tutte le 16 combinazioni',
     options: [
-      '0-2+0-2', '0-2+1-3', '0-2+1-4', '0-2+2-5',
-      '1-3+0-2', '1-3+1-3', '1-3+1-4', '1-3+2-5',
-      '1-4+0-2', '1-4+1-3', '1-4+1-4', '1-4+2-5',
-      '2-5+0-2', '2-5+1-3', '2-5+1-4', '2-5+2-5'
+      '0-1+0-1', '0-1+0-2', '0-1+1-3', '0-1+2-5',
+      '0-2+0-1', '0-2+0-2', '0-2+1-3', '0-2+2-5',
+      '1-3+0-1', '1-3+0-2', '1-3+1-3', '1-3+2-5',
+      '2-5+0-1', '2-5+0-2', '2-5+1-3', '2-5+2-5'
     ]
   },
   dc_multigol: {
@@ -941,6 +959,43 @@ const DEFAULT_FAMIGLIE = ['dc_under', 'mg_casa_ospite', 'over'];
 // ============================================================
 // FUNZIONI DI UTILITÀ
 // ============================================================
+
+// Funzione per deduplicare le partite
+const deduplicateMatches = (matches) => {
+  const seen = new Map();
+  const result = [];
+  
+  matches.forEach(m => {
+    const campionato = (m.campionato || '').trim();
+    const data = m.data || '';
+    const casa = (m.casa || '').trim();
+    const ospiti = (m.ospiti || '').trim();
+    const key = `${campionato}|${data}|${casa}|${ospiti}`;
+    
+    if (!seen.has(key)) {
+      seen.set(key, m);
+      result.push(m);
+    } else {
+      const existing = seen.get(key);
+      const existingScore = (existing.golCasa !== undefined && existing.golOspite !== undefined) ? 1 : 0;
+      const newScore = (m.golCasa !== undefined && m.golOspite !== undefined) ? 1 : 0;
+      
+      if (newScore > existingScore) {
+        seen.set(key, m);
+        const idx = result.indexOf(existing);
+        if (idx !== -1) result[idx] = m;
+      } else if (newScore === existingScore) {
+        if (m.stato === 'Giocata' && existing.stato !== 'Giocata') {
+          seen.set(key, m);
+          const idx = result.indexOf(existing);
+          if (idx !== -1) result[idx] = m;
+        }
+      }
+    }
+  });
+  
+  return result;
+};
 
 const getCountryFlagHtml = (champName) => {
   if (!champName) return '<span class="flag-emoji">🌍</span>';
@@ -1054,18 +1109,66 @@ const parseDate = (dateStr, timeStr = '00:00') => {
   try { return new Date(dateStr + ' ' + (timeStr || '00:00')); } catch(e) { return new Date(0); }
 };
 
-const getBlacklist = () => { try { return JSON.parse(localStorage.getItem('ft_sofablacklist') || '[]'); } catch(e) { return []; } };
-const saveBlacklist = (blacklist) => localStorage.setItem('ft_sofablacklist', JSON.stringify(blacklist));
-const getCustomSofaLeagues = () => { try { return JSON.parse(localStorage.getItem('ft_sofaleagues') || '[]'); } catch(e) { return []; } };
-const saveCustomSofaLeagues = (leagues) => localStorage.setItem('ft_sofaleagues', JSON.stringify(leagues));
+// ============================================================
+// FUNZIONI PER LA GESTIONE DEI CAMPIONATI SOFASCORE
+// ============================================================
+
+const getBlacklist = () => { 
+  try { 
+    return JSON.parse(localStorage.getItem('ft_sofablacklist') || '[]'); 
+  } catch(e) { 
+    return []; 
+  } 
+};
+
+const saveBlacklist = (blacklist) => {
+  localStorage.setItem('ft_sofablacklist', JSON.stringify(blacklist));
+};
+
+const getCustomSofaLeagues = () => { 
+  try { 
+    return JSON.parse(localStorage.getItem('ft_sofaleagues') || '[]'); 
+  } catch(e) { 
+    return []; 
+  } 
+};
+
+const saveCustomSofaLeagues = (leagues) => {
+  localStorage.setItem('ft_sofaleagues', JSON.stringify(leagues));
+};
+
+const resetBlacklist = () => {
+  saveBlacklist([]);
+};
+
+const resetAllLeagues = () => {
+  saveBlacklist([]);
+  saveCustomSofaLeagues([]);
+};
 
 const getVisibleLeagues = (customLeagues) => {
   const blacklist = getBlacklist();
+  
   const defaultLeagues = Object.entries(SOFASCORE_LEAGUE_IDS)
     .filter(([name, id]) => !blacklist.includes(id))
     .map(([name, id]) => ({ name, id, isDefault: true }));
-  const custom = customLeagues.filter(l => !blacklist.includes(l.id)).map(l => ({ ...l, isDefault: false }));
-  return [...defaultLeagues, ...custom];
+  
+  const custom = customLeagues
+    .filter(l => !blacklist.includes(l.id))
+    .map(l => ({ ...l, isDefault: false }));
+  
+  const allLeagues = [...defaultLeagues];
+  
+  custom.forEach(customLeague => {
+    const existingIndex = allLeagues.findIndex(l => l.name === customLeague.name);
+    if (existingIndex !== -1) {
+      allLeagues[existingIndex] = customLeague;
+    } else {
+      allLeagues.push(customLeague);
+    }
+  });
+  
+  return allLeagues;
 };
 
 const getCityForTeam = (teamName) => {
@@ -1180,6 +1283,10 @@ const calcFormAndStats = (matches, teamName) => {
   };
 };
 
+// ============================================================
+// FUNZIONE COMPUTE MATCH STATS - CORRETTA CON 0-1, 0-2, 1-3, 2-5
+// ============================================================
+
 const computeMatchStats = (match, allMatches) => {
   const homeTeam = match.casa;
   const awayTeam = match.ospiti;
@@ -1190,6 +1297,7 @@ const computeMatchStats = (match, allMatches) => {
   const allGames = Array.from(allGamesMap.values());
   const totalGames = allGames.length;
   if (totalGames === 0) return { error: 'Nessuna partita giocata per queste squadre.' };
+  
   let homeWins = 0, homeDraws = 0, homeLosses = 0;
   let homeGoalsScored = 0, homeGoalsConceded = 0;
   homeGames.forEach(g => {
@@ -1202,6 +1310,7 @@ const computeMatchStats = (match, allMatches) => {
     else if (teamGoals === oppGoals) homeDraws++;
     else homeLosses++;
   });
+  
   let awayWins = 0, awayDraws = 0, awayLosses = 0;
   let awayGoalsScored = 0, awayGoalsConceded = 0;
   awayGames.forEach(g => {
@@ -1214,12 +1323,14 @@ const computeMatchStats = (match, allMatches) => {
     else if (teamGoals === oppGoals) awayDraws++;
     else awayLosses++;
   });
+  
   const p1 = totalGames > 0 ? ((homeWins + awayLosses) / totalGames) * 100 : 0;
   const pX = totalGames > 0 ? ((homeDraws + awayDraws) / totalGames) * 100 : 0;
   const p2 = totalGames > 0 ? ((homeLosses + awayWins) / totalGames) * 100 : 0;
   const p1X = totalGames > 0 ? ((homeWins + homeDraws) / totalGames) * 100 : 0;
   const p12 = totalGames > 0 ? ((homeWins + awayWins) / totalGames) * 100 : 0;
   const pX2 = totalGames > 0 ? ((homeLosses + awayWins) / totalGames) * 100 : 0;
+  
   const allGamesForGoals = [...homeGames, ...awayGames];
   const goalTotals = allGamesForGoals.map(g => g.golCasa + g.golOspite);
   const thresholds = [1.5, 2.5, 3.5, 4.5];
@@ -1228,15 +1339,24 @@ const computeMatchStats = (match, allMatches) => {
     const under = 100 - over;
     return { threshold: t, under, over };
   });
+  
+  // CORRETTO: 0-1, 0-2, 1-3, 2-5
   const getMultigolV2 = (team, games) => {
     const goals = games.map(g => (g.casa === team) ? g.golCasa : g.golOspite);
     const total = goals.length;
-    if (total === 0) return { '0-1': 0, '0-2': 0, '1-3': 0, '2-4': 0 };
+    if (total === 0) return { '0-1': 0, '0-2': 0, '1-3': 0, '2-5': 0 };
     const count = (pred) => goals.filter(pred).length / total * 100;
-    return { '0-1': count(g => g <= 1), '0-2': count(g => g <= 2), '1-3': count(g => g >= 1 && g <= 3), '2-4': count(g => g >= 2 && g <= 4) };
+    return { 
+      '0-1': count(g => g <= 1), 
+      '0-2': count(g => g <= 2), 
+      '1-3': count(g => g >= 1 && g <= 3), 
+      '2-5': count(g => g >= 2 && g <= 5)
+    };
   };
+  
   const homeMG = getMultigolV2(homeTeam, homeGames);
   const awayMG = getMultigolV2(awayTeam, awayGames);
+  
   const totalGoals = allGamesForGoals.map(g => g.golCasa + g.golOspite);
   const mgTot = {
     '1-4': totalGoals.filter(g => g >= 1 && g <= 4).length / totalGoals.length * 100,
@@ -1244,6 +1364,7 @@ const computeMatchStats = (match, allMatches) => {
     '2-5': totalGoals.filter(g => g >= 2 && g <= 5).length / totalGoals.length * 100,
     '3-6': totalGoals.filter(g => g >= 3 && g <= 6).length / totalGoals.length * 100,
   };
+  
   return {
     p1, pX, p2, p1X, p12, pX2, underOver, homeMG, awayMG, mgTot,
     homeGames, awayGames,
@@ -1309,71 +1430,87 @@ const getGiocataPct = (giocata, stats, homeMG, awayMG, mgTot) => {
   
   const { p1, pX, p2, p1X, p12, pX2, underOver } = stats;
   
-  // FISSE
   if (giocata === '1') return Math.round(p1);
   if (giocata === 'X') return Math.round(pX);
   if (giocata === '2') return Math.round(p2);
   
-  // DOPPIA CHANCE
   if (giocata === '1X') return Math.round(p1X);
   if (giocata === '12') return Math.round(p12);
   if (giocata === 'X2') return Math.round(pX2);
   
-  // OVER
   if (giocata === 'Over 1.5') return Math.round(underOver[0]?.over || 0);
   if (giocata === 'Over 2.5') return Math.round(underOver[1]?.over || 0);
   if (giocata === 'Over 3.5') return Math.round(underOver[2]?.over || 0);
   if (giocata === 'Over 4.5') return Math.round(underOver[3]?.over || 0);
   
-  // UNDER
   if (giocata === 'Under 1.5') return Math.round(underOver[0]?.under || 0);
   if (giocata === 'Under 2.5') return Math.round(underOver[1]?.under || 0);
   if (giocata === 'Under 3.5') return Math.round(underOver[2]?.under || 0);
   if (giocata === 'Under 4.5') return Math.round(underOver[3]?.under || 0);
   
-  // MULTIGOL
   if (giocata === '0-2') return Math.round(homeMG['0-2'] || 0);
   if (giocata === '1-3') return Math.round(homeMG['1-3'] || 0);
   if (giocata === '1-4') return Math.round(mgTot['1-4'] || 0);
   if (giocata === '2-5') return Math.round(mgTot['2-5'] || 0);
   
-  // DC+OVER (es: 1X+O1.5)
   if (giocata.startsWith('1X+O')) { const over = giocata.replace('1X+O', 'Over '); return Math.round((p1X + getGiocataPct(over, stats, homeMG, awayMG, mgTot)) / 2); }
   if (giocata.startsWith('12+O')) { const over = giocata.replace('12+O', 'Over '); return Math.round((p12 + getGiocataPct(over, stats, homeMG, awayMG, mgTot)) / 2); }
   if (giocata.startsWith('X2+O')) { const over = giocata.replace('X2+O', 'Over '); return Math.round((pX2 + getGiocataPct(over, stats, homeMG, awayMG, mgTot)) / 2); }
   
-  // DC+UNDER (es: 1X+U1.5)
   if (giocata.startsWith('1X+U')) { const under = giocata.replace('1X+U', 'Under '); return Math.round((p1X + getGiocataPct(under, stats, homeMG, awayMG, mgTot)) / 2); }
   if (giocata.startsWith('12+U')) { const under = giocata.replace('12+U', 'Under '); return Math.round((p12 + getGiocataPct(under, stats, homeMG, awayMG, mgTot)) / 2); }
   if (giocata.startsWith('X2+U')) { const under = giocata.replace('X2+U', 'Under '); return Math.round((pX2 + getGiocataPct(under, stats, homeMG, awayMG, mgTot)) / 2); }
   
-  // MG CASA + OSPITE (es: 0-2+1-3)
   if (giocata.includes('+') && !giocata.includes('X') && !giocata.includes('O') && !giocata.includes('U')) {
     const parts = giocata.split('+');
-    const pct1 = getGiocataPct(parts[0], stats, homeMG, awayMG, mgTot);
-    const pct2 = getGiocataPct(parts[1], stats, homeMG, awayMG, mgTot);
+    let pct1 = 0;
+    if (parts[0] === '0-1') pct1 = homeMG['0-1'] || 0;
+    else if (parts[0] === '0-2') pct1 = homeMG['0-2'] || 0;
+    else if (parts[0] === '1-3') pct1 = homeMG['1-3'] || 0;
+    else if (parts[0] === '2-5') pct1 = homeMG['2-5'] || 0;
+    
+    let pct2 = 0;
+    if (parts[1] === '0-1') pct2 = awayMG['0-1'] || 0;
+    else if (parts[1] === '0-2') pct2 = awayMG['0-2'] || 0;
+    else if (parts[1] === '1-3') pct2 = awayMG['1-3'] || 0;
+    else if (parts[1] === '2-5') pct2 = awayMG['2-5'] || 0;
+    
     return Math.round((pct1 + pct2) / 2);
   }
   
-  // DC+MULTIGOL (es: 1X+0-2)
   if (giocata.startsWith('1X+') && !giocata.includes('O') && !giocata.includes('U')) {
     const mg = giocata.replace('1X+', '');
-    return Math.round((p1X + getGiocataPct(mg, stats, homeMG, awayMG, mgTot)) / 2);
+    let pctMG = 0;
+    if (mg === '0-2') pctMG = homeMG['0-2'] || 0;
+    else if (mg === '1-3') pctMG = homeMG['1-3'] || 0;
+    else if (mg === '1-4') pctMG = mgTot['1-4'] || 0;
+    else if (mg === '2-5') pctMG = mgTot['2-5'] || 0;
+    return Math.round((p1X + pctMG) / 2);
   }
   if (giocata.startsWith('12+') && !giocata.includes('O') && !giocata.includes('U')) {
     const mg = giocata.replace('12+', '');
-    return Math.round((p12 + getGiocataPct(mg, stats, homeMG, awayMG, mgTot)) / 2);
+    let pctMG = 0;
+    if (mg === '0-2') pctMG = homeMG['0-2'] || 0;
+    else if (mg === '1-3') pctMG = homeMG['1-3'] || 0;
+    else if (mg === '1-4') pctMG = mgTot['1-4'] || 0;
+    else if (mg === '2-5') pctMG = mgTot['2-5'] || 0;
+    return Math.round((p12 + pctMG) / 2);
   }
   if (giocata.startsWith('X2+') && !giocata.includes('O') && !giocata.includes('U')) {
     const mg = giocata.replace('X2+', '');
-    return Math.round((pX2 + getGiocataPct(mg, stats, homeMG, awayMG, mgTot)) / 2);
+    let pctMG = 0;
+    if (mg === '0-2') pctMG = homeMG['0-2'] || 0;
+    else if (mg === '1-3') pctMG = homeMG['1-3'] || 0;
+    else if (mg === '1-4') pctMG = mgTot['1-4'] || 0;
+    else if (mg === '2-5') pctMG = mgTot['2-5'] || 0;
+    return Math.round((pX2 + pctMG) / 2);
   }
   
   return 0;
 };
 
 // ============================================================
-// FUNZIONE PER TROVARE LA MIGLIORE GIOCATA DI UNA FAMIGLIA
+// FUNZIONE PER TROVARE LA MIGLIORE GIOCATA DI UNA FAMIGLIA - CORRETTA
 // ============================================================
 
 const getBestBetForFamily = (familyId, stats, homeRange, awayRange, homeMG, awayMG, mgTot) => {
@@ -1391,12 +1528,23 @@ const getBestBetForFamily = (familyId, stats, homeRange, awayRange, homeMG, away
     let label = opt;
     
     if (familyId === 'dc_under' && opt === '12+U4.5') {
-      // Caso speciale per 12+Under 4.5 (giocata specifica)
       pct = Math.round(get12Under45(stats._allMatches, stats._homeTeam, stats._awayTeam) || 0);
     } else if (familyId === 'mg_casa_ospite') {
-      // Per MG Casa+Ospite, mostriamo la combinazione con le etichette
       const parts = opt.split('+');
-      pct = getGiocataPct(opt, stats, homeMG, awayMG, mgTot);
+      
+      let pct1 = 0;
+      if (parts[0] === '0-1') pct1 = homeMG['0-1'] || 0;
+      else if (parts[0] === '0-2') pct1 = homeMG['0-2'] || 0;
+      else if (parts[0] === '1-3') pct1 = homeMG['1-3'] || 0;
+      else if (parts[0] === '2-5') pct1 = homeMG['2-5'] || 0;
+      
+      let pct2 = 0;
+      if (parts[1] === '0-1') pct2 = awayMG['0-1'] || 0;
+      else if (parts[1] === '0-2') pct2 = awayMG['0-2'] || 0;
+      else if (parts[1] === '1-3') pct2 = awayMG['1-3'] || 0;
+      else if (parts[1] === '2-5') pct2 = awayMG['2-5'] || 0;
+      
+      pct = Math.round((pct1 + pct2) / 2);
       label = `${parts[0]}+${parts[1]}`;
     } else {
       pct = getGiocataPct(opt, stats, homeMG, awayMG, mgTot);
@@ -1420,6 +1568,18 @@ const getBestBetForFamily = (familyId, stats, homeRange, awayRange, homeMG, away
   
   return null;
 };
+
+// ============================================================
+// TUTTI I COMPONENTI (Clock, WeatherBadge, Standings, FamiglieSelector, 
+// MatchTab, MatchTabHistory, MatchDetail, RisultatiFrequenti, FrequenzaGol,
+// IndiceAffidabilita, AnalisiMeteo, askGroq, TeamMatchesHistory, 
+// StoricoSchedine, HomeWidget, HeatmapGiocate, HeatmapDetailModal,
+// SofaScoreManager, FileImporter, AIAnalysis, WeatherProfessionale, CittaMeteo)
+// ============================================================
+
+// NOTA: Per brevità, i componenti rimangono identici a prima.
+// Le funzioni chiave (FAMIGLIE_GIOCATE, computeMatchStats, getGiocataPct, getBestBetForFamily) 
+// sono già state corrette sopra.
 
 // ============================================================
 // COMPONENTE CLOCK
@@ -1646,7 +1806,7 @@ const FamiglieSelector = ({ selectedFamiglie, setSelectedFamiglie, showAlert }) 
 };
 
 // ============================================================
-// COMPONENTE MATCH TAB (con famiglie dinamiche) - MODIFICATO!
+// COMPONENTE MATCH TAB - CORRETTO (usa i nuovi dati)
 // ============================================================
 
 const MatchTab = ({ match, allMatches, onSelect, selectedFamiglie, weatherData }) => {
@@ -1659,7 +1819,6 @@ const MatchTab = ({ match, allMatches, onSelect, selectedFamiglie, weatherData }
   const diff = Math.abs(homeForm.pct - awayForm.pct);
   const stats = computeMatchStats(match, allMatches);
   
-  // Aggiungi all'oggetto stats le informazioni necessarie per le giocate speciali
   stats._allMatches = allMatches;
   stats._homeTeam = match.casa;
   stats._awayTeam = match.ospiti;
@@ -1689,7 +1848,6 @@ const MatchTab = ({ match, allMatches, onSelect, selectedFamiglie, weatherData }
     return '#eb5757';
   };
   
-  // Calcola le giocate da mostrare per ogni famiglia selezionata
   const getGiocateDaMostrare = () => {
     if (stats.error) return [];
     
@@ -1708,14 +1866,12 @@ const MatchTab = ({ match, allMatches, onSelect, selectedFamiglie, weatherData }
       const best = getBestBetForFamily(familyId, stats, homeRange, awayRange, homeMG, awayMG, mgTot);
       
       if (best && best.pct > 0) {
-        let displayLabel = best.label;
-        let familyLabel = family.label;
-        
         giocateDaMostrare.push({
           familyId,
           familyLabel: family.label,
           familyIcon: family.icon,
-          giocataLabel: displayLabel,  // Nome della giocata (es. 0-2+0-2)
+          label: best.label,
+          familyName: family.label,
           pct: best.pct,
           isBomb: best.pct >= 90,
           giocata: best.giocata
@@ -1723,7 +1879,6 @@ const MatchTab = ({ match, allMatches, onSelect, selectedFamiglie, weatherData }
       }
     });
     
-    // Ordina per percentuale decrescente
     return giocateDaMostrare.sort((a, b) => b.pct - a.pct);
   };
   
@@ -1781,18 +1936,16 @@ const MatchTab = ({ match, allMatches, onSelect, selectedFamiglie, weatherData }
         {giocateDaMostrare.length > 0 ? (
           giocateDaMostrare.map((g, idx) => (
             <div key={idx} className={`bet-item-vertical ${g.isBomb ? 'bomb' : ''}`}>
-              {/* A SINISTRA: giocata (es. 0-2+0-2) - GRANDE */}
-              <span className="bet-label" style={{fontSize: '14px', fontWeight: 'bold', color: getColorForPct(g.pct), textTransform: 'none'}}>
-                {g.giocataLabel}
+              <span className="bet-label" style={{color: getColorForPct(g.pct)}}>
+                {g.isBomb && '💣 '}
+                <span style={{fontWeight: 'bold', fontSize: '13px'}}>{g.label}</span>
               </span>
-              {/* A DESTRA: percentuale (es. 92%) - GRANDE */}
               <span className="bet-value">
                 <span className={`giocata-pct ${getPercentualeClasse(g.pct)}`}>
                   {g.pct}% {g.isBomb && <span className="bomb-icon">💣</span>}
                 </span>
-                {/* SOTTO LA PERCENTUALE: famiglia (es. MG CASA + OSPITE) - PICCOLA */}
-                <div className="combinata-detail" style={{fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px'}}>
-                  {g.familyIcon} {g.familyLabel}
+                <div className="combinata-detail" style={{fontSize: '10px', color: 'var(--text-muted)'}}>
+                  {g.familyIcon} {g.familyName}
                 </div>
               </span>
             </div>
@@ -2539,39 +2692,130 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
   const [searching, setSearching] = useState(false);
   const [selectedTab, setSelectedTab] = useState('lista');
   const [isChecking, setIsChecking] = useState(false);
+  const [importStatus, setImportStatus] = useState({});
 
-  const saveLeagues = (leagues) => { setCustomLeagues(leagues); saveCustomSofaLeagues(leagues); };
+  const saveLeagues = (leagues) => { 
+    setCustomLeagues(leagues); 
+    saveCustomSofaLeagues(leagues); 
+  };
+
+  const resetBlacklistAndRefresh = () => {
+    if (confirm('⚠️ Questo ripristinerà TUTTI i campionati predefiniti nascosti. Continuare?')) {
+      resetBlacklist();
+      setCustomLeagues(getCustomSofaLeagues());
+      showAlert('success', '✅ Tutti i campionati predefiniti sono stati ripristinati!');
+      refreshLeagues();
+    }
+  };
+
+  const resetAllLeaguesAndRefresh = () => {
+    if (confirm('⚠️ Questo eliminerà TUTTI i campionati personalizzati e ripristinerà quelli predefiniti. Continuare?')) {
+      resetAllLeagues();
+      setCustomLeagues([]);
+      showAlert('success', '✅ Tutti i campionati sono stati resettati!');
+      refreshLeagues();
+    }
+  };
+
   const removeLeague = (id, name) => {
     const isDefault = Object.values(SOFASCORE_LEAGUE_IDS).includes(id);
     const matchCount = matches ? matches.filter(m => m.campionato === name).length : 0;
-    if (matchCount > 0 && !confirm(`⚠️ Il campionato "${name}" ha ${matchCount} partite importate. Eliminarlo cancellerà anche le partite. Continuare?`)) return;
-    if (matchCount > 0) setMatches(prev => prev.filter(m => m.campionato !== name));
-    if (isDefault) { const blacklist = getBlacklist(); if (!blacklist.includes(id)) { blacklist.push(id); saveBlacklist(blacklist); } }
-    else { saveLeagues(customLeagues.filter(l => l.id !== id)); }
+    
+    if (matchCount > 0 && !confirm(`⚠️ Il campionato "${name}" ha ${matchCount} partite importate. Eliminarlo cancellerà anche le partite. Continuare?`)) {
+      return;
+    }
+    
+    if (matchCount > 0) {
+      setMatches(prev => prev.filter(m => m.campionato !== name));
+    }
+    
+    if (isDefault) { 
+      const blacklist = getBlacklist(); 
+      if (!blacklist.includes(id)) { 
+        blacklist.push(id); 
+        saveBlacklist(blacklist); 
+        showAlert('info', `🔇 Campionato "${name}" nascosto. Usa "Ripristina nascosti" per riportarlo.`);
+      } 
+    } else { 
+      saveLeagues(customLeagues.filter(l => l.id !== id)); 
+    }
+    
     setCustomLeagues(getCustomSofaLeagues());
+    refreshLeagues();
   };
 
   const checkLeagueHasMatches = async (leagueId, seasonYear) => {
-    try { const events = await fetchSofaScoreMatches(leagueId, seasonYear); return { hasMatches: events.length > 0, count: events.length }; }
-    catch (e) { return { hasMatches: false, count: 0, error: e.message }; }
+    try { 
+      const events = await fetchSofaScoreMatches(leagueId, seasonYear); 
+      return { hasMatches: events.length > 0, count: events.length }; 
+    } catch (e) { 
+      return { hasMatches: false, count: 0, error: e.message }; 
+    }
   };
 
   const addAndImportLeague = async () => {
-    if (!newLeagueName.trim() || !newLeagueId.trim()) { showAlert('error', 'Inserisci sia il nome che l\'ID del campionato.'); return; }
+    if (!newLeagueName.trim() || !newLeagueId.trim()) { 
+      showAlert('error', 'Inserisci sia il nome che l\'ID del campionato.'); 
+      return; 
+    }
     const id = parseInt(newLeagueId);
-    if (isNaN(id) || id <= 0) { showAlert('error', 'L\'ID deve essere un numero positivo.'); return; }
+    if (isNaN(id) || id <= 0) { 
+      showAlert('error', 'L\'ID deve essere un numero positivo.'); 
+      return; 
+    }
+    
     const allLeagues = getVisibleLeagues(customLeagues);
-    if (allLeagues.some(l => l.id === id || l.name.toLowerCase() === newLeagueName.toLowerCase())) { showAlert('error', '⚠️ Questo campionato o ID è già presente nella lista.'); return; }
+    if (allLeagues.some(l => l.id === id || l.name.toLowerCase() === newLeagueName.toLowerCase())) { 
+      showAlert('error', '⚠️ Questo campionato o ID è già presente nella lista.'); 
+      return; 
+    }
+    
     setIsChecking(true);
     const leagueName = newLeagueName.trim();
+    setImportStatus(prev => ({ ...prev, [leagueName]: 'checking' }));
+    
     try {
       const checkResult = await checkLeagueHasMatches(id, selectedSeason);
-      if (checkResult.error) { showAlert('error', `❌ Errore nel controllo: ${checkResult.error}`); setIsChecking(false); return; }
-      if (!checkResult.hasMatches) { showAlert('error', `❌ Nessuna partita trovata per "${leagueName}" (ID: ${id}) nella stagione ${selectedSeason}.`); setIsChecking(false); return; }
+      if (checkResult.error) { 
+        showAlert('error', `❌ Errore nel controllo: ${checkResult.error}`); 
+        setImportStatus(prev => ({ ...prev, [leagueName]: 'error' }));
+        setIsChecking(false);
+        return; 
+      }
+      if (!checkResult.hasMatches) { 
+        showAlert('error', `❌ Nessuna partita trovata per "${leagueName}" (ID: ${id}) nella stagione ${selectedSeason}.`); 
+        setImportStatus(prev => ({ ...prev, [leagueName]: 'no_matches' }));
+        setIsChecking(false);
+        return; 
+      }
+      
+      const blacklist = getBlacklist();
+      if (blacklist.includes(id)) {
+        const newBlacklist = blacklist.filter(b => b !== id);
+        saveBlacklist(newBlacklist);
+      }
+      
       saveLeagues([...customLeagues, { name: leagueName, id: id }]);
+      setImportStatus(prev => ({ ...prev, [leagueName]: 'importing' }));
       await onImport(leagueName, selectedSeason);
-      setNewLeagueName(''); setNewLeagueId('');
-    } catch (e) { console.error('Errore:', e); showAlert('error', `❌ Errore durante l'aggiunta: ${e.message}`); }
+      
+      setNewLeagueName(''); 
+      setNewLeagueId('');
+      setImportStatus(prev => ({ ...prev, [leagueName]: 'success' }));
+      
+      setTimeout(() => {
+        setImportStatus(prev => {
+          const newStatus = { ...prev };
+          delete newStatus[leagueName];
+          return newStatus;
+        });
+      }, 5000);
+      
+    } catch (e) { 
+      console.error('Errore:', e); 
+      showAlert('error', `❌ Errore durante l'aggiunta: ${e.message}`);
+      setImportStatus(prev => ({ ...prev, [leagueName]: 'error' }));
+    }
     setIsChecking(false);
   };
 
@@ -2594,30 +2838,137 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
   const addFromSearch = async (tournament) => {
     const name = tournament.name, id = tournament.id;
     const allLeagues = getVisibleLeagues(customLeagues);
-    if (allLeagues.some(l => l.id === id || l.name.toLowerCase() === name.toLowerCase())) { showAlert('error', '⚠️ Questo campionato è già nella tua lista.'); return; }
+    if (allLeagues.some(l => l.id === id || l.name.toLowerCase() === name.toLowerCase())) { 
+      showAlert('error', '⚠️ Questo campionato è già nella tua lista.'); 
+      return; 
+    }
+    
     setIsChecking(true);
+    setImportStatus(prev => ({ ...prev, [name]: 'checking' }));
+    
     try {
       const checkResult = await checkLeagueHasMatches(id, selectedSeason);
-      if (checkResult.error) { showAlert('error', `❌ Errore nel controllo: ${checkResult.error}`); setIsChecking(false); return; }
-      if (!checkResult.hasMatches) { showAlert('error', `❌ Nessuna partita trovata per "${name}" (ID: ${id}) nella stagione ${selectedSeason}.`); setIsChecking(false); return; }
+      if (checkResult.error) { 
+        showAlert('error', `❌ Errore nel controllo: ${checkResult.error}`); 
+        setImportStatus(prev => ({ ...prev, [name]: 'error' }));
+        setIsChecking(false);
+        return; 
+      }
+      if (!checkResult.hasMatches) { 
+        showAlert('error', `❌ Nessuna partita trovata per "${name}" (ID: ${id}) nella stagione ${selectedSeason}.`); 
+        setImportStatus(prev => ({ ...prev, [name]: 'no_matches' }));
+        setIsChecking(false);
+        return; 
+      }
+      
+      const blacklist = getBlacklist();
+      if (blacklist.includes(id)) {
+        const newBlacklist = blacklist.filter(b => b !== id);
+        saveBlacklist(newBlacklist);
+      }
+      
       saveLeagues([...customLeagues, { name, id }]);
+      setImportStatus(prev => ({ ...prev, [name]: 'importing' }));
       await onImport(name, selectedSeason);
       setSearchResults(searchResults.filter(r => r.id !== id));
-    } catch (e) { console.error('Errore:', e); showAlert('error', `❌ Errore durante l'aggiunta: ${e.message}`); }
+      setImportStatus(prev => ({ ...prev, [name]: 'success' }));
+      
+      setTimeout(() => {
+        setImportStatus(prev => {
+          const newStatus = { ...prev };
+          delete newStatus[name];
+          return newStatus;
+        });
+      }, 5000);
+      
+    } catch (e) { 
+      console.error('Errore:', e); 
+      showAlert('error', `❌ Errore durante l'aggiunta: ${e.message}`);
+      setImportStatus(prev => ({ ...prev, [name]: 'error' }));
+    }
+    setIsChecking(false);
+  };
+
+  const refreshLeagues = async () => {
+    setIsChecking(true);
+    const refreshedCustom = getCustomSofaLeagues();
+    setCustomLeagues(refreshedCustom);
+    
+    const allLeagues = getVisibleLeagues(refreshedCustom);
+    let hasMatches = 0;
+    let noMatches = 0;
+    
+    for (const league of allLeagues) {
+      const result = await checkLeagueHasMatches(league.id, selectedSeason);
+      if (result.hasMatches) {
+        hasMatches++;
+      } else {
+        noMatches++;
+      }
+    }
+    
+    const blacklistCount = getBlacklist().length;
+    const hiddenMsg = blacklistCount > 0 ? ` (${blacklistCount} nascosti)` : '';
+    
+    showAlert('info', `📊 ${allLeagues.length} campionati verificati${hiddenMsg}: ${hasMatches} con partite, ${noMatches} senza partite.`);
     setIsChecking(false);
   };
 
   const allLeagues = getVisibleLeagues(customLeagues);
-  const refreshList = () => { const refreshed = getCustomSofaLeagues(); setCustomLeagues(refreshed); };
-  useEffect(() => { if (refreshTrigger) { refreshList(); } }, [refreshTrigger]);
+  const blacklistCount = getBlacklist().length;
+  
+  useEffect(() => { 
+    if (refreshTrigger) { 
+      refreshLeagues(); 
+    } 
+  }, [refreshTrigger]);
+
+  const getStatusBadge = (leagueName) => {
+    const status = importStatus[leagueName];
+    if (!status) return null;
+    
+    const badges = {
+      'checking': <span style={{color: 'var(--draw)'}}>⏳ Verifica...</span>,
+      'importing': <span style={{color: 'var(--draw)'}}>⏳ Importazione...</span>,
+      'success': <span style={{color: 'var(--win)'}}>✅ Importato!</span>,
+      'error': <span style={{color: 'var(--lose)'}}>❌ Errore</span>,
+      'no_matches': <span style={{color: 'var(--lose)'}}>⚠️ Nessuna partita</span>
+    };
+    return badges[status] || null;
+  };
 
   return (
     <div className="card">
       <h4 style={{marginBottom:'12px'}}>🌐 Gestione Campionati SofaScore</h4>
-      <div className="sub-tabs" style={{marginBottom:'12px'}}>
-        <button className={selectedTab === 'lista' ? 'active' : ''} onClick={() => setSelectedTab('lista')}>📋 Lista campionati ({allLeagues.length})</button>
-        <button className={selectedTab === 'cerca' ? 'active' : ''} onClick={() => setSelectedTab('cerca')}>🔍 Cerca e aggiungi</button>
+      
+      <div style={{display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'12px'}}>
+        {blacklistCount > 0 && (
+          <button 
+            className="btn btn-secondary" 
+            onClick={resetBlacklistAndRefresh} 
+            style={{fontSize:'12px', padding:'6px 14px', borderColor: 'var(--accent)', color: 'var(--accent)'}}
+          >
+            🔄 Ripristina {blacklistCount} campionati nascosti
+          </button>
+        )}
+        <button 
+          className="btn btn-secondary" 
+          onClick={resetAllLeaguesAndRefresh} 
+          style={{fontSize:'12px', padding:'6px 14px', borderColor: 'var(--lose)', color: 'var(--lose)'}}
+        >
+          🔄 Reset completo campionati
+        </button>
       </div>
+      
+      <div className="sub-tabs" style={{marginBottom:'12px'}}>
+        <button className={selectedTab === 'lista' ? 'active' : ''} onClick={() => setSelectedTab('lista')}>
+          📋 Lista campionati ({allLeagues.length}{blacklistCount > 0 ? ` +${blacklistCount} nascosti` : ''})
+        </button>
+        <button className={selectedTab === 'cerca' ? 'active' : ''} onClick={() => setSelectedTab('cerca')}>
+          🔍 Cerca e aggiungi
+        </button>
+      </div>
+      
       {selectedTab === 'lista' && (
         <div>
           <div style={{display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'12px'}}>
@@ -2635,23 +2986,82 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
                 <option value="23/24">23/24</option>
               </optgroup>
             </select>
-            <button className="btn" onClick={addAndImportLeague} disabled={isChecking || loading}>{isChecking ? '⏳ Controllo...' : '➕ Aggiungi e Importa'}</button>
-            <button className="btn btn-secondary" onClick={refreshList} disabled={loading} style={{fontSize:'12px', padding:'8px 14px'}}>🔄 Aggiorna</button>
+            <button className="btn" onClick={addAndImportLeague} disabled={isChecking || loading}>
+              {isChecking ? '⏳ Verifica...' : '➕ Aggiungi e Importa'}
+            </button>
+            <button className="btn btn-secondary" onClick={refreshLeagues} disabled={isChecking || loading} style={{fontSize:'12px', padding:'8px 14px'}}>
+              {isChecking ? '⏳ Verifica...' : '🔄 Aggiorna'}
+            </button>
           </div>
+          
+          <div style={{fontSize:'12px', color:'var(--text-muted)', marginBottom:'8px'}}>
+            💡 I campionati senza partite nella stagione selezionata mostrano 0 partite
+            {blacklistCount > 0 && (
+              <span style={{marginLeft:'12px', color: 'var(--accent)'}}>
+                🔇 {blacklistCount} campionati nascosti - usa "Ripristina nascosti" per riportarli
+              </span>
+            )}
+          </div>
+          
           <div style={{maxHeight:'300px', overflowY:'auto'}}>
-            {allLeagues.length === 0 ? <p style={{color:'var(--text-muted)', textAlign:'center', padding:'20px'}}>Nessun campionato configurato.</p> : (
+            {allLeagues.length === 0 ? (
+              <div style={{textAlign:'center', padding:'20px'}}>
+                <p style={{color:'var(--text-muted)'}}>Nessun campionato visibile.</p>
+                {blacklistCount > 0 ? (
+                  <button className="btn" onClick={resetBlacklistAndRefresh} style={{marginTop:'10px'}}>
+                    🔄 Ripristina {blacklistCount} campionati nascosti
+                  </button>
+                ) : (
+                  <p style={{fontSize:'12px', color:'var(--text-muted)'}}>
+                    Usa "Cerca e aggiungi" per trovare nuovi campionati o importa da file.
+                  </p>
+                )}
+              </div>
+            ) : (
               <table className="standings-table" style={{fontSize:'13px'}}>
-                <thead><tr><th>Campionato</th><th style={{textAlign:'center'}}>ID</th><th style={{textAlign:'center'}}>Tipo</th><th style={{textAlign:'center'}}>Partite</th><th style={{textAlign:'center'}}>Azioni</th></tr></thead>
+                <thead><tr>
+                  <th>Campionato</th>
+                  <th style={{textAlign:'center'}}>ID</th>
+                  <th style={{textAlign:'center'}}>Tipo</th>
+                  <th style={{textAlign:'center'}}>Partite</th>
+                  <th style={{textAlign:'center'}}>Stagione</th>
+                  <th style={{textAlign:'center'}}>Azioni</th>
+                </tr></thead>
                 <tbody>
                   {allLeagues.map(league => {
                     const matchCount = matches ? matches.filter(m => m.campionato === league.name).length : 0;
+                    const statusBadge = getStatusBadge(league.name);
+                    
                     return <tr key={league.id} style={{borderBottom:'1px solid var(--border)'}}>
-                      <td style={{padding:'6px 8px'}}><span style={{color: league.isDefault ? 'var(--text)' : 'var(--accent)'}}>{league.isDefault ? '📌 ' : '⭐ '}{league.name}</span></td>
+                      <td style={{padding:'6px 8px'}}>
+                        <span style={{color: league.isDefault ? 'var(--text)' : 'var(--accent)'}}>
+                          {league.isDefault ? '📌 ' : '⭐ '}{league.name}
+                        </span>
+                        {statusBadge && <span style={{marginLeft:'8px'}}>{statusBadge}</span>}
+                      </td>
                       <td style={{textAlign:'center', padding:'6px 8px'}}>{league.id}</td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}><span style={{fontSize:'10px', padding:'2px 8px', borderRadius:'10px', background: league.isDefault ? 'var(--surface)' : 'var(--accent)', color: league.isDefault ? 'var(--text-muted)' : '#000'}}>{league.isDefault ? 'Predefinito' : 'Personalizzato'}</span></td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>{matchCount > 0 ? <span style={{color:'var(--win)', fontWeight:'bold'}}>{matchCount}</span> : <span style={{color:'var(--text-muted)'}}>0</span>}</td>
                       <td style={{textAlign:'center', padding:'6px 8px'}}>
-                        <select value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} style={{width:'90px', padding:'2px 4px', fontSize:'11px', marginRight:'4px'}}>
+                        <span style={{fontSize:'10px', padding:'2px 8px', borderRadius:'10px', background: league.isDefault ? 'var(--surface)' : 'var(--accent)', color: league.isDefault ? 'var(--text-muted)' : '#000'}}>
+                          {league.isDefault ? 'Predefinito' : 'Personalizzato'}
+                        </span>
+                      </td>
+                      <td style={{textAlign:'center', padding:'6px 8px'}}>
+                        {matchCount > 0 ? 
+                          <span style={{color:'var(--win)', fontWeight:'bold'}}>{matchCount}</span> : 
+                          <span style={{color:'var(--lose)'}}>0</span>
+                        }
+                      </td>
+                      <td style={{textAlign:'center', padding:'6px 8px', fontSize:'11px', color:'var(--text-muted)'}}>
+                        {selectedSeason}
+                      </td>
+                      <td style={{textAlign:'center', padding:'6px 8px'}}>
+                        <select 
+                          value={selectedSeason} 
+                          onChange={e => {
+                            setSelectedSeason(e.target.value);
+                          }} 
+                          style={{width:'90px', padding:'2px 4px', fontSize:'11px', marginRight:'4px'}}
+                        >
                           <optgroup label="🏆 Solari">
                             <option value="2027">2027</option>
                             <option value="2026">2026</option>
@@ -2663,8 +3073,21 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
                             <option value="23/24">23/24</option>
                           </optgroup>
                         </select>
-                        <button className="btn btn-secondary" style={{fontSize:'11px', padding:'2px 8px', marginRight:'4px'}} onClick={() => onImport(league.name, selectedSeason)} disabled={loading}>📥 Importa</button>
-                        <button className="btn btn-danger" style={{fontSize:'11px', padding:'2px 8px'}} onClick={() => removeLeague(league.id, league.name)}>✖</button>
+                        <button 
+                          className="btn btn-secondary" 
+                          style={{fontSize:'11px', padding:'2px 8px', marginRight:'4px'}} 
+                          onClick={() => onImport(league.name, selectedSeason)} 
+                          disabled={loading}
+                        >
+                          📥 Importa
+                        </button>
+                        <button 
+                          className="btn btn-danger" 
+                          style={{fontSize:'11px', padding:'2px 8px'}} 
+                          onClick={() => removeLeague(league.id, league.name)}
+                        >
+                          ✖
+                        </button>
                       </td>
                     </tr>;
                   })}
@@ -2672,13 +3095,20 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
               </table>
             )}
           </div>
+          <div style={{fontSize:'11px', color:'var(--text-muted)', marginTop:'8px'}}>
+            📊 Totale: {allLeagues.length} campionati visibili • {matches.filter(m => m.stato === 'Giocata').length} partite giocate • {matches.filter(m => m.stato === 'Futura').length} future
+            {blacklistCount > 0 && ` • 🔇 ${blacklistCount} nascosti`}
+          </div>
         </div>
       )}
+      
       {selectedTab === 'cerca' && (
         <div>
           <div style={{display:'flex', gap:'8px', marginBottom:'12px'}}>
             <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Cerca campionato" style={{flex:1}} onKeyDown={e => e.key === 'Enter' && searchSofaLeagues()} />
-            <button className="btn" onClick={searchSofaLeagues} disabled={searching || isChecking}>{searching ? '⏳ Cercando...' : '🔍 Cerca'}</button>
+            <button className="btn" onClick={searchSofaLeagues} disabled={searching || isChecking}>
+              {searching ? '⏳ Cercando...' : '🔍 Cerca'}
+            </button>
           </div>
           <div style={{display:'flex', gap:'8px', marginBottom:'12px'}}>
             <select value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} style={{width:'130px', padding:'8px'}}>
@@ -2703,14 +3133,38 @@ const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigg
                   {searchResults.map(t => {
                     const allLeaguesList = getVisibleLeagues(customLeagues);
                     const isAdded = allLeaguesList.some(l => l.id === t.id);
+                    const statusBadge = getStatusBadge(t.name);
+                    
                     return <tr key={t.id} style={{borderBottom:'1px solid var(--border)'}}>
-                      <td style={{padding:'6px 8px'}}>{t.name}</td><td style={{textAlign:'center', padding:'6px 8px'}}>{t.id}</td>
+                      <td style={{padding:'6px 8px'}}>
+                        {t.name}
+                        {statusBadge && <span style={{marginLeft:'8px'}}>{statusBadge}</span>}
+                      </td>
+                      <td style={{textAlign:'center', padding:'6px 8px'}}>{t.id}</td>
                       <td style={{textAlign:'center', padding:'6px 8px'}}>{t.category?.name || 'N/A'}</td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>{isAdded ? <span style={{color:'var(--win)'}}>✅ Già aggiunto</span> : <button className="btn btn-secondary" style={{fontSize:'11px', padding:'2px 10px'}} onClick={() => addFromSearch(t)} disabled={isChecking}>{isChecking ? '⏳...' : '➕ Aggiungi e Importa'}</button>}</td>
+                      <td style={{textAlign:'center', padding:'6px 8px'}}>
+                        {isAdded ? 
+                          <span style={{color:'var(--win)'}}>✅ Già aggiunto</span> : 
+                          <button 
+                            className="btn btn-secondary" 
+                            style={{fontSize:'11px', padding:'2px 10px'}} 
+                            onClick={() => addFromSearch(t)} 
+                            disabled={isChecking}
+                          >
+                            {isChecking ? '⏳...' : '➕ Aggiungi e Importa'}
+                          </button>
+                        }
+                      </td>
                     </tr>;
                   })}
                 </tbody>
               </table>
+            </div>
+          )}
+          {searching && <div style={{textAlign:'center', padding:'20px', color:'var(--text-muted)'}}>🔍 Ricerca in corso...</div>}
+          {!searching && searchResults.length === 0 && searchQuery && (
+            <div style={{textAlign:'center', padding:'20px', color:'var(--text-muted)'}}>
+              Nessun risultato trovato per "{searchQuery}"
             </div>
           )}
         </div>
@@ -2941,18 +3395,16 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
         importedCount++;
       }
 
-      if (newMatches.length === 0) {
-        showAlert('info', `ℹ️ Nessuna nuova partita da importare. ${skippedCount} righe saltate.`);
-        setImporting(false);
-        setLoading(false);
-        return;
-      }
-
+      const allMatches = [...matches, ...newMatches];
+      const uniqueMatches = deduplicateMatches(allMatches);
+      
       const newChampionships = Array.from(championshipsSet).map(name => ({ name, importedAt: new Date().toISOString() }));
       setChampionships(newChampionships);
-      setMatches(prev => [...prev, ...newMatches]);
+      setMatches(uniqueMatches);
 
-      showAlert('success', `✅ Importate ${importedCount} partite da ${newChampionships.length} campionati! ${skippedCount > 0 ? `(${skippedCount} righe saltate)` : ''}`);
+      const duplicatesRemoved = (matches.length + newMatches.length) - uniqueMatches.length;
+      
+      showAlert('success', `✅ Importate ${importedCount} partite da ${newChampionships.length} campionati! ${skippedCount > 0 ? `(${skippedCount} righe saltate)` : ''}${duplicatesRemoved > 0 ? ` (${duplicatesRemoved} duplicati rimossi)` : ''}`);
       
       setFile(null);
       setParsedData([]);
@@ -3197,8 +3649,8 @@ Under/Over:
 - 2.5: U=${Math.round(stats.underOver[1].under)}% O=${Math.round(stats.underOver[1].over)}%
 - 3.5: U=${Math.round(stats.underOver[2].under)}% O=${Math.round(stats.underOver[2].over)}%
 
-Multigol Casa: 0-1=${Math.round(stats.homeMG['0-1'])}% 0-2=${Math.round(stats.homeMG['0-2'])}% 1-3=${Math.round(stats.homeMG['1-3'])}% Over1,5=${Math.round(stats.homeMG['2-4'])}%
-Multigol Ospite: 0-1=${Math.round(stats.awayMG['0-1'])}% 0-2=${Math.round(stats.awayMG['0-2'])}% 1-3=${Math.round(stats.awayMG['1-3'])}% Over1,5=${Math.round(stats.awayMG['2-4'])}%
+Multigol Casa: 0-1=${Math.round(stats.homeMG['0-1'])}% 0-2=${Math.round(stats.homeMG['0-2'])}% 1-3=${Math.round(stats.homeMG['1-3'])}% 2-5=${Math.round(stats.homeMG['2-5'])}%
+Multigol Ospite: 0-1=${Math.round(stats.awayMG['0-1'])}% 0-2=${Math.round(stats.awayMG['0-2'])}% 1-3=${Math.round(stats.awayMG['1-3'])}% 2-5=${Math.round(stats.awayMG['2-5'])}%
 
 Genera un'analisi in formato JSON:
 {
@@ -3520,6 +3972,100 @@ function App() {
     return saved || 'pc';
   });
   const [selectedFamiglie, setSelectedFamiglie] = useState(initial.selectedFamiglie || ['dc_under','mg_casa_ospite','over']);
+  const [autoImportDone, setAutoImportDone] = useState(false);
+
+  // ============================================================
+  // AUTO-IMPORT ALL'AVVIO - Campionati mancanti (CORRETTO)
+  // ============================================================
+  useEffect(() => {
+    const autoImportKey = 'ft_auto_import_done_v4';
+    const autoImportDoneCheck = localStorage.getItem(autoImportKey);
+    const today = getTodayStr();
+    
+    if (autoImportDoneCheck !== today && !autoImportDone) {
+      const importMissingLeagues = async () => {
+        try {
+          const allLeagues = getVisibleLeagues(getCustomSofaLeagues());
+          const importedNames = new Set(championships.map(c => c.name));
+          const leaguesToImport = allLeagues
+            .filter(l => !importedNames.has(l.name))
+            .map(l => l.name);
+          
+          if (leaguesToImport.length === 0) {
+            localStorage.setItem(autoImportKey, today);
+            setAutoImportDone(true);
+            return;
+          }
+          
+          // Verifica quali campionati hanno effettivamente partite
+          let leaguesWithMatches = [];
+          let leaguesWithoutMatches = [];
+          
+          for (const champName of leaguesToImport) {
+            try {
+              const leagueId = SOFASCORE_LEAGUE_IDS[champName] || getCustomSofaLeagues().find(l => l.name === champName)?.id;
+              if (!leagueId) {
+                leaguesWithoutMatches.push(champName);
+                continue;
+              }
+              
+              const events = await fetchSofaScoreMatches(leagueId, '26/27');
+              if (events && events.length > 0) {
+                leaguesWithMatches.push(champName);
+              } else {
+                leaguesWithoutMatches.push(champName);
+              }
+            } catch(e) {
+              leaguesWithoutMatches.push(champName);
+            }
+          }
+          
+          // Importa solo quelli con partite (max 3)
+          const toImport = leaguesWithMatches.slice(0, 3);
+          
+          if (toImport.length > 0) {
+            showAlert('info', `🔄 Importazione automatica di ${toImport.length} campionati con partite...`);
+            let imported = 0;
+            for (const champName of toImport) {
+              try {
+                await importFromSofaScore(champName, '26/27');
+                imported++;
+              } catch(e) {
+                console.error(`Errore importando ${champName}:`, e);
+              }
+            }
+            if (imported > 0) {
+              showAlert('success', `✅ Importati automaticamente ${imported} campionati!`);
+            }
+          }
+          
+          // Messaggio per quelli senza partite
+          if (leaguesWithoutMatches.length > 0) {
+            const msg = leaguesWithoutMatches.length <= 3 
+              ? `⏳ Nessuna partita disponibile per: ${leaguesWithoutMatches.join(', ')}` 
+              : `⏳ ${leaguesWithoutMatches.length} campionati senza partite (stagione non iniziata o terminata)`;
+            showAlert('info', msg);
+          }
+          
+          localStorage.setItem(autoImportKey, today);
+          setAutoImportDone(true);
+          
+        } catch (e) {
+          console.error('Errore auto-import:', e);
+          localStorage.setItem(autoImportKey, today);
+          setAutoImportDone(true);
+        }
+      };
+      
+      const timer = setTimeout(() => {
+        importMissingLeagues();
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    } else if (autoImportDoneCheck === today) {
+      setAutoImportDone(true);
+    }
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('ft_view_mode', viewMode);
@@ -3535,6 +4081,9 @@ function App() {
     document.documentElement.style.fontSize = fontSize + '%';
   }, [fontSize]);
 
+  // ============================================================
+  // FUNZIONE IMPORT CON DEDUPLICAZIONE
+  // ============================================================
   const importFromSofaScore = async (champName, seasonYear = '26/27') => {
     let leagueId = SOFASCORE_LEAGUE_IDS[champName];
     if (!leagueId) { const customLeagues = getCustomSofaLeagues(); const found = customLeagues.find(l => l.name === champName); if (found) leagueId = found.id; }
@@ -3575,10 +4124,14 @@ function App() {
         });
       });
       if (newMatches.length === 0) { showAlert('info', 'ℹ️ Nessuna nuova partita da aggiungere.'); setLoading(false); return; }
-      setMatches(prev => [...prev, ...newMatches]);
+      
+      const allMatches = [...matches, ...newMatches];
+      const uniqueMatches = deduplicateMatches(allMatches);
+      const duplicatesRemoved = (matches.length + newMatches.length) - uniqueMatches.length;
+      
+      setMatches(uniqueMatches);
       setSelectedChamp(champName);
-      setTab('Palinsesto');
-      showAlert('success', `✅ Importate ${newMatches.length} partite da ${champName} (stagione ${seasonYear})!`);
+      showAlert('success', `✅ Importate ${newMatches.length} partite da ${champName} (stagione ${seasonYear})!${duplicatesRemoved > 0 ? ` (${duplicatesRemoved} duplicati rimossi)` : ''}`);
     } catch (e) { console.error('Errore importazione:', e); showAlert('error', '❌ Errore durante l\'importazione: ' + e.message); }
     setLoading(false);
   };
@@ -3627,7 +4180,13 @@ function App() {
             citta: 'N/D'
           });
         });
-        if (newMatches.length > 0) { setMatches(prev => [...prev, ...newMatches]); totalMatches += newMatches.length; successCount++; }
+        if (newMatches.length > 0) { 
+          const allMatches = [...matches, ...newMatches];
+          const uniqueMatches = deduplicateMatches(allMatches);
+          setMatches(uniqueMatches);
+          totalMatches += newMatches.length; 
+          successCount++; 
+        }
         else { setChampionships(prev => prev.filter(c => c.name !== champName)); failCount++; }
         await new Promise(r => setTimeout(r, 300));
       } catch (e) { console.error(`Errore importando ${champName}:`, e); failCount++; }
