@@ -1051,17 +1051,32 @@ const getChampColor = (champName) => {
 
 const normalizeDate = (dateStr) => {
   if (!dateStr) return null;
+  
+  // Se è un numero (Excel serial date), convertilo
+  if (typeof dateStr === 'number' || /^\d+$/.test(dateStr.toString().trim())) {
+    const serial = parseInt(dateStr.toString().trim());
+    // Excel serial: giorni dal 1/1/1900
+    const excelEpoch = new Date(1899, 11, 30);
+    const date = new Date(excelEpoch.getTime() + serial * 86400000);
+    return date.toISOString().slice(0, 10);
+  }
+  
+  // Se è già in formato YYYY-MM-DD
   if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) return dateStr;
+  
+  // Se è in formato DD/MM/YYYY
   if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}/)) {
     const parts = dateStr.split('/');
     return `${parts[2]}-${parts[1]}-${parts[0]}`;
   }
+  
   try {
     const date = new Date(dateStr);
     if (!isNaN(date.getTime())) {
       return date.toISOString().slice(0, 10);
     }
   } catch(e) {}
+  
   return dateStr;
 };
 
@@ -3359,41 +3374,40 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
         let golCasa = 0;
         let golOspite = 0;
 
-        const homeGoals = parseInt(golCasaRaw);
-        const awayGoals = parseInt(golOspiteRaw);
-        if (!isNaN(homeGoals) && !isNaN(awayGoals)) {
+        // PASSO 1: LEGGI LA COLONNA STATO DAL FILE
+        if (statoRaw === 'giocata') {
           stato = 'Giocata';
-          golCasa = homeGoals;
-          golOspite = awayGoals;
-        } else if (statoRaw.includes('giocata') || statoRaw.includes('finished') || statoRaw.includes('completata')) {
-          const risultato = row['Risultato']?.toString().trim() || '';
-          if (risultato.includes('-')) {
-            const parts = risultato.split('-');
-            const h = parseInt(parts[0].trim());
-            const a = parseInt(parts[1].trim());
-            if (!isNaN(h) && !isNaN(a)) {
-              stato = 'Giocata';
-              golCasa = h;
-              golOspite = a;
-            }
+        } else if (statoRaw === 'futura') {
+          stato = 'Futura';
+        }
+
+        // PASSO 2: ESTRAI I GOL DALLA COLONNA RISULTATO
+        const risultato = row['Risultato']?.toString().trim() || '';
+        if (risultato.includes('-')) {
+          const parts = risultato.split('-');
+          const h = parseInt(parts[0].trim());
+          const a = parseInt(parts[1].trim());
+          if (!isNaN(h) && !isNaN(a)) {
+            golCasa = h;
+            golOspite = a;
           }
         }
 
+        // PASSO 3: SE LA COLONNA STATO NON C'ERA, USA I GOL COME FALLBACK
         if (stato === 'Futura' && (golCasa > 0 || golOspite > 0)) {
           stato = 'Giocata';
         }
 
-        if (stato === 'Giocata' && golCasa === 0 && golOspite === 0) {
-          const risultato = row['Risultato']?.toString().trim() || '';
-          if (risultato.includes('-')) {
-            const parts = risultato.split('-');
-            const h = parseInt(parts[0].trim());
-            const a = parseInt(parts[1].trim());
-            if (!isNaN(h) && !isNaN(a)) {
-              golCasa = h;
-              golOspite = a;
+        // PASSO 4: SE STATO È FUTURA MA LA DATA È PASSATA, IMPOSTA GIOCATA
+        if (stato === 'Futura' && dataRaw) {
+          try {
+            const dataPartita = new Date(dataRaw);
+            const oggi = new Date();
+            oggi.setHours(0,0,0,0);
+            if (dataPartita < oggi) {
+              stato = 'Giocata';
             }
-          }
+          } catch(e) {}
         }
 
         const key = `${campionato}|${dataNormalizzata}|${oraRaw}|${squadraCasa}|${squadraOspite}`;
@@ -4001,99 +4015,273 @@ function App() {
   });
   const [selectedFamiglie, setSelectedFamiglie] = useState(initial.selectedFamiglie || ['dc_under','mg_casa_ospite','over']);
   const [autoImportDone, setAutoImportDone] = useState(false);
+  const [updateRunning, setUpdateRunning] = useState(false);
 
   // ============================================================
-  // AUTO-IMPORT ALL'AVVIO - Campionati mancanti (CORRETTO)
+  // FUNZIONE PER AGGIORNARE LE PARTITE TERMINATE
+  // ============================================================
+  const updateFinishedMatches = async () => {
+    if (updateRunning) return;
+    setUpdateRunning(true);
+    setLoading(true);
+    showAlert('info', '🔄 Controllo partite terminate in corso...');
+    
+    let updatedCount = 0;
+    let errorCount = 0;
+    let totalChecked = 0;
+    
+    // Raggruppa le partite future per campionato
+    const futureMatches = matches.filter(m => m.stato === 'Futura');
+    
+    if (futureMatches.length === 0) {
+      showAlert('info', '✅ Nessuna partita futura da controllare.');
+      setLoading(false);
+      setUpdateRunning(false);
+      return;
+    }
+    
+    // Raggruppa per campionato per fare meno richieste
+    const matchesByChampionship = {};
+    futureMatches.forEach(m => {
+      if (!matchesByChampionship[m.campionato]) {
+        matchesByChampionship[m.campionato] = [];
+      }
+      matchesByChampionship[m.campionato].push(m);
+    });
+    
+    const champNames = Object.keys(matchesByChampionship);
+    let processed = 0;
+    
+    // Per ogni campionato, recupera i dati aggiornati da SofaScore
+    for (const champName of champNames) {
+      try {
+        // Trova l'ID del campionato
+        let leagueId = SOFASCORE_LEAGUE_IDS[champName];
+        if (!leagueId) {
+          const customLeagues = getCustomSofaLeagues();
+          const found = customLeagues.find(l => l.name === champName);
+          if (found) leagueId = found.id;
+        }
+        if (!leagueId) {
+          errorCount += matchesByChampionship[champName].length;
+          processed++;
+          continue;
+        }
+        
+        // Ottieni le stagioni disponibili
+        const seasonsRes = await fetch(`https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/seasons`);
+        if (!seasonsRes.ok) throw new Error('Errore nel recupero stagioni');
+        const seasonsData = await seasonsRes.json();
+        
+        let targetSeasonId = null;
+        if (seasonsData.seasons) {
+          // Cerca la stagione più recente
+          const sortedSeasons = seasonsData.seasons.sort((a, b) => {
+            const yearA = parseInt(a.name?.match(/\d{4}/)?.[0] || '0');
+            const yearB = parseInt(b.name?.match(/\d{4}/)?.[0] || '0');
+            return yearB - yearA;
+          });
+          if (sortedSeasons.length > 0) {
+            targetSeasonId = sortedSeasons[0].id;
+          }
+        }
+        if (!targetSeasonId) {
+          errorCount += matchesByChampionship[champName].length;
+          processed++;
+          continue;
+        }
+        
+        // Recupera tutti gli eventi del campionato
+        let allEvents = [];
+        let round = 1;
+        let hasMore = true;
+        while (hasMore && round <= 40) {
+          try {
+            const url = `https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/season/${targetSeasonId}/events/round/${round}`;
+            const res = await fetch(url);
+            if (!res.ok) {
+              if (res.status === 404) { hasMore = false; break; }
+              throw new Error(`HTTP ${res.status}`);
+            }
+            const data = await res.json();
+            if (data.events && data.events.length > 0) {
+              allEvents = [...allEvents, ...data.events];
+            }
+            round++;
+            await new Promise(r => setTimeout(r, 100));
+          } catch (e) {
+            hasMore = false;
+          }
+        }
+        
+        // Crea una mappa per cercare velocemente le partite
+        const eventMap = {};
+        allEvents.forEach(event => {
+          const dt = new Date(event.startTimestamp * 1000);
+          const dataStr = dt.toISOString().slice(0, 10);
+          const homeTeam = event.homeTeam?.name || '';
+          const awayTeam = event.awayTeam?.name || '';
+          const key = `${dataStr}|${homeTeam}|${awayTeam}`;
+          if (!eventMap[key]) {
+            eventMap[key] = event;
+          }
+        });
+        
+        // Controlla ogni partita futura
+        const matchesList = matchesByChampionship[champName];
+        const updatedMatches = [];
+        
+        matchesList.forEach(m => {
+          const key = `${m.data}|${m.casa}|${m.ospiti}`;
+          const event = eventMap[key];
+          totalChecked++;
+          
+          if (event) {
+            const isFinished = event.status?.type === 'finished' || 
+                             event.status?.code === 100 || 
+                             event.status?.code === 90 ||
+                             event.status?.code === 80 ||
+                             event.status?.code === 60 ||
+                             event.status?.code === 70 ||
+                             event.status?.code === 50 ||
+                             event.status?.code === 0 ||
+                             event.status?.code === 10 ||
+                             event.status?.code === 30 ||
+                             event.status?.code === 40;
+            
+            if (isFinished) {
+              const homeScore = event.homeScore?.current || event.homeScore?.normaltime || 0;
+              const awayScore = event.awayScore?.current || event.awayScore?.normaltime || 0;
+              
+              updatedMatches.push({
+                ...m,
+                stato: 'Giocata',
+                golCasa: homeScore,
+                golOspite: awayScore
+              });
+            }
+          }
+        });
+        
+        // Aggiorna le partite nella lista
+        if (updatedMatches.length > 0) {
+          const matchIds = new Set(updatedMatches.map(m => m.id));
+          setMatches(prev => prev.map(m => {
+            if (matchIds.has(m.id)) {
+              const updated = updatedMatches.find(um => um.id === m.id);
+              return updated || m;
+            }
+            return m;
+          }));
+          updatedCount += updatedMatches.length;
+          showAlert('info', `📊 ${champName}: aggiornate ${updatedMatches.length} partite`);
+        }
+        
+        processed++;
+        
+      } catch (e) {
+        console.error(`Errore aggiornando ${champName}:`, e);
+        errorCount += matchesByChampionship[champName]?.length || 0;
+        processed++;
+      }
+    }
+    
+    setLoading(false);
+    setUpdateRunning(false);
+    
+    if (updatedCount > 0) {
+      showAlert('success', `✅ ${updatedCount} partite sono state aggiornate come "Giocata"! 🎉`);
+    } else if (errorCount > 0 && totalChecked > 0) {
+      showAlert('warning', `⚠️ ${totalChecked} partite controllate, nessuna aggiornata. Alcuni campionati potrebbero non essere disponibili.`);
+    } else if (totalChecked > 0) {
+      showAlert('info', `ℹ️ ${totalChecked} partite controllate, nessuna da aggiornare.`);
+    } else {
+      showAlert('info', 'ℹ️ Nessuna partita da aggiornare.');
+    }
+  };
+
+  // ============================================================
+  // AUTO-IMPORT + AGGIORNAMENTO PARTITE ALL'AVVIO
   // ============================================================
   useEffect(() => {
-    const autoImportKey = 'ft_auto_import_done_v4';
+    const autoImportKey = 'ft_auto_import_done_v5';
     const autoImportDoneCheck = localStorage.getItem(autoImportKey);
     const today = getTodayStr();
     
-    if (autoImportDoneCheck !== today && !autoImportDone) {
-      const importMissingLeagues = async () => {
+    if (autoImportDoneCheck !== today && !autoImportDone && !updateRunning) {
+      const runAutoUpdate = async () => {
         try {
+          // PASSO 1: Importa nuovi campionati
           const allLeagues = getVisibleLeagues(getCustomSofaLeagues());
           const importedNames = new Set(championships.map(c => c.name));
           const leaguesToImport = allLeagues
             .filter(l => !importedNames.has(l.name))
             .map(l => l.name);
           
-          if (leaguesToImport.length === 0) {
-            localStorage.setItem(autoImportKey, today);
-            setAutoImportDone(true);
-            return;
-          }
-          
-          // Verifica quali campionati hanno effettivamente partite
-          let leaguesWithMatches = [];
-          let leaguesWithoutMatches = [];
-          
-          for (const champName of leaguesToImport) {
-            try {
-              const leagueId = SOFASCORE_LEAGUE_IDS[champName] || getCustomSofaLeagues().find(l => l.name === champName)?.id;
-              if (!leagueId) {
-                leaguesWithoutMatches.push(champName);
-                continue;
-              }
-              
-              const events = await fetchSofaScoreMatches(leagueId, '26/27');
-              if (events && events.length > 0) {
-                leaguesWithMatches.push(champName);
-              } else {
-                leaguesWithoutMatches.push(champName);
-              }
-            } catch(e) {
-              leaguesWithoutMatches.push(champName);
-            }
-          }
-          
-          // Importa solo quelli con partite (max 3)
-          const toImport = leaguesWithMatches.slice(0, 3);
-          
-          if (toImport.length > 0) {
-            showAlert('info', `🔄 Importazione automatica di ${toImport.length} campionati con partite...`);
-            let imported = 0;
-            for (const champName of toImport) {
+          if (leaguesToImport.length > 0) {
+            // Verifica quali campionati hanno effettivamente partite
+            let leaguesWithMatches = [];
+            
+            for (const champName of leaguesToImport) {
               try {
-                await importFromSofaScore(champName, '26/27');
-                imported++;
+                const leagueId = SOFASCORE_LEAGUE_IDS[champName] || getCustomSofaLeagues().find(l => l.name === champName)?.id;
+                if (!leagueId) continue;
+                
+                const events = await fetchSofaScoreMatches(leagueId, '26/27');
+                if (events && events.length > 0) {
+                  leaguesWithMatches.push(champName);
+                }
               } catch(e) {
-                console.error(`Errore importando ${champName}:`, e);
+                // Ignora errori
               }
             }
-            if (imported > 0) {
-              showAlert('success', `✅ Importati automaticamente ${imported} campionati!`);
+            
+            // Importa solo quelli con partite (max 3)
+            const toImport = leaguesWithMatches.slice(0, 3);
+            
+            if (toImport.length > 0) {
+              showAlert('info', `🔄 Importazione automatica di ${toImport.length} campionati...`);
+              let imported = 0;
+              for (const champName of toImport) {
+                try {
+                  await importFromSofaScore(champName, '26/27');
+                  imported++;
+                } catch(e) {
+                  console.error(`Errore importando ${champName}:`, e);
+                }
+              }
+              if (imported > 0) {
+                showAlert('success', `✅ Importati automaticamente ${imported} campionati!`);
+              }
             }
           }
           
-          // Messaggio per quelli senza partite
-          if (leaguesWithoutMatches.length > 0) {
-            const msg = leaguesWithoutMatches.length <= 3 
-              ? `⏳ Nessuna partita disponibile per: ${leaguesWithoutMatches.join(', ')}` 
-              : `⏳ ${leaguesWithoutMatches.length} campionati senza partite (stagione non iniziata o terminata)`;
-            showAlert('info', msg);
+          // PASSO 2: Aggiorna le partite terminate
+          const futureMatches = matches.filter(m => m.stato === 'Futura');
+          if (futureMatches.length > 0) {
+            showAlert('info', `🔄 Controllo ${futureMatches.length} partite future...`);
+            await updateFinishedMatches();
           }
           
           localStorage.setItem(autoImportKey, today);
           setAutoImportDone(true);
           
         } catch (e) {
-          console.error('Errore auto-import:', e);
+          console.error('Errore auto-aggiornamento:', e);
           localStorage.setItem(autoImportKey, today);
           setAutoImportDone(true);
         }
       };
       
       const timer = setTimeout(() => {
-        importMissingLeagues();
-      }, 2000);
+        runAutoUpdate();
+      }, 3000);
       
       return () => clearTimeout(timer);
     } else if (autoImportDoneCheck === today) {
       setAutoImportDone(true);
     }
-  }, []);
+  }, [championships, matches]);
 
   useEffect(() => {
     localStorage.setItem('ft_view_mode', viewMode);
@@ -4134,7 +4322,7 @@ function App() {
         const key = `${champName}|${dataStr}|${oraStr}|${homeTeam}|${awayTeam}`;
         if (existingKeys.has(key)) return;
         existingKeys.add(key);
-        const isFinished = event.status?.type === 'finished' || event.status?.code === 100;
+        const isFinished = event.status?.type === 'finished' || event.status?.code === 100 || event.status?.code === 90 || event.status?.code === 80 || event.status?.code === 60 || event.status?.code === 70 || event.status?.code === 50 || event.status?.code === 0 || event.status?.code === 10 || event.status?.code === 30 || event.status?.code === 40;
         const homeScore = event.homeScore?.current || event.homeScore?.normaltime || 0;
         const awayScore = event.awayScore?.current || event.awayScore?.normaltime || 0;
         newMatches.push({
@@ -4191,7 +4379,7 @@ function App() {
           const key = `${champName}|${dataStr}|${oraStr}|${homeTeam}|${awayTeam}`;
           if (existingKeys.has(key)) return;
           existingKeys.add(key);
-          const isFinished = event.status?.type === 'finished' || event.status?.code === 100;
+          const isFinished = event.status?.type === 'finished' || event.status?.code === 100 || event.status?.code === 90 || event.status?.code === 80 || event.status?.code === 60 || event.status?.code === 70 || event.status?.code === 50 || event.status?.code === 0 || event.status?.code === 10 || event.status?.code === 30 || event.status?.code === 40;
           const homeScore = event.homeScore?.current || event.homeScore?.normaltime || 0;
           const awayScore = event.awayScore?.current || event.awayScore?.normaltime || 0;
           newMatches.push({
@@ -4234,7 +4422,7 @@ function App() {
     }
   };
 
-  const showAlert = (type, text) => { setMessage({ type, text }); setTimeout(() => setMessage(null), 4000); };
+  const showAlert = (type, text) => { setMessage({ type, text }); setTimeout(() => setMessage(null), 5000); };
   const selectMatch = (matchId) => { setSelectedMatchId(matchId); setTab('Statistiche'); };
   const testApiKey = async (name) => {
     const key = tempKeys[name];
@@ -4371,6 +4559,21 @@ function App() {
 
         {tab === 'Home' && (
           <div>
+            {/* Pulsante Aggiorna Dati */}
+            <div style={{display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center'}}>
+              <button 
+                className="btn" 
+                onClick={updateFinishedMatches} 
+                disabled={loading || updateRunning}
+                style={{background: 'var(--accent)', color: '#000'}}
+              >
+                {updateRunning ? '⏳ Aggiornamento...' : '🔄 Aggiorna Dati Partite'}
+              </button>
+              <span style={{fontSize: '12px', color: 'var(--text-muted)'}}>
+                {updateRunning ? 'Controllo partite terminate in corso...' : 'Controlla e aggiorna le partite future diventate giocate'}
+              </span>
+            </div>
+
             <HomeWidget matches={matches} onSelectMatch={selectMatch} setTab={setTab} selectedFamiglie={selectedFamiglie} />
             <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px'}}>
               <div><h3 style={{marginBottom: '12px'}}>📊 Statistiche Rapide</h3><div className="perf-grid" style={{gridTemplateColumns: '1fr 1fr'}}>
@@ -4573,8 +4776,13 @@ function App() {
               <div>
                 <h3 style={{marginBottom:'12px'}}>💾 Salvataggio / Caricamento</h3>
                 <div className="card">
+                  <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px'}}>
+                    <button className="btn" onClick={updateFinishedMatches} disabled={loading || updateRunning} style={{background: 'var(--accent)', color: '#000'}}>
+                      {updateRunning ? '⏳ Aggiornamento...' : '🔄 Aggiorna Tutte le Partite'}
+                    </button>
+                    <button className="btn" onClick={saveLocal}>💾 Scarica Backup JSON</button>
+                  </div>
                   <p style={{marginBottom:'12px'}}>I dati vengono salvati automaticamente in localStorage.</p>
-                  <button className="btn" onClick={saveLocal} style={{marginRight:'8px'}}>💾 Scarica Backup JSON</button>
                   <hr style={{margin:'14px 0', borderColor:'var(--border)'}}/>
                   <label style={{display:'block', marginBottom:'6px'}}>📂 Carica Backup JSON</label>
                   <input type="file" accept=".json" onChange={e => e.target.files[0] && loadLocal(e.target.files[0])} />
