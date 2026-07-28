@@ -2566,7 +2566,7 @@ const HomeWidget = ({ matches, onSelectMatch, setTab, selectedFamiglie }) => {
 };
 
 // ============================================================
-// COMPONENTE HEATMAP GIOCATE
+// COMPONENTE HEATMAP GIOCATE - AGGIUNTE MG 0-2 CASA E OSPITE
 // ============================================================
 
 const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
@@ -2574,13 +2574,24 @@ const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
   const analyzeChampionships = () => {
     const champs = {};
     matches.filter(m => m.stato === 'Giocata').forEach(m => {
-      if (!champs[m.campionato]) { champs[m.campionato] = { over15: { total: 0, successi: 0 }, '12under45': { total: 0, successi: 0 }, multigolCasa13: { total: 0, successi: 0 }, multigolOspite13: { total: 0, successi: 0 } }; }
+      if (!champs[m.campionato]) { 
+        champs[m.campionato] = { 
+          over15: { total: 0, successi: 0 }, 
+          '12under45': { total: 0, successi: 0 }, 
+          multigolCasa13: { total: 0, successi: 0 }, 
+          multigolOspite13: { total: 0, successi: 0 },
+          multigolCasa02: { total: 0, successi: 0 },
+          multigolOspite02: { total: 0, successi: 0 }
+        }; 
+      }
       const total = m.golCasa + m.golOspite;
       const ch = champs[m.campionato];
       ch.over15.total++; if (total > 1.5) ch.over15.successi++;
       ch['12under45'].total++; if (m.golCasa !== m.golOspite && total < 4.5) ch['12under45'].successi++;
       ch.multigolCasa13.total++; if (m.golCasa >= 1 && m.golCasa <= 3) ch.multigolCasa13.successi++;
       ch.multigolOspite13.total++; if (m.golOspite >= 1 && m.golOspite <= 3) ch.multigolOspite13.successi++;
+      ch.multigolCasa02.total++; if (m.golCasa <= 2) ch.multigolCasa02.successi++;
+      ch.multigolOspite02.total++; if (m.golOspite <= 2) ch.multigolOspite02.successi++;
     });
     return champs;
   };
@@ -2606,16 +2617,18 @@ const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
           </select>
         </div>
       </div>
-      <div style={{fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px'}}>📊 Percentuali di successo per le 4 giocate selezionate</div>
+      <div style={{fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px'}}>📊 Percentuali di successo per le 6 giocate selezionate</div>
       <div className="standings-table-wrap">
         <table className="heatmap-table">
-          <thead><tr><th>Campionato</th><th>Over 1.5</th><th>12+Under 4.5</th><th>MG Casa 1-3</th><th>MG Ospite 1-3</th><th style={{fontSize: '10px'}}>Partite</th></tr></thead>
+          <thead><tr><th>Campionato</th><th>Over 1.5</th><th>12+Under 4.5</th><th>MG Casa 1-3</th><th>MG Ospite 1-3</th><th>MG Casa 0-2</th><th>MG Ospite 0-2</th><th style={{fontSize: '10px'}}>Partite</th></tr></thead>
           <tbody>
             {entries.map(([champ, stats]) => {
               const pctOver15 = getPct(stats.over15);
               const pct12under45 = getPct(stats['12under45']);
               const pctMGHome = getPct(stats.multigolCasa13);
               const pctMGAway = getPct(stats.multigolOspite13);
+              const pctMGHome02 = getPct(stats.multigolCasa02);
+              const pctMGAway02 = getPct(stats.multigolOspite02);
               const totalGames = stats.over15.total;
               return (
                 <tr key={champ} className="clickable" onClick={() => onSelectChampionship && onSelectChampionship(champ)} style={{cursor: 'pointer'}}>
@@ -2624,6 +2637,8 @@ const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
                   <td style={{color: getColor(pct12under45), fontWeight: 'bold'}}>{getEmoji(pct12under45)} {pct12under45}%</td>
                   <td style={{color: getColor(pctMGHome), fontWeight: 'bold'}}>{getEmoji(pctMGHome)} {pctMGHome}%</td>
                   <td style={{color: getColor(pctMGAway), fontWeight: 'bold'}}>{getEmoji(pctMGAway)} {pctMGAway}%</td>
+                  <td style={{color: getColor(pctMGHome02), fontWeight: 'bold'}}>{getEmoji(pctMGHome02)} {pctMGHome02}%</td>
+                  <td style={{color: getColor(pctMGAway02), fontWeight: 'bold'}}>{getEmoji(pctMGAway02)} {pctMGAway02}%</td>
                   <td style={{fontSize: '11px', color: 'var(--text-muted)'}}>{totalGames}</td>
                 </tr>
               );
@@ -2637,6 +2652,8 @@ const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
         <span>🎯 <b>12+Under 4.5</b>: Vittoria di una squadra + meno di 5 gol</span>
         <span>🎯 <b>MG Casa 1-3</b>: Squadra di casa segna 1-3 gol</span>
         <span>🎯 <b>MG Ospite 1-3</b>: Squadra ospite segna 1-3 gol</span>
+        <span>🎯 <b>MG Casa 0-2</b>: Squadra di casa segna 0-2 gol</span>
+        <span>🎯 <b>MG Ospite 0-2</b>: Squadra ospite segna 0-2 gol</span>
       </div>
       <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px'}}>💡 Clicca su un campionato per vedere i dettagli</div>
     </div>
@@ -2644,19 +2661,28 @@ const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
 };
 
 // ============================================================
-// COMPONENTE HEATMAP DETAIL MODAL
+// COMPONENTE HEATMAP DETAIL MODAL - AGGIUNTE MG 0-2 CASA E OSPITE
 // ============================================================
 
 const HeatmapDetailModal = ({ championship, matches, onClose }) => {
   if (!championship) return null;
   const champMatches = matches.filter(m => m.campionato === championship && m.stato === 'Giocata');
-  const stats = { over15: { total: 0, successi: 0 }, '12under45': { total: 0, successi: 0 }, multigolCasa13: { total: 0, successi: 0 }, multigolOspite13: { total: 0, successi: 0 } };
+  const stats = { 
+    over15: { total: 0, successi: 0 }, 
+    '12under45': { total: 0, successi: 0 }, 
+    multigolCasa13: { total: 0, successi: 0 }, 
+    multigolOspite13: { total: 0, successi: 0 },
+    multigolCasa02: { total: 0, successi: 0 },
+    multigolOspite02: { total: 0, successi: 0 }
+  };
   champMatches.forEach(m => {
     const total = m.golCasa + m.golOspite;
     stats.over15.total++; if (total > 1.5) stats.over15.successi++;
     stats['12under45'].total++; if (m.golCasa !== m.golOspite && total < 4.5) stats['12under45'].successi++;
     stats.multigolCasa13.total++; if (m.golCasa >= 1 && m.golCasa <= 3) stats.multigolCasa13.successi++;
     stats.multigolOspite13.total++; if (m.golOspite >= 1 && m.golOspite <= 3) stats.multigolOspite13.successi++;
+    stats.multigolCasa02.total++; if (m.golCasa <= 2) stats.multigolCasa02.successi++;
+    stats.multigolOspite02.total++; if (m.golOspite <= 2) stats.multigolOspite02.successi++;
   });
   const getPct = (stat) => stat.total ? Math.round((stat.successi / stat.total) * 100) : 0;
   const getColor = (pct) => { if (pct >= 70) return 'var(--win)'; if (pct >= 50) return 'var(--draw)'; return 'var(--lose)'; };
@@ -2666,11 +2692,13 @@ const HeatmapDetailModal = ({ championship, matches, onClose }) => {
         <button className="close-btn" onClick={onClose}>✖</button>
         <h2 style={{color: getChampColor(championship)}}>📊 {championship}</h2>
         <p style={{color: 'var(--text-muted)', marginBottom: '12px'}}>{champMatches.length} partite giocate analizzate</p>
-        <div className="perf-grid" style={{gridTemplateColumns: '1fr 1fr'}}>
+        <div className="perf-grid" style={{gridTemplateColumns: '1fr 1fr 1fr'}}>
           <div className="perf-card"><div className="perf-value" style={{color: getColor(getPct(stats.over15))}}>{getPct(stats.over15)}%</div><div className="perf-label">Over 1.5</div><div className="form-bar"><div className="form-bar-fill" style={{width: `${getPct(stats.over15)}%`, background: getColor(getPct(stats.over15))}} /></div></div>
           <div className="perf-card"><div className="perf-value" style={{color: getColor(getPct(stats['12under45']))}}>{getPct(stats['12under45'])}%</div><div className="perf-label">12+Under 4.5</div><div className="form-bar"><div className="form-bar-fill" style={{width: `${getPct(stats['12under45'])}%`, background: getColor(getPct(stats['12under45']))}} /></div></div>
           <div className="perf-card"><div className="perf-value" style={{color: getColor(getPct(stats.multigolCasa13))}}>{getPct(stats.multigolCasa13)}%</div><div className="perf-label">MG Casa 1-3</div><div className="form-bar"><div className="form-bar-fill" style={{width: `${getPct(stats.multigolCasa13)}%`, background: getColor(getPct(stats.multigolCasa13))}} /></div></div>
           <div className="perf-card"><div className="perf-value" style={{color: getColor(getPct(stats.multigolOspite13))}}>{getPct(stats.multigolOspite13)}%</div><div className="perf-label">MG Ospite 1-3</div><div className="form-bar"><div className="form-bar-fill" style={{width: `${getPct(stats.multigolOspite13)}%`, background: getColor(getPct(stats.multigolOspite13))}} /></div></div>
+          <div className="perf-card"><div className="perf-value" style={{color: getColor(getPct(stats.multigolCasa02))}}>{getPct(stats.multigolCasa02)}%</div><div className="perf-label">MG Casa 0-2</div><div className="form-bar"><div className="form-bar-fill" style={{width: `${getPct(stats.multigolCasa02)}%`, background: getColor(getPct(stats.multigolCasa02))}} /></div></div>
+          <div className="perf-card"><div className="perf-value" style={{color: getColor(getPct(stats.multigolOspite02))}}>{getPct(stats.multigolOspite02)}%</div><div className="perf-label">MG Ospite 0-2</div><div className="form-bar"><div className="form-bar-fill" style={{width: `${getPct(stats.multigolOspite02)}%`, background: getColor(getPct(stats.multigolOspite02))}} /></div></div>
         </div>
         <div style={{marginTop: '12px'}}><h4 style={{color: 'var(--accent)', marginBottom: '8px'}}>📋 Ultime partite</h4><div style={{maxHeight: '200px', overflowY: 'auto'}}>{champMatches.slice(-10).reverse().map(m => (<div key={m.id} style={{display: 'flex', justifyContent: 'space-between', padding: '4px 8px', borderBottom: '1px solid var(--border)', fontSize: '13px'}}><span>{m.casa} vs {m.ospiti}</span><span style={{fontWeight: 'bold'}}>{m.golCasa}-{m.golOspite}</span><span style={{fontSize: '11px', color: 'var(--text-muted)'}}>{formatDateEU(m.data)}</span></div>))}</div></div>
       </div>
@@ -4228,8 +4256,19 @@ function App() {
     const data = { championships, matches, apiKeys, theme, customTheme, schedineHistory, selectedFamiglie, exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `gesssai-backup-${Date.now()}.json`; a.click();
-    showAlert('success', '💾 Backup scaricato!');
+    const a = document.createElement('a');
+    
+    // NOME FILE: GesssAi-ggmmaaaa.json
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    const filename = `GesssAi-${day}${month}${year}.json`;
+    
+    a.href = url;
+    a.download = filename;
+    a.click();
+    showAlert('success', `💾 Backup scaricato come ${filename}!`);
   };
 
   const loadLocal = (file) => {
