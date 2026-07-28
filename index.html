@@ -681,6 +681,94 @@
     color: var(--accent);
   }
   
+  /* Phone simulator styles */
+  .phone-simulator {
+    background: #1a1a2e;
+    border-radius: 40px;
+    padding: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 0 0 2px #333;
+    max-width: 420px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .phone-simulator .phone-notch {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 24px;
+    background: #1a1a2e;
+    border-radius: 0 0 12px 12px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .phone-simulator .phone-notch .notch-camera {
+    width: 8px;
+    height: 8px;
+    background: #2a2a4e;
+    border-radius: 50%;
+    box-shadow: inset 0 0 4px rgba(0,0,0,0.5);
+  }
+  .phone-simulator .phone-notch .notch-speaker {
+    width: 40px;
+    height: 4px;
+    background: #2a2a4e;
+    border-radius: 2px;
+  }
+  .phone-simulator .phone-screen {
+    background: var(--bg);
+    border-radius: 28px;
+    overflow: hidden;
+    height: 780px;
+    max-height: 80vh;
+    position: relative;
+  }
+  .phone-simulator .phone-screen .phone-scroll {
+    height: 100%;
+    overflow-y: auto;
+    padding: 0 4px;
+  }
+  .phone-simulator .phone-screen .phone-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+  .phone-simulator .phone-screen .phone-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .phone-simulator .phone-screen .phone-scroll::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  .phone-simulator .phone-home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 4px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+  }
+  @media (max-width: 500px) {
+    .phone-simulator {
+      border-radius: 24px;
+      padding: 10px;
+      max-width: 100%;
+    }
+    .phone-simulator .phone-notch {
+      top: 10px;
+      width: 80px;
+      height: 18px;
+    }
+    .phone-simulator .phone-screen {
+      border-radius: 18px;
+      height: 600px;
+    }
+  }
+  
   @media (max-width: 768px) { .match-tab, .match-tab-history { min-width: 100%; max-width: 100%; } .header { flex-direction: column; align-items: center; padding: 12px; } .header .header-left { position: static; } .clock { position: static; width: 100%; text-align: center; margin-top: 8px; } .schedina-controls .btn-generate { margin-left: 0; } .schedina-controls .right-group { margin-left: 0; width: 100%; } .schedina-match-card { flex-direction: column; align-items: stretch; } .schedina-match-card .giocate { justify-content: center; } .stats-two-col { grid-template-columns: 1fr; } .home-widget .day-selector { flex-direction: row; flex-wrap: wrap; } .giocata-item { flex-direction: column; align-items: stretch; text-align: center; } .heatmap-detail-modal { padding: 16px; margin: 10px; max-height: 90vh; } .ai-analysis-box .pronostico-mini { grid-template-columns: 1fr 1fr; } .freq-table { min-width: 280px; font-size: 11px; } .freq-table th, .freq-table td { padding: 4px 3px; font-size: 10px; } .affidabilita-grid { grid-template-columns: 1fr 1fr; } .intervalli-grid { grid-template-columns: 1fr 1fr; } .weather-impact-grid { grid-template-columns: 1fr 1fr; } .ai-analysis-box .consigli-grid { grid-template-columns: 1fr; } .ai-result .consigli-grid { grid-template-columns: 1fr; } .standings-table { min-width: 400px; font-size: 11px; } }
   @media (max-width: 480px) { .affidabilita-grid { grid-template-columns: 1fr; } .intervalli-grid { grid-template-columns: 1fr; } .weather-impact-grid { grid-template-columns: 1fr; } .ai-analysis-box .pronostico-mini { grid-template-columns: 1fr; } .freq-table { min-width: 220px; font-size: 10px; } .standings-table { min-width: 300px; font-size: 10px; } .standings-table th, .standings-table td { padding: 3px 2px; } .match-tab .score-badge { font-size: 14px; padding: 1px 8px; } .team-name { font-size: 16px; } .detail-stat-box .value { font-size: 16px; } }
 </style>
@@ -2722,499 +2810,10 @@ const HeatmapDetailModal = ({ championship, matches, onClose }) => {
 };
 
 // ============================================================
-// COMPONENTE SOFASCORE MANAGER
+// COMPONENTE SOFASCORE MANAGER - RIMOSSO
 // ============================================================
 
-const SofaScoreManager = ({ onImport, loading, matches, setMatches, refreshTrigger, showAlert }) => {
-  const [customLeagues, setCustomLeagues] = useState(getCustomSofaLeagues);
-  const [newLeagueName, setNewLeagueName] = useState('');
-  const [newLeagueId, setNewLeagueId] = useState('');
-  const [selectedSeason, setSelectedSeason] = useState('26/27');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [searching, setSearching] = useState(false);
-  const [selectedTab, setSelectedTab] = useState('lista');
-  const [isChecking, setIsChecking] = useState(false);
-  const [importStatus, setImportStatus] = useState({});
-
-  const saveLeagues = (leagues) => { 
-    setCustomLeagues(leagues); 
-    saveCustomSofaLeagues(leagues); 
-  };
-
-  const resetBlacklistAndRefresh = () => {
-    if (confirm('⚠️ Questo ripristinerà TUTTI i campionati predefiniti nascosti. Continuare?')) {
-      resetBlacklist();
-      setCustomLeagues(getCustomSofaLeagues());
-      showAlert('success', '✅ Tutti i campionati predefiniti sono stati ripristinati!');
-      refreshLeagues();
-    }
-  };
-
-  const resetAllLeaguesAndRefresh = () => {
-    if (confirm('⚠️ Questo eliminerà TUTTI i campionati personalizzati e ripristinerà quelli predefiniti. Continuare?')) {
-      resetAllLeagues();
-      setCustomLeagues([]);
-      showAlert('success', '✅ Tutti i campionati sono stati resettati!');
-      refreshLeagues();
-    }
-  };
-
-  const removeLeague = (id, name) => {
-    const isDefault = Object.values(SOFASCORE_LEAGUE_IDS).includes(id);
-    const matchCount = matches ? matches.filter(m => m.campionato === name).length : 0;
-    
-    if (matchCount > 0 && !confirm(`⚠️ Il campionato "${name}" ha ${matchCount} partite importate. Eliminarlo cancellerà anche le partite. Continuare?`)) {
-      return;
-    }
-    
-    if (matchCount > 0) {
-      setMatches(prev => prev.filter(m => m.campionato !== name));
-    }
-    
-    if (isDefault) { 
-      const blacklist = getBlacklist(); 
-      if (!blacklist.includes(id)) { 
-        blacklist.push(id); 
-        saveBlacklist(blacklist); 
-        showAlert('info', `🔇 Campionato "${name}" nascosto. Usa "Ripristina nascosti" per riportarlo.`);
-      } 
-    } else { 
-      saveLeagues(customLeagues.filter(l => l.id !== id)); 
-    }
-    
-    setCustomLeagues(getCustomSofaLeagues());
-    refreshLeagues();
-  };
-
-  const checkLeagueHasMatches = async (leagueId, seasonYear) => {
-    try { 
-      const events = await fetchSofaScoreMatches(leagueId, seasonYear); 
-      return { hasMatches: events.length > 0, count: events.length }; 
-    } catch (e) { 
-      return { hasMatches: false, count: 0, error: e.message }; 
-    }
-  };
-
-  const addAndImportLeague = async () => {
-    if (!newLeagueName.trim() || !newLeagueId.trim()) { 
-      showAlert('error', 'Inserisci sia il nome che l\'ID del campionato.'); 
-      return; 
-    }
-    const id = parseInt(newLeagueId);
-    if (isNaN(id) || id <= 0) { 
-      showAlert('error', 'L\'ID deve essere un numero positivo.'); 
-      return; 
-    }
-    
-    const allLeagues = getVisibleLeagues(customLeagues);
-    if (allLeagues.some(l => l.id === id || l.name.toLowerCase() === newLeagueName.toLowerCase())) { 
-      showAlert('error', '⚠️ Questo campionato o ID è già presente nella lista.'); 
-      return; 
-    }
-    
-    setIsChecking(true);
-    const leagueName = newLeagueName.trim();
-    setImportStatus(prev => ({ ...prev, [leagueName]: 'checking' }));
-    
-    try {
-      const checkResult = await checkLeagueHasMatches(id, selectedSeason);
-      if (checkResult.error) { 
-        showAlert('error', `❌ Errore nel controllo: ${checkResult.error}`); 
-        setImportStatus(prev => ({ ...prev, [leagueName]: 'error' }));
-        setIsChecking(false);
-        return; 
-      }
-      if (!checkResult.hasMatches) { 
-        showAlert('error', `❌ Nessuna partita trovata per "${leagueName}" (ID: ${id}) nella stagione ${selectedSeason}.`); 
-        setImportStatus(prev => ({ ...prev, [leagueName]: 'no_matches' }));
-        setIsChecking(false);
-        return; 
-      }
-      
-      const blacklist = getBlacklist();
-      if (blacklist.includes(id)) {
-        const newBlacklist = blacklist.filter(b => b !== id);
-        saveBlacklist(newBlacklist);
-      }
-      
-      saveLeagues([...customLeagues, { name: leagueName, id: id }]);
-      setImportStatus(prev => ({ ...prev, [leagueName]: 'importing' }));
-      await onImport(leagueName, selectedSeason);
-      
-      setNewLeagueName(''); 
-      setNewLeagueId('');
-      setImportStatus(prev => ({ ...prev, [leagueName]: 'success' }));
-      
-      setTimeout(() => {
-        setImportStatus(prev => {
-          const newStatus = { ...prev };
-          delete newStatus[leagueName];
-          return newStatus;
-        });
-      }, 5000);
-      
-    } catch (e) { 
-      console.error('Errore:', e); 
-      showAlert('error', `❌ Errore durante l'aggiunta: ${e.message}`);
-      setImportStatus(prev => ({ ...prev, [leagueName]: 'error' }));
-    }
-    setIsChecking(false);
-  };
-
-  const searchSofaLeagues = async () => {
-    if (!searchQuery.trim()) { showAlert('error', 'Inserisci un termine di ricerca.'); return; }
-    setSearching(true); setSearchResults([]);
-    try {
-      const response = await fetch(`https://api.sofascore.com/api/v1/search?q=${encodeURIComponent(searchQuery)}&type=tournament`);
-      if (!response.ok) throw new Error('Errore nella ricerca');
-      const data = await response.json();
-      if (data.results && data.results.length > 0) {
-        const footballTournaments = data.results.filter(r => r.sport?.id === 1 || r.sport?.slug === 'football');
-        setSearchResults(footballTournaments);
-        if (footballTournaments.length === 0) showAlert('info', 'Nessun campionato di calcio trovato.');
-      } else showAlert('info', 'Nessun risultato trovato.');
-    } catch (e) { console.error('Errore ricerca:', e); showAlert('error', 'Errore durante la ricerca.'); }
-    setSearching(false);
-  };
-
-  const addFromSearch = async (tournament) => {
-    const name = tournament.name, id = tournament.id;
-    const allLeagues = getVisibleLeagues(customLeagues);
-    if (allLeagues.some(l => l.id === id || l.name.toLowerCase() === name.toLowerCase())) { 
-      showAlert('error', '⚠️ Questo campionato è già nella tua lista.'); 
-      return; 
-    }
-    
-    setIsChecking(true);
-    setImportStatus(prev => ({ ...prev, [name]: 'checking' }));
-    
-    try {
-      const checkResult = await checkLeagueHasMatches(id, selectedSeason);
-      if (checkResult.error) { 
-        showAlert('error', `❌ Errore nel controllo: ${checkResult.error}`); 
-        setImportStatus(prev => ({ ...prev, [name]: 'error' }));
-        setIsChecking(false);
-        return; 
-      }
-      if (!checkResult.hasMatches) { 
-        showAlert('error', `❌ Nessuna partita trovata per "${name}" (ID: ${id}) nella stagione ${selectedSeason}.`); 
-        setImportStatus(prev => ({ ...prev, [name]: 'no_matches' }));
-        setIsChecking(false);
-        return; 
-      }
-      
-      const blacklist = getBlacklist();
-      if (blacklist.includes(id)) {
-        const newBlacklist = blacklist.filter(b => b !== id);
-        saveBlacklist(newBlacklist);
-      }
-      
-      saveLeagues([...customLeagues, { name, id }]);
-      setImportStatus(prev => ({ ...prev, [name]: 'importing' }));
-      await onImport(name, selectedSeason);
-      setSearchResults(searchResults.filter(r => r.id !== id));
-      setImportStatus(prev => ({ ...prev, [name]: 'success' }));
-      
-      setTimeout(() => {
-        setImportStatus(prev => {
-          const newStatus = { ...prev };
-          delete newStatus[name];
-          return newStatus;
-        });
-      }, 5000);
-      
-    } catch (e) { 
-      console.error('Errore:', e); 
-      showAlert('error', `❌ Errore durante l'aggiunta: ${e.message}`);
-      setImportStatus(prev => ({ ...prev, [name]: 'error' }));
-    }
-    setIsChecking(false);
-  };
-
-  const refreshLeagues = async () => {
-    setIsChecking(true);
-    const refreshedCustom = getCustomSofaLeagues();
-    setCustomLeagues(refreshedCustom);
-    
-    const allLeagues = getVisibleLeagues(refreshedCustom);
-    let hasMatches = 0;
-    let noMatches = 0;
-    
-    for (const league of allLeagues) {
-      const result = await checkLeagueHasMatches(league.id, selectedSeason);
-      if (result.hasMatches) {
-        hasMatches++;
-      } else {
-        noMatches++;
-      }
-    }
-    
-    const blacklistCount = getBlacklist().length;
-    const hiddenMsg = blacklistCount > 0 ? ` (${blacklistCount} nascosti)` : '';
-    
-    showAlert('info', `📊 ${allLeagues.length} campionati verificati${hiddenMsg}: ${hasMatches} con partite, ${noMatches} senza partite.`);
-    setIsChecking(false);
-  };
-
-  const allLeagues = getVisibleLeagues(customLeagues);
-  const blacklistCount = getBlacklist().length;
-  
-  useEffect(() => { 
-    if (refreshTrigger) { 
-      refreshLeagues(); 
-    } 
-  }, [refreshTrigger]);
-
-  const getStatusBadge = (leagueName) => {
-    const status = importStatus[leagueName];
-    if (!status) return null;
-    
-    const badges = {
-      'checking': <span style={{color: 'var(--draw)'}}>⏳ Verifica...</span>,
-      'importing': <span style={{color: 'var(--draw)'}}>⏳ Importazione...</span>,
-      'success': <span style={{color: 'var(--win)'}}>✅ Importato!</span>,
-      'error': <span style={{color: 'var(--lose)'}}>❌ Errore</span>,
-      'no_matches': <span style={{color: 'var(--lose)'}}>⚠️ Nessuna partita</span>
-    };
-    return badges[status] || null;
-  };
-
-  return (
-    <div className="card">
-      <h4 style={{marginBottom:'12px'}}>🌐 Gestione Campionati SofaScore</h4>
-      
-      <div style={{display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'12px'}}>
-        {blacklistCount > 0 && (
-          <button 
-            className="btn btn-secondary" 
-            onClick={resetBlacklistAndRefresh} 
-            style={{fontSize:'12px', padding:'6px 14px', borderColor: 'var(--accent)', color: 'var(--accent)'}}
-          >
-            🔄 Ripristina {blacklistCount} campionati nascosti
-          </button>
-        )}
-        <button 
-          className="btn btn-secondary" 
-          onClick={resetAllLeaguesAndRefresh} 
-          style={{fontSize:'12px', padding:'6px 14px', borderColor: 'var(--lose)', color: 'var(--lose)'}}
-        >
-          🔄 Reset completo campionati
-        </button>
-      </div>
-      
-      <div className="sub-tabs" style={{marginBottom:'12px'}}>
-        <button className={selectedTab === 'lista' ? 'active' : ''} onClick={() => setSelectedTab('lista')}>
-          📋 Lista campionati ({allLeagues.length}{blacklistCount > 0 ? ` +${blacklistCount} nascosti` : ''})
-        </button>
-        <button className={selectedTab === 'cerca' ? 'active' : ''} onClick={() => setSelectedTab('cerca')}>
-          🔍 Cerca e aggiungi
-        </button>
-      </div>
-      
-      {selectedTab === 'lista' && (
-        <div>
-          <div style={{display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'12px'}}>
-            <input type="text" value={newLeagueName} onChange={e => setNewLeagueName(e.target.value)} placeholder="Nome campionato" style={{flex:1, minWidth:'150px'}} />
-            <input type="number" value={newLeagueId} onChange={e => setNewLeagueId(e.target.value)} placeholder="ID SofaScore" style={{width:'120px'}} />
-            <select value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} style={{width:'130px', padding:'8px'}}>
-              <optgroup label="🏆 Stagioni Solari">
-                <option value="2027">2027 (Solare)</option>
-                <option value="2026">2026 (Solare)</option>
-              </optgroup>
-              <optgroup label="📅 Stagioni Europee">
-                <option value="26/27">26/27</option>
-                <option value="25/26">25/26</option>
-                <option value="24/25">24/25</option>
-                <option value="23/24">23/24</option>
-              </optgroup>
-            </select>
-            <button className="btn" onClick={addAndImportLeague} disabled={isChecking || loading}>
-              {isChecking ? '⏳ Verifica...' : '➕ Aggiungi e Importa'}
-            </button>
-            <button className="btn btn-secondary" onClick={refreshLeagues} disabled={isChecking || loading} style={{fontSize:'12px', padding:'8px 14px'}}>
-              {isChecking ? '⏳ Verifica...' : '🔄 Aggiorna'}
-            </button>
-          </div>
-          
-          <div style={{fontSize:'12px', color:'var(--text-muted)', marginBottom:'8px'}}>
-            💡 I campionati senza partite nella stagione selezionata mostrano 0 partite
-            {blacklistCount > 0 && (
-              <span style={{marginLeft:'12px', color: 'var(--accent)'}}>
-                🔇 {blacklistCount} campionati nascosti - usa "Ripristina nascosti" per riportarli
-              </span>
-            )}
-          </div>
-          
-          <div style={{maxHeight:'300px', overflowY:'auto'}}>
-            {allLeagues.length === 0 ? (
-              <div style={{textAlign:'center', padding:'20px'}}>
-                <p style={{color:'var(--text-muted)'}}>Nessun campionato visibile.</p>
-                {blacklistCount > 0 ? (
-                  <button className="btn" onClick={resetBlacklistAndRefresh} style={{marginTop:'10px'}}>
-                    🔄 Ripristina {blacklistCount} campionati nascosti
-                  </button>
-                ) : (
-                  <p style={{fontSize:'12px', color:'var(--text-muted)'}}>
-                    Usa "Cerca e aggiungi" per trovare nuovi campionati o importa da file.
-                  </p>
-                )}
-              </div>
-            ) : (
-              <table className="standings-table" style={{fontSize:'13px'}}>
-                <thead><tr>
-                  <th>Campionato</th>
-                  <th style={{textAlign:'center'}}>ID</th>
-                  <th style={{textAlign:'center'}}>Tipo</th>
-                  <th style={{textAlign:'center'}}>Partite</th>
-                  <th style={{textAlign:'center'}}>Stagione</th>
-                  <th style={{textAlign:'center'}}>Azioni</th>
-                </tr></thead>
-                <tbody>
-                  {allLeagues.map(league => {
-                    const matchCount = matches ? matches.filter(m => m.campionato === league.name).length : 0;
-                    const statusBadge = getStatusBadge(league.name);
-                    
-                    return <tr key={league.id} style={{borderBottom:'1px solid var(--border)'}}>
-                      <td style={{padding:'6px 8px'}}>
-                        <span style={{color: league.isDefault ? 'var(--text)' : 'var(--accent)'}}>
-                          {league.isDefault ? '📌 ' : '⭐ '}{league.name}
-                        </span>
-                        {statusBadge && <span style={{marginLeft:'8px'}}>{statusBadge}</span>}
-                      </td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>{league.id}</td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>
-                        <span style={{fontSize:'10px', padding:'2px 8px', borderRadius:'10px', background: league.isDefault ? 'var(--surface)' : 'var(--accent)', color: league.isDefault ? 'var(--text-muted)' : '#000'}}>
-                          {league.isDefault ? 'Predefinito' : 'Personalizzato'}
-                        </span>
-                      </td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>
-                        {matchCount > 0 ? 
-                          <span style={{color:'var(--win)', fontWeight:'bold'}}>{matchCount}</span> : 
-                          <span style={{color:'var(--lose)'}}>0</span>
-                        }
-                      </td>
-                      <td style={{textAlign:'center', padding:'6px 8px', fontSize:'11px', color:'var(--text-muted)'}}>
-                        {selectedSeason}
-                      </td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>
-                        <select 
-                          value={selectedSeason} 
-                          onChange={e => {
-                            setSelectedSeason(e.target.value);
-                          }} 
-                          style={{width:'90px', padding:'2px 4px', fontSize:'11px', marginRight:'4px'}}
-                        >
-                          <optgroup label="🏆 Solari">
-                            <option value="2027">2027</option>
-                            <option value="2026">2026</option>
-                          </optgroup>
-                          <optgroup label="📅 Europee">
-                            <option value="26/27">26/27</option>
-                            <option value="25/26">25/26</option>
-                            <option value="24/25">24/25</option>
-                            <option value="23/24">23/24</option>
-                          </optgroup>
-                        </select>
-                        <button 
-                          className="btn btn-secondary" 
-                          style={{fontSize:'11px', padding:'2px 8px', marginRight:'4px'}} 
-                          onClick={() => onImport(league.name, selectedSeason)} 
-                          disabled={loading}
-                        >
-                          📥 Importa
-                        </button>
-                        <button 
-                          className="btn btn-danger" 
-                          style={{fontSize:'11px', padding:'2px 8px'}} 
-                          onClick={() => removeLeague(league.id, league.name)}
-                        >
-                          ✖
-                        </button>
-                      </td>
-                    </tr>;
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
-          <div style={{fontSize:'11px', color:'var(--text-muted)', marginTop:'8px'}}>
-            📊 Totale: {allLeagues.length} campionati visibili • {matches.filter(m => m.stato === 'Giocata').length} partite giocate • {matches.filter(m => m.stato === 'Futura').length} future
-            {blacklistCount > 0 && ` • 🔇 ${blacklistCount} nascosti`}
-          </div>
-        </div>
-      )}
-      
-      {selectedTab === 'cerca' && (
-        <div>
-          <div style={{display:'flex', gap:'8px', marginBottom:'12px'}}>
-            <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Cerca campionato" style={{flex:1}} onKeyDown={e => e.key === 'Enter' && searchSofaLeagues()} />
-            <button className="btn" onClick={searchSofaLeagues} disabled={searching || isChecking}>
-              {searching ? '⏳ Cercando...' : '🔍 Cerca'}
-            </button>
-          </div>
-          <div style={{display:'flex', gap:'8px', marginBottom:'12px'}}>
-            <select value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} style={{width:'130px', padding:'8px'}}>
-              <optgroup label="🏆 Stagioni Solari">
-                <option value="2027">2027 (Solare)</option>
-                <option value="2026">2026 (Solare)</option>
-              </optgroup>
-              <optgroup label="📅 Stagioni Europee">
-                <option value="26/27">26/27</option>
-                <option value="25/26">25/26</option>
-                <option value="24/25">24/25</option>
-                <option value="23/24">23/24</option>
-              </optgroup>
-            </select>
-            <span style={{fontSize:'12px', color:'var(--text-muted)', alignSelf:'center'}}>Stagione per l'importazione</span>
-          </div>
-          {searchResults.length > 0 && (
-            <div style={{maxHeight:'300px', overflowY:'auto'}}>
-              <table className="standings-table" style={{fontSize:'13px'}}>
-                <thead><tr><th>Campionato</th><th style={{textAlign:'center'}}>ID</th><th style={{textAlign:'center'}}>Categoria</th><th style={{textAlign:'center'}}>Azioni</th></tr></thead>
-                <tbody>
-                  {searchResults.map(t => {
-                    const allLeaguesList = getVisibleLeagues(customLeagues);
-                    const isAdded = allLeaguesList.some(l => l.id === t.id);
-                    const statusBadge = getStatusBadge(t.name);
-                    
-                    return <tr key={t.id} style={{borderBottom:'1px solid var(--border)'}}>
-                      <td style={{padding:'6px 8px'}}>
-                        {t.name}
-                        {statusBadge && <span style={{marginLeft:'8px'}}>{statusBadge}</span>}
-                      </td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>{t.id}</td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>{t.category?.name || 'N/A'}</td>
-                      <td style={{textAlign:'center', padding:'6px 8px'}}>
-                        {isAdded ? 
-                          <span style={{color:'var(--win)'}}>✅ Già aggiunto</span> : 
-                          <button 
-                            className="btn btn-secondary" 
-                            style={{fontSize:'11px', padding:'2px 10px'}} 
-                            onClick={() => addFromSearch(t)} 
-                            disabled={isChecking}
-                          >
-                            {isChecking ? '⏳...' : '➕ Aggiungi e Importa'}
-                          </button>
-                        }
-                      </td>
-                    </tr>;
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-          {searching && <div style={{textAlign:'center', padding:'20px', color:'var(--text-muted)'}}>🔍 Ricerca in corso...</div>}
-          {!searching && searchResults.length === 0 && searchQuery && (
-            <div style={{textAlign:'center', padding:'20px', color:'var(--text-muted)'}}>
-              Nessun risultato trovato per "{searchQuery}"
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
+// Il componente SofaScoreManager è stato rimosso come richiesto.
 
 // ============================================================
 // COMPONENTE FILE IMPORTER
@@ -4526,7 +4125,11 @@ function App() {
     Object.entries(t).forEach(([k, v]) => { root.style.setProperty(`--${k.replace(/([A-Z])/g, '-$1').toLowerCase()}`, v); });
   }, [theme, customTheme]);
 
-  return (
+  // ============================================================
+  // RENDER DELL'APP CON SIMULAZIONE TELEFONO
+  // ============================================================
+
+  const renderAppContent = () => (
     <div>
       <div className="header">
         <div className="header-left"><div style={{fontSize:'28px'}}></div></div>
@@ -4559,7 +4162,6 @@ function App() {
 
         {tab === 'Home' && (
           <div>
-            {/* Pulsante Aggiorna Dati */}
             <div style={{display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center'}}>
               <button 
                 className="btn" 
@@ -4795,10 +4397,9 @@ function App() {
               <div>
                 <h3 style={{marginBottom:'12px'}}>📥 Importa Campionato</h3>
                 <div className="sub-tabs" style={{marginBottom:'16px'}}>
-                  <button className="active" onClick={() => {}}>🌐 SofaScore</button>
-                  <button onClick={() => {}}>📁 File</button>
+                  <button className="active" onClick={() => {}}>📁 File</button>
                 </div>
-                <SofaScoreManager onImport={importFromSofaScore} loading={loading} matches={matches} setMatches={setMatches} refreshTrigger={refreshSofaTrigger} showAlert={showAlert} />
+                {/* Il componente SofaScoreManager è stato rimosso come richiesto */}
                 <FileImporter 
                   matches={matches} 
                   setMatches={setMatches} 
@@ -4812,7 +4413,6 @@ function App() {
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', margin:'20px 0 12px', flexWrap:'wrap', gap:'10px'}}>
                   <h3 style={{margin:0}}>📋 Campionati Importati</h3>
                   <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
-                    <button className="btn" style={{background: 'var(--accent)', color: '#000'}} onClick={importAllFromSofaScore} disabled={loading}>📥 Importa Tutti</button>
                     <button className="btn btn-danger" onClick={clearAllChampionships}>🗑️ Elimina Tutti</button>
                   </div>
                 </div>
@@ -4878,6 +4478,23 @@ function App() {
                     ? '✅ La visuale è ottimizzata per schermi piccoli. Il contenuto si adatta automaticamente.'
                     : '✅ Visuale ottimizzata per schermi grandi. Massima visibilità dei dati.'}
                 </div>
+                {viewMode === 'mobile' && (
+                  <div style={{marginTop: '12px', padding: '12px', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--border)'}}>
+                    <div style={{fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px'}}>📱 Anteprima simulazione telefono</div>
+                    <div className="phone-simulator">
+                      <div className="phone-notch">
+                        <div className="notch-speaker"></div>
+                        <div className="notch-camera"></div>
+                      </div>
+                      <div className="phone-screen">
+                        <div className="phone-scroll" style={{paddingTop: '32px'}}>
+                          {renderAppContent()}
+                        </div>
+                        <div className="phone-home-indicator"></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -4895,6 +4512,28 @@ function App() {
       </button>
     </div>
   );
+
+  // Se la modalità è mobile, mostriamo l'app dentro il simulatore
+  if (viewMode === 'mobile') {
+    return (
+      <div style={{display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '20px', minHeight: '100vh', background: '#0a0a1a'}}>
+        <div className="phone-simulator">
+          <div className="phone-notch">
+            <div className="notch-speaker"></div>
+            <div className="notch-camera"></div>
+          </div>
+          <div className="phone-screen">
+            <div className="phone-scroll" style={{paddingTop: '32px'}}>
+              {renderAppContent()}
+            </div>
+            <div className="phone-home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return renderAppContent();
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
