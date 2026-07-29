@@ -1,13 +1,13 @@
-name: Aggiorna Dati GesssAI
+name: Debug Script Python
 
 on:
   workflow_dispatch:
 
 jobs:
-  test-script:
+  debug:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout codice
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python
@@ -17,15 +17,22 @@ jobs:
 
       - name: Installa dipendenze
         run: |
-          pip install pandas beautifulsoup4 selenium webdriver-manager lxml openpyxl
+          pip install pandas beautifulsoup4 selenium webdriver-manager lxml openpyxl requests
 
       - name: Installa Chrome
         run: |
           sudo apt-get update
           sudo apt-get install -y chromium-browser chromium-chromedriver
 
-      - name: Esegui script
-        run: python scarica.py
+      - name: Esegui script con output completo
+        run: |
+          echo "=== INIZIO ESECUZIONE ==="
+          python -u scarica.py 2>&1 | tee output.txt
+          echo "=== FINE ESECUZIONE ==="
+          echo "--- ULTIME 50 RIGHE DI OUTPUT ---"
+          tail -n 50 output.txt
         env:
           CHROME_BIN: /usr/bin/chromium-browser
           CHROME_DRIVER: /usr/bin/chromedriver
+          PYTHONUNBUFFERED: 1
+        continue-on-error: true
