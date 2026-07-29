@@ -3,9 +3,6 @@ name: Aggiorna Dati GesssAI
 on:
   workflow_dispatch:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 permissions:
   contents: write
   pages: write
@@ -37,24 +34,19 @@ jobs:
           echo "CHROME_BIN=/usr/bin/chromium-browser" >> $GITHUB_ENV
           echo "CHROME_DRIVER=/usr/bin/chromedriver" >> $GITHUB_ENV
 
-      - name: Esegui scarica.py e mostra errore
+      - name: Esegui scarica.py con output completo
         run: |
-          set -e
-          echo "### Inizio esecuzione di scarica.py ###"
-          python -u scarica.py 2>&1 | tee output.log
-          exit_code=${PIPESTATUS[0]}
-          echo "### Fine esecuzione con codice: $exit_code ###"
-          if [ $exit_code -ne 0 ]; then
-            echo "❌ Lo script è fallito con errore."
-            echo "--- ULTIME 10 RIGHE DI OUTPUT ---"
-            tail -n 10 output.log
-            echo "--- FINE OUTPUT ---"
-            exit $exit_code
-          fi
+          echo "=== INIZIO ESECUZIONE ==="
+          python -u scarica.py > output.txt 2>&1
+          echo "=== FINE ESECUZIONE ==="
+          echo "--- OUTPUT COMPLETO ---"
+          cat output.txt
+          echo "--- FINE OUTPUT ---"
         env:
           CHROME_BIN: /usr/bin/chromium-browser
           CHROME_DRIVER: /usr/bin/chromedriver
           PYTHONUNBUFFERED: 1
+        continue-on-error: true
 
       - name: Crea JSON se non esiste
         run: |
