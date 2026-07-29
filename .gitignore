@@ -1,0 +1,35 @@
+# Dati generati dallo script
+GesssAI_Input.json
+GesssAI_Input.xlsx
+Tutti_*.xlsx
+*.html
+*.xlsx
+*.csv
+
+# Cartelle con dati scaricati
+siti_da_fbref/
+excel/
+*.pyc
+__pycache__/
+
+# File Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

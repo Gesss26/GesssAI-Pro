@@ -1,0 +1,26 @@
+
+## 7️⃣ Attiva GitHub Pages
+
+1. Vai su **Settings → Pages** del tuo repository
+2. Sotto **Build and deployment**:
+   - Source: **Deploy from a branch**
+   - Branch: **gh-pages** (folder: `/root`)
+3. Salva
+
+## 8️⃣ Esegui il workflow
+
+1. Fai il **push** di tutti i file su GitHub
+2. Vai su **Actions** del repository
+3. Dovresti vedere il workflow "Aggiorna Dati GesssAI"
+4. Clicca su **Run workflow** per eseguirlo manualmente la prima volta
+
+## 📤 URL finali
+
+Dopo il primo run, avrai:
+
+| URL | Contenuto |
+|-----|-----------|
+| `https://[tuo-username].github.io/gesssai-app/` | L'app (index.html) |
+| `https://[tuo-username].github.io/gesssai-app/data/GesssAI_Input.json` | Il JSON aggiornato |
+
+## ✅ Cosa succede ora
