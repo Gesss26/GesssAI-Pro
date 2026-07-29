@@ -3,20 +3,12 @@ name: Aggiorna Dati GesssAI
 on:
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
-
 jobs:
-  update-data:
+  test-script:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
+      - name: Checkout codice
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -25,42 +17,15 @@ jobs:
 
       - name: Installa dipendenze
         run: |
-          pip install pandas beautifulsoup4 selenium webdriver-manager lxml openpyxl requests python-dateutil
+          pip install pandas beautifulsoup4 selenium webdriver-manager lxml openpyxl
+
+      - name: Installa Chrome
+        run: |
           sudo apt-get update
           sudo apt-get install -y chromium-browser chromium-chromedriver
 
-      - name: Configura Chrome
-        run: |
-          echo "CHROME_BIN=/usr/bin/chromium-browser" >> $GITHUB_ENV
-          echo "CHROME_DRIVER=/usr/bin/chromedriver" >> $GITHUB_ENV
-
-      - name: Esegui scarica.py con output completo
-        run: |
-          echo "=== INIZIO ESECUZIONE ==="
-          python -u scarica.py > output.txt 2>&1
-          echo "=== FINE ESECUZIONE ==="
-          echo "--- OUTPUT COMPLETO ---"
-          cat output.txt
-          echo "--- FINE OUTPUT ---"
+      - name: Esegui script
+        run: python scarica.py
         env:
           CHROME_BIN: /usr/bin/chromium-browser
           CHROME_DRIVER: /usr/bin/chromedriver
-          PYTHONUNBUFFERED: 1
-        continue-on-error: true
-
-      - name: Crea JSON se non esiste
-        run: |
-          mkdir -p excel
-          if [ ! -f "excel/GesssAI_Input.json" ]; then
-            echo '{"championships":[],"matches":[]}' > excel/GesssAI_Input.json
-            echo "JSON di esempio creato"
-          fi
-
-      - name: Deploy su GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./excel
-          publish_branch: gh-pages
-          keep_files: false
-          destination_dir: data
