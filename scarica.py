@@ -4,7 +4,6 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import glob
 import re
-import json
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -14,6 +13,15 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from datetime import datetime
 import locale
+import json
+
+# ============================================
+# DETECT GITHUB ACTIONS
+# ============================================
+
+def is_github_actions():
+    """Rileva se lo script è in esecuzione su GitHub Actions"""
+    return os.environ.get('GITHUB_ACTIONS') == 'true'
 
 # ============================================
 # CONFIGURAZIONE
@@ -22,6 +30,16 @@ print("\n" + "=" * 70)
 print("⚽ DOWNLOAD E CONVERSIONE FBref → GESSSAI")
 print("=" * 70)
 
+# Se siamo su GitHub Actions, usa percorsi diversi
+if is_github_actions():
+    print("🏗️ Esecuzione su GitHub Actions")
+    download_folder = "./siti_da_fbref"
+    output_folder = "./excel"
+else:
+    print("🖥️ Esecuzione su ambiente locale")
+    download_folder = r"d:\ai\siti_da_fbref"
+    output_folder = r"d:\ai\excel"
+
 try:
     locale.setlocale(locale.LC_TIME, 'it_IT.UTF-8')
 except:
@@ -29,9 +47,6 @@ except:
         locale.setlocale(locale.LC_TIME, 'italian')
     except:
         print("⚠️ Impossibile impostare la localizzazione italiana")
-
-download_folder = r"d:\ai\siti_da_fbref"
-output_folder = r"d:\ai\excel"
 
 os.makedirs(download_folder, exist_ok=True)
 os.makedirs(output_folder, exist_ok=True)
@@ -63,11 +78,11 @@ sites = [
     {'nome': 'Eliteserien - Stats', 'url': 'https://fbref.com/en/comps/28/Eliteserien-Stats'},
     {'nome': 'Eliteserien - Schedule', 'url': 'https://fbref.com/en/comps/28/schedule/Eliteserien-Scores-and-Fixtures'},
     
-    # Eredivisie (Paesi Bassi) - NUOVO
+    # Eredivisie (Paesi Bassi)
     {'nome': 'Eredivisie - Stats', 'url': 'https://fbref.com/en/comps/23/Eredivisie-Stats'},
     {'nome': 'Eredivisie - Schedule', 'url': 'https://fbref.com/en/comps/23/schedule/Eredivisie-Scores-and-Fixtures'},
     
-    # La Liga (Spagna) - NUOVO
+    # La Liga (Spagna)
     {'nome': 'La Liga - Stats', 'url': 'https://fbref.com/en/comps/12/La-Liga-Stats'},
     {'nome': 'La Liga - Schedule', 'url': 'https://fbref.com/en/comps/12/schedule/La-Liga-Scores-and-Fixtures'},
     
@@ -97,44 +112,6 @@ sites = [
 ]
 
 # ============================================
-# DETECT GITHUB ACTIONS
-# ============================================
-
-def is_github_actions():
-    """Rileva se lo script è in esecuzione su GitHub Actions"""
-    return os.environ.get('GITHUB_ACTIONS') == 'true'
-
-# Se siamo su GitHub Actions, usa percorsi diversi
-if is_github_actions():
-    download_folder = "./siti_da_fbref"
-    output_folder = "./excel"
-    # Usa Chrome headless per GitHub Actions
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    chrome_options.add_experimental_option('useAutomationExtension', False)
-    chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-    
-    # Usa ChromeDriver di sistema
-    from selenium.webdriver.chrome.service import Service as ChromeService
-    chrome_driver_path = os.environ.get('CHROME_DRIVER', '/usr/bin/chromedriver')
-    service = ChromeService(executable_path=chrome_driver_path)
-else:
-    # Configurazione normale per Windows
-    download_folder = r"d:\ai\siti_da_fbref"
-    output_folder = r"d:\ai\excel"
-    chrome_options = Options()
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    chrome_options.add_experimental_option('useAutomationExtension', False)
-    chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-    service = Service(ChromeDriverManager().install())
-
-# ============================================
 # FUNZIONI DI UTILITÀ
 # ============================================
 
@@ -145,39 +122,33 @@ def converti_data_europea(data_str):
     
     data_str = str(data_str).strip()
     
-    # Se è già in formato gg/mm/aaaa
     if re.match(r'^\d{1,2}/\d{1,2}/\d{4}$', data_str):
         return data_str
     
-    # Se è in formato aaaa-mm-dd
     if re.match(r'^(\d{4})-(\d{1,2})-(\d{1,2})$', data_str):
         match = re.match(r'^(\d{4})-(\d{1,2})-(\d{1,2})$', data_str)
         if match:
             anno, mese, giorno = match.groups()
             return f"{giorno}/{mese}/{anno}"
     
-    # Se è in formato aaaa/mm/dd
     if re.match(r'^(\d{4})/(\d{1,2})/(\d{1,2})$', data_str):
         match = re.match(r'^(\d{4})/(\d{1,2})/(\d{1,2})$', data_str)
         if match:
             anno, mese, giorno = match.groups()
             return f"{giorno}/{mese}/{anno}"
     
-    # Se è in formato dd-mm-aaaa
     if re.match(r'^(\d{1,2})-(\d{1,2})-(\d{4})$', data_str):
         match = re.match(r'^(\d{1,2})-(\d{1,2})-(\d{4})$', data_str)
         if match:
             giorno, mese, anno = match.groups()
             return f"{giorno}/{mese}/{anno}"
     
-    # Se è in formato dd.mm.aaaa
     if re.match(r'^(\d{1,2})\.(\d{1,2})\.(\d{4})$', data_str):
         match = re.match(r'^(\d{1,2})\.(\d{1,2})\.(\d{4})$', data_str)
         if match:
             giorno, mese, anno = match.groups()
             return f"{giorno}/{mese}/{anno}"
     
-    # Prova a parsare con dateutil
     try:
         from dateutil import parser
         date_obj = parser.parse(data_str, fuzzy=True)
@@ -424,22 +395,173 @@ def estrai_risultato(score_str):
     return None, None
 
 # ============================================
+# FUNZIONE PER GENERARE IL JSON PER L'APP
+# ============================================
+def genera_json_per_app(df_schedule, output_folder):
+    """
+    Genera un file JSON compatibile con l'app GesssAI-Pro v3.0
+    TUTTE LE DATE SONO IN FORMATO EUROPEO (gg/mm/aaaa)
+    """
+    try:
+        print("\n📱 Generazione JSON per l'app...")
+        
+        if df_schedule is None or df_schedule.empty:
+            print("   ❌ Nessun dato disponibile per il JSON")
+            return None
+        
+        matches_data = []
+        campionati_set = set()
+        
+        for _, row in df_schedule.iterrows():
+            campionato = str(row.get('Campionato', 'Sconosciuto')).strip()
+            if campionato == 'nan' or campionato == 'None':
+                campionato = 'Sconosciuto'
+            
+            campionati_set.add(campionato)
+            
+            data_europea = str(row.get('Data', '')).strip()
+            if data_europea == 'nan' or data_europea == 'None':
+                data_europea = ''
+            
+            gol_casa = row.get('Gol Casa', 0)
+            gol_ospite = row.get('Gol Ospite', 0)
+            
+            stato = row.get('Stato', 'Futura')
+            if stato == 'nan' or stato == 'None':
+                stato = 'Futura'
+            
+            risultato = row.get('Risultato', '')
+            if risultato and risultato != '' and risultato != 'nan':
+                stato = 'Giocata'
+            
+            id_parts = [
+                campionato,
+                data_europea.replace('/', '_'),
+                str(row.get('Squadra Casa', '')).replace(' ', '_'),
+                str(row.get('Squadra Ospite', '')).replace(' ', '_')
+            ]
+            match_id = "_".join(id_parts)
+            
+            match_data = {
+                "id": match_id,
+                "campionato": campionato,
+                "round": str(row.get('Numero Giornata (Wk)', 'N/A')),
+                "data": data_europea,
+                "ora": str(row.get('Ora', 'TBD')),
+                "casa": str(row.get('Squadra Casa', '')),
+                "ospiti": str(row.get('Squadra Ospite', '')),
+                "stato": stato,
+                "golCasa": int(gol_casa) if gol_casa != 'nan' and gol_casa != '' else 0,
+                "golOspite": int(gol_ospite) if gol_ospite != 'nan' and gol_ospite != '' else 0,
+                "citta": "N/D"
+            }
+            matches_data.append(match_data)
+        
+        data = {
+            "championships": [{"name": c, "importedAt": datetime.now().isoformat()} for c in sorted(campionati_set)],
+            "matches": matches_data,
+            "apiKeys": {},
+            "theme": "Scuro Blu Notte",
+            "customTheme": None,
+            "schedineHistory": [],
+            "selectedFamiglie": ["dc_under", "mg_casa_ospite", "over"],
+            "exportedAt": datetime.now().isoformat()
+        }
+        
+        output_path = os.path.join(output_folder, "GesssAI_Input.json")
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        
+        print(f"\n   ✅ Creato file JSON per l'app: {output_path}")
+        print(f"      📊 {len(matches_data)} partite")
+        print(f"      🏆 {len(campionati_set)} campionati")
+        print(f"      📅 Date in formato europeo (gg/mm/aaaa)")
+        
+        return output_path
+        
+    except Exception as e:
+        print(f"   ❌ Errore nella generazione JSON: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+# ============================================
+# FUNZIONE PER CARICARE JSON SU GITHUB
+# ============================================
+
+def carica_json_su_github(file_path):
+    """
+    Carica un file JSON su GitHub usando l'API
+    """
+    try:
+        import requests
+        import base64
+        
+        # Token e repo dalle variabili d'ambiente
+        token = os.environ.get('GITHUB_TOKEN', '')
+        repo = os.environ.get('GITHUB_REPO', 'Gesss26/GesssAI-Pro')
+        
+        if not token:
+            print("   ⚠️ GITHUB_TOKEN non configurato. Carica manualmente il JSON.")
+            return False
+        
+        print("\n📤 Caricamento JSON su GitHub...")
+        
+        if not os.path.exists(file_path):
+            print(f"   ❌ File non trovato: {file_path}")
+            return False
+        
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        encoded = base64.b64encode(content.encode()).decode()
+        
+        url = f"https://api.github.com/repos/{repo}/contents/GesssAI_Input.json"
+        
+        data = {
+            "message": f"Aggiornamento automatico dati - {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+            "content": encoded,
+            "branch": "main"
+        }
+        
+        headers = {
+            "Authorization": f"token {token}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+        
+        print(f"   📡 Invio richiesta a GitHub...")
+        response = requests.put(url, json=data, headers=headers)
+        
+        if response.status_code in [200, 201]:
+            print(f"\n   ✅ JSON caricato con successo su GitHub!")
+            print(f"   📅 Aggiornato: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+            print(f"   🔗 URL: https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/GesssAI_Input.json")
+            return True
+        else:
+            print(f"   ❌ Errore nel caricamento: {response.status_code}")
+            return False
+            
+    except ImportError:
+        print("   ⚠️ Libreria 'requests' non installata.")
+        return False
+    except Exception as e:
+        print(f"   ❌ Errore durante il caricamento: {e}")
+        return False
+
+# ============================================
 # FUNZIONE PER CONVERTIRE IN FORMATO GESSSAI
 # ============================================
 def converti_per_gesssai(file_schedule, file_stats, output_file):
     """
     Converte i file Schedule nel formato per l'app GesssAI
     REGOLA SEMPLICE: Se Risultato ha un valore → Giocata, altrimenti → Futura
-    Se Risultato è vuoto, anche Gol Casa e Gol Ospite sono vuoti (0)
     """
     try:
         print("\n📱 Conversione per l'app GesssAI...")
         
         df_schedule = pd.read_excel(file_schedule)
         print(f"   📅 Schedule: {len(df_schedule)} righe")
-        print(f"   📋 Colonne: {list(df_schedule.columns)}")
         
-        # Trova le colonne
         col_data = None
         col_home = None
         col_away = None
@@ -463,7 +585,6 @@ def converti_per_gesssai(file_schedule, file_stats, output_file):
             elif 'time' in col_lower or 'ora' in col_lower:
                 col_ora = col
         
-        # Se non trova la colonna risultati, cerca per contenuto
         if not col_risultato:
             for col in df_schedule.columns:
                 sample = df_schedule[col].astype(str).head(30)
@@ -488,9 +609,6 @@ def converti_per_gesssai(file_schedule, file_stats, output_file):
             print("   ❌ ERRORE: Colonna Risultato non trovata!")
             return None
         
-        # ============================================================
-        # CONVERSIONE - REGOLA SEMPLICE
-        # ============================================================
         risultati = []
         conteggio_giocate = 0
         conteggio_future = 0
@@ -507,7 +625,6 @@ def converti_per_gesssai(file_schedule, file_stats, output_file):
                 giornata = str(row[col_giornata]) if col_giornata and col_giornata in row else ''
                 score = str(row[col_risultato]) if col_risultato and col_risultato in row else ''
                 
-                # Pulisci
                 if data == 'nan': data = ''
                 if ora == 'nan': ora = ''
                 if casa == 'nan': casa = ''
@@ -515,20 +632,14 @@ def converti_per_gesssai(file_schedule, file_stats, output_file):
                 if giornata == 'nan': giornata = ''
                 if score == 'nan': score = ''
                 
-                # CONVERTI LA DATA IN FORMATO EUROPEO (gg/mm/aaaa)
                 data = converti_data_europea(data)
                 
-                # ============================================================
-                # REGOLA: Se Risultato ha un valore → Giocata
-                # Se Risultato è vuoto → Futura (Gol Casa e Gol Ospite rimangono 0)
-                # ============================================================
                 gol_casa = 0
                 gol_ospite = 0
                 risultato = ''
                 stato = 'Futura'
                 
                 if score and score != '':
-                    # Estrai i gol
                     match = re.search(r'(\d+)\s*[-–:\.]\s*(\d+)', score)
                     if match:
                         gol_casa = int(match.group(1))
@@ -539,12 +650,11 @@ def converti_per_gesssai(file_schedule, file_stats, output_file):
                 else:
                     conteggio_future += 1
                 
-                # Aggiungi partita solo se ha squadre valide
                 if casa and casa != '' and ospite and ospite != '':
                     risultati.append({
                         'Campionato': campionato,
                         'Numero Giornata (Wk)': giornata,
-                        'Data': data,  # GIÀ IN FORMATO EUROPEO
+                        'Data': data,
                         'Ora': ora,
                         'Squadra Casa': casa,
                         'Squadra Ospite': ospite,
@@ -557,22 +667,10 @@ def converti_per_gesssai(file_schedule, file_stats, output_file):
             except Exception as e:
                 continue
         
-        # Crea DataFrame finale
         df_finale = pd.DataFrame(risultati)
-        
-        # Rimuovi duplicati
         df_finale = df_finale.drop_duplicates(subset=['Campionato', 'Data', 'Squadra Casa', 'Squadra Ospite'])
+        df_finale = df_finale.sort_values(['Campionato', 'Data'])
         
-        # Ordina per data (attenzione: le date sono in formato gg/mm/aaaa)
-        # Convertiamo temporaneamente per l'ordinamento
-        try:
-            df_finale['Data_ord'] = pd.to_datetime(df_finale['Data'], format='%d/%m/%Y', errors='coerce')
-            df_finale = df_finale.sort_values(['Campionato', 'Data_ord'])
-            df_finale = df_finale.drop('Data_ord', axis=1)
-        except:
-            df_finale = df_finale.sort_values(['Campionato', 'Data'])
-        
-        # Salva
         df_finale.to_excel(output_file, index=False)
         
         print(f"\n   ✅ Creato file per GesssAI: {output_file}")
@@ -581,119 +679,10 @@ def converti_per_gesssai(file_schedule, file_stats, output_file):
         print(f"      🔵 Future (senza risultato): {conteggio_future}")
         print(f"      🏆 Campionati: {df_finale['Campionato'].nunique()}")
         
-        # Mostra anteprima
-        print("\n   📋 Anteprima prime 3 partite:")
-        print(df_finale.head(3).to_string())
-        
         return df_finale
         
     except Exception as e:
         print(f"   ❌ Errore: {e}")
-        import traceback
-        traceback.print_exc()
-        return None
-
-# ============================================
-# FUNZIONE PER GENERARE IL JSON PER L'APP
-# ============================================
-def genera_json_per_app(df_schedule, output_folder):
-    """
-    Genera un file JSON compatibile con l'app GesssAI-Pro v3.0
-    TUTTE LE DATE SONO IN FORMATO EUROPEO (gg/mm/aaaa)
-    """
-    try:
-        print("\n📱 Generazione JSON per l'app...")
-        
-        if df_schedule is None or df_schedule.empty:
-            print("   ❌ Nessun dato disponibile per il JSON")
-            return None
-        
-        # Prepara i dati per il JSON
-        matches_data = []
-        campionati_set = set()
-        
-        for _, row in df_schedule.iterrows():
-            campionato = str(row.get('Campionato', 'Sconosciuto')).strip()
-            if campionato == 'nan' or campionato == 'None':
-                campionato = 'Sconosciuto'
-            
-            campionati_set.add(campionato)
-            
-            # Prendi la data in formato europeo (già convertita)
-            data_europea = str(row.get('Data', '')).strip()
-            if data_europea == 'nan' or data_europea == 'None':
-                data_europea = ''
-            
-            # Determina lo stato in base ai gol
-            gol_casa = row.get('Gol Casa', 0)
-            gol_ospite = row.get('Gol Ospite', 0)
-            
-            # Se i gol sono > 0 o c'è un risultato, è Giocata
-            stato = row.get('Stato', 'Futura')
-            if stato == 'nan' or stato == 'None':
-                stato = 'Futura'
-            
-            # Se ha un risultato valido, imposta Giocata
-            risultato = row.get('Risultato', '')
-            if risultato and risultato != '' and risultato != 'nan':
-                stato = 'Giocata'
-            
-            # Genera un ID univoco
-            id_parts = [
-                campionato,
-                data_europea.replace('/', '_'),
-                str(row.get('Squadra Casa', '')).replace(' ', '_'),
-                str(row.get('Squadra Ospite', '')).replace(' ', '_')
-            ]
-            match_id = "_".join(id_parts)
-            
-            match_data = {
-                "id": match_id,
-                "campionato": campionato,
-                "round": str(row.get('Numero Giornata (Wk)', 'N/A')),
-                "data": data_europea,  # GIÀ IN FORMATO EUROPEO (gg/mm/aaaa)
-                "ora": str(row.get('Ora', 'TBD')),
-                "casa": str(row.get('Squadra Casa', '')),
-                "ospiti": str(row.get('Squadra Ospite', '')),
-                "stato": stato,
-                "golCasa": int(gol_casa) if gol_casa != 'nan' and gol_casa != '' else 0,
-                "golOspite": int(gol_ospite) if gol_ospite != 'nan' and gol_ospite != '' else 0,
-                "citta": "N/D"
-            }
-            matches_data.append(match_data)
-        
-        # Crea la struttura completa per l'app
-        data = {
-            "championships": [{"name": c, "importedAt": datetime.now().isoformat()} for c in sorted(campionati_set)],
-            "matches": matches_data,
-            "apiKeys": {},
-            "theme": "Scuro Blu Notte",
-            "customTheme": None,
-            "schedineHistory": [],
-            "selectedFamiglie": ["dc_under", "mg_casa_ospite", "over"],
-            "exportedAt": datetime.now().isoformat()
-        }
-        
-        # Salva il JSON
-        output_path = os.path.join(output_folder, "GesssAI_Input.json")
-        with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        
-        print(f"\n   ✅ Creato file JSON per l'app: {output_path}")
-        print(f"      📊 {len(matches_data)} partite")
-        print(f"      🏆 {len(campionati_set)} campionati")
-        print(f"      📅 Date in formato europeo (gg/mm/aaaa)")
-        
-        # Mostra anteprima delle prime 3 date
-        if len(matches_data) > 0:
-            print("\n   📅 Anteprima date:")
-            for i, m in enumerate(matches_data[:3]):
-                print(f"      {i+1}. {m['campionato']} - {m['casa']} vs {m['ospiti']} - Data: {m['data']}")
-        
-        return output_path
-        
-    except Exception as e:
-        print(f"   ❌ Errore nella generazione JSON: {e}")
         import traceback
         traceback.print_exc()
         return None
@@ -713,17 +702,29 @@ chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
 chrome_options.add_experimental_option('useAutomationExtension', False)
 chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
-# Per vedere il browser, commenta la riga seguente
-# chrome_options.add_argument("--headless")
+# Su GitHub Actions usa headless
+if is_github_actions():
+    print("   🔧 Modalità headless (GitHub Actions)")
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
 
 try:
-    service = Service(ChromeDriverManager().install())
+    # Su GitHub Actions usa il driver di sistema
+    if is_github_actions():
+        chrome_driver_path = os.environ.get('CHROME_DRIVER', '/usr/bin/chromedriver')
+        service = Service(executable_path=chrome_driver_path)
+    else:
+        service = Service(ChromeDriverManager().install())
+    
     driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     print("✅ Browser avviato correttamente!")
 except Exception as e:
     print(f"❌ Errore nell'avvio del browser: {e}")
-    input("\nPremi INVIO per uscire...")
+    if not is_github_actions():
+        input("\nPremi INVIO per uscire...")
     exit()
 
 print(f"\n📥 Download di {len(sites)} siti...")
@@ -785,7 +786,8 @@ if not html_files_created:
 
 if not html_files_created:
     print("\n❌ Nessun file HTML trovato!")
-    input("\nPremi INVIO per uscire...")
+    if not is_github_actions():
+        input("\nPremi INVIO per uscire...")
     exit()
 
 print(f"\n📄 Trovati {len(html_files_created)} file HTML da convertire")
@@ -836,9 +838,15 @@ df_finale = None
 if os.path.exists(file_schedule):
     df_finale = converti_per_gesssai(file_schedule, file_stats, output_file)
     
-    # GENERAZIONE JSON
     if df_finale is not None and not df_finale.empty:
-        genera_json_per_app(df_finale, output_folder)
+        json_path = genera_json_per_app(df_finale, output_folder)
+        
+        # Caricamento automatico su GitHub (solo se siamo su GitHub Actions)
+        if is_github_actions() and json_path:
+            carica_json_su_github(json_path)
+        elif not is_github_actions() and json_path:
+            print(f"\n📁 File JSON generato in: {json_path}")
+            print("   📤 Carica manualmente su GitHub se necessario.")
     else:
         print("\n⚠️ Nessun dato disponibile per il JSON")
 else:
@@ -869,13 +877,14 @@ if excel_files:
         else:
             print(f"   - {nome} ({dimensione:.1f} KB)")
 
-# Controlla se il JSON è stato creato
 json_file = os.path.join(output_folder, "GesssAI_Input.json")
 if os.path.exists(json_file):
     dimensione = os.path.getsize(json_file) / 1024
     print(f"   📱 GesssAI_Input.json ({dimensione:.1f} KB) - PRONTO PER IMPORT")
 
 print("\n" + "=" * 70)
-print("🔴 Premere un tasto per uscire...")
-input()
-print("\n👋 Arrivederci!")
+
+if not is_github_actions():
+    print("🔴 Premere un tasto per uscire...")
+    input()
+    print("\n👋 Arrivederci!")
