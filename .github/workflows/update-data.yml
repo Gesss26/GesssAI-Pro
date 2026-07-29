@@ -10,73 +10,54 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: 📥 Checkout del codice
+      - name: Checkout del codice
         uses: actions/checkout@v4
       
-      - name: 🐍 Setup Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
           cache: 'pip'
       
-      - name: 📦 Installa dipendenze
+      - name: Installa dipendenze
         run: |
           pip install pandas beautifulsoup4 selenium webdriver-manager lxml openpyxl requests python-dateutil
           sudo apt-get update
           sudo apt-get install -y chromium-browser chromium-chromedriver
       
-      - name: 🔧 Configura Chrome per GitHub Actions
+      - name: Configura Chrome per GitHub Actions
         run: |
           echo "CHROME_BIN=/usr/bin/chromium-browser" >> $GITHUB_ENV
           echo "CHROME_DRIVER=/usr/bin/chromedriver" >> $GITHUB_ENV
       
-      - name: 🚀 Esegui scarica.py
+      - name: Esegui scarica.py
         run: python scarica.py
         env:
           CHROME_BIN: /usr/bin/chromium-browser
           CHROME_DRIVER: /usr/bin/chromedriver
         continue-on-error: true
       
-      - name: 📂 Crea cartella excel se non esiste
-        run: |
-          mkdir -p excel
-          echo "📁 Cartella excel creata"
+      - name: Crea cartella excel se non esiste
+        run: mkdir -p excel
       
-      - name: 📄 Crea JSON di esempio se non esiste
+      - name: Crea JSON di esempio se non esiste
         run: |
           if [ ! -f "excel/GesssAI_Input.json" ]; then
-            echo "⚠️ JSON non trovato! Creo un file di esempio..."
-            cat > excel/GesssAI_Input.json << 'EOF'
-{
-  "championships": [],
-  "matches": [],
-  "apiKeys": {},
-  "theme": "Scuro Blu Notte",
-  "customTheme": null,
-  "schedineHistory": [],
-  "selectedFamiglie": ["dc_under", "mg_casa_ospite", "over"],
-  "exportedAt": "2026-07-29T12:00:00"
-}
-EOF
-            echo "✅ JSON di esempio creato!"
-          else
-            echo "✅ JSON trovato!"
+            echo '{"championships":[],"matches":[],"apiKeys":{},"theme":"Scuro Blu Notte","customTheme":null,"schedineHistory":[],"selectedFamiglie":["dc_under","mg_casa_ospite","over"],"exportedAt":"2026-07-29T12:00:00"}' > excel/GesssAI_Input.json
           fi
       
-      - name: 📊 Verifica file generati
+      - name: Verifica file generati
         run: |
-          echo "📁 File nella cartella excel:"
+          echo "File nella cartella excel:"
           ls -la excel/
-          echo ""
           if [ -f "excel/GesssAI_Input.json" ]; then
-            echo "✅ JSON presente!"
-            echo "📊 Dimensioni: $(du -h excel/GesssAI_Input.json | cut -f1)"
+            echo "JSON presente!"
           else
-            echo "❌ JSON NON presente!"
+            echo "JSON NON presente!"
             exit 1
           fi
       
-      - name: 📤 Carica JSON su GitHub Pages
+      - name: Carica JSON su GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -85,33 +66,18 @@ EOF
           keep_files: false
           destination_dir: data
       
-      - name: ✅ Carica report riepilogativo
+      - name: Carica report riepilogativo
         run: |
-          echo "# 📊 Dati GesssAI - Aggiornamento $(date '+%d/%m/%Y %H:%M')" > report.md
+          echo "# Dati GesssAI - Aggiornamento" > report.md
           echo "" >> report.md
-          echo "## 📈 Statistiche" >> report.md
-          echo "" >> report.md
+          echo "## Statistiche" >> report.md
           if [ -f "excel/GesssAI_Input.json" ]; then
-            python -c "
-import json
-with open('excel/GesssAI_Input.json', 'r', encoding='utf-8') as f:
-    data = json.load(f)
-    print(f'- 🏆 Campionati: {len(data.get(\"championships\", []))}')
-    print(f'- ⚽ Partite totali: {len(data.get(\"matches\", []))}')
-    giocate = len([m for m in data.get(\"matches\", []) if m.get(\"stato\") == \"Giocata\"])
-    future = len([m for m in data.get(\"matches\", []) if m.get(\"stato\") == \"Futura\"])
-    print(f'- 🟢 Giocate: {giocate}')
-    print(f'- 🔵 Future: {future}')
-    print(f'- 📅 Aggiornato: {data.get(\"exportedAt\", \"N/D\")}')
-" >> report.md
+            echo "- JSON generato con successo" >> report.md
           fi
           echo "" >> report.md
-          echo "---" >> report.md
-          echo "🔗 **URL JSON:** https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/GesssAI_Input.json" >> report.md
-          echo "" >> report.md
-          echo "📅 Ultimo aggiornamento: $(date '+%d/%m/%Y %H:%M:%S') UTC" >> report.md
+          echo "URL JSON: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/GesssAI_Input.json" >> report.md
       
-      - name: 💾 Salva report come artifact
+      - name: Salva report come artifact
         uses: actions/upload-artifact@v4
         with:
           name: update-report
