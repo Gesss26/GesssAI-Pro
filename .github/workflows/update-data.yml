@@ -35,7 +35,7 @@ jobs:
         env:
           CHROME_BIN: /usr/bin/chromium-browser
           CHROME_DRIVER: /usr/bin/chromedriver
-        continue-on-error: true  # ← IMPORTANTE: non fallisce se c'è errore
+        continue-on-error: true
       
       - name: 📂 Crea cartella excel se non esiste
         run: |
@@ -55,7 +55,7 @@ jobs:
   "customTheme": null,
   "schedineHistory": [],
   "selectedFamiglie": ["dc_under", "mg_casa_ospite", "over"],
-  "exportedAt": "$(date -Iseconds)"
+  "exportedAt": "2026-07-29T12:00:00"
 }
 EOF
             echo "✅ JSON di esempio creato!"
