@@ -1,38 +1,66 @@
-name: Debug Script Python
+name: Aggiorna Dati GesssAI
 
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
-  debug:
+  update-data:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout del codice
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Installa dipendenze
+      - name: Installa dipendenze Python
         run: |
-          pip install pandas beautifulsoup4 selenium webdriver-manager lxml openpyxl requests
+          pip install pandas beautifulsoup4 selenium webdriver-manager lxml openpyxl requests python-dateutil
 
       - name: Installa Chrome
         run: |
           sudo apt-get update
           sudo apt-get install -y chromium-browser chromium-chromedriver
 
-      - name: Esegui script con output completo
+      - name: Configura Chrome
         run: |
-          echo "=== INIZIO ESECUZIONE ==="
-          python -u scarica.py 2>&1 | tee output.txt
-          echo "=== FINE ESECUZIONE ==="
-          echo "--- ULTIME 50 RIGHE DI OUTPUT ---"
-          tail -n 50 output.txt
+          echo "CHROME_BIN=/usr/bin/chromium-browser" >> $GITHUB_ENV
+          echo "CHROME_DRIVER=/usr/bin/chromedriver" >> $GITHUB_ENV
+
+      - name: Esegui scarica.py
+        run: python scarica.py
         env:
           CHROME_BIN: /usr/bin/chromium-browser
           CHROME_DRIVER: /usr/bin/chromedriver
-          PYTHONUNBUFFERED: 1
         continue-on-error: true
+
+      - name: Crea JSON se non esiste
+        run: |
+          mkdir -p excel
+          if [ ! -f "excel/GesssAI_Input.json" ]; then
+            echo '{"championships":[],"matches":[]}' > excel/GesssAI_Input.json
+            echo "JSON di esempio creato"
+          fi
+
+      # ============================================================
+      # 🚀 SEZIONE DEPLOY - QUI PUBBLICA IL JSON SU PAGES
+      # ============================================================
+      - name: Deploy su GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./excel
+          publish_branch: gh-pages
+          keep_files: false
+          # destination_dir: data   ← HO RIMOSSO QUESTA RIGA!
+          # Ora il JSON va direttamente nella radice di gh-pages
