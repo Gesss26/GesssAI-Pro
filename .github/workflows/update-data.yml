@@ -1,6 +1,8 @@
 name: Aggiorna Dati GesssAI
 
 on:
+  schedule:
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 permissions:
@@ -13,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout del codice
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -23,12 +25,9 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Installa dipendenze Python
+      - name: Installa dipendenze
         run: |
           pip install pandas beautifulsoup4 selenium webdriver-manager lxml openpyxl requests python-dateutil
-
-      - name: Installa Chrome
-        run: |
           sudo apt-get update
           sudo apt-get install -y chromium-browser chromium-chromedriver
 
@@ -40,21 +39,20 @@ jobs:
       - name: Esegui scarica.py
         run: python scarica.py
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
           CHROME_BIN: /usr/bin/chromium-browser
           CHROME_DRIVER: /usr/bin/chromedriver
-        continue-on-error: true
 
-      - name: Crea JSON se non esiste
+      - name: Verifica JSON
         run: |
-          mkdir -p excel
-          if [ ! -f "excel/GesssAI_Input.json" ]; then
-            echo '{"championships":[],"matches":[]}' > excel/GesssAI_Input.json
-            echo "JSON di esempio creato"
+          if [ -f "excel/GesssAI_Input.json" ]; then
+            echo "✅ JSON generato!"
+            echo "📊 Dimensioni: $(du -h excel/GesssAI_Input.json | cut -f1)"
+          else
+            echo "❌ JSON NON generato!"
           fi
 
-      # ============================================================
-      # 🚀 SEZIONE DEPLOY - QUI PUBBLICA IL JSON SU PAGES
-      # ============================================================
       - name: Deploy su GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
@@ -62,5 +60,4 @@ jobs:
           publish_dir: ./excel
           publish_branch: gh-pages
           keep_files: false
-          # destination_dir: data   ← HO RIMOSSO QUESTA RIGA!
-          # Ora il JSON va direttamente nella radice di gh-pages
+          destination_dir: data
