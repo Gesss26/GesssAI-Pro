@@ -34,6 +34,9 @@
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
   body { background: var(--bg); color: var(--text); min-height: 100vh; }
   
+  /* ============================================================
+     PERCENTUALI GIOCATE (badge) - CORRETTE
+     ============================================================ */
   .giocata-pct {
     display: inline-block;
     font-weight: bold;
@@ -42,15 +45,76 @@
     border-radius: 6px;
     color: #000 !important;
   }
+  /* 🔴 0% - 33,33% */
   .giocata-pct.flag-red { background: #eb5757; color: #000 !important; }
+  /* ⚪ 33,34% - 66,66% */
   .giocata-pct.flag-white { background: #8b949e; color: #000 !important; }
+  /* 🟢 66,67% - 89,99% */
   .giocata-pct.flag-green { background: #6fcf97; color: #000 !important; }
+  /* 🟡💣 ≥ 90% (ORO + animazione) */
   .giocata-pct.flag-bomb { 
     background: #f39c12; 
     color: #000 !important; 
     animation: bomb-glow 1s infinite alternate; 
     box-shadow: 0 0 15px rgba(243, 156, 18, 0.4);
   }
+  
+  /* ============================================================
+     PERCENTUALI STATISTICHE (detail-stat-box) - CORRETTE
+     ============================================================ */
+  .detail-stat-box { 
+    padding: 8px 12px; 
+    border-radius: 8px; 
+    text-align: center; 
+    border: 1px solid var(--border); 
+    background: var(--surface); 
+    transition: background 0.2s, transform 0.1s; 
+    min-width: 60px; 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+  }
+  .detail-stat-box:hover { transform: scale(1.02); }
+  .detail-stat-box .label { 
+    display: block; 
+    font-size: 14px; 
+    font-weight: 600; 
+    color: #ffff00; 
+    margin-bottom: 2px; 
+  }
+  .detail-stat-box .value { 
+    display: block; 
+    font-size: 20px; 
+    font-weight: bold; 
+  }
+  .detail-stat-box .bomb-icon { 
+    display: inline-block; 
+    font-size: 20px; 
+    animation: bomb-bounce 0.8s infinite ease-in-out; 
+    transform-origin: center; 
+    margin-left: 4px; 
+  }
+  
+  /* 🔴 0% - 33,33% */
+  .detail-stat-box.flag-red { background: #eb5757; }
+  .detail-stat-box.flag-red .value { color: #000; }
+  
+  /* ⚪ 33,34% - 66,66% */
+  .detail-stat-box.flag-white { background: #8b949e; }
+  .detail-stat-box.flag-white .value { color: #000; }
+  
+  /* 🟢 66,67% - 89,99% */
+  .detail-stat-box.flag-green { background: #6fcf97; }
+  .detail-stat-box.flag-green .value { color: #000; }
+  
+  /* 🟡💣 ≥ 90% (ORO + animazione) */
+  .detail-stat-box.flag-bomb { 
+    background: #f39c12; 
+    animation: bomb-glow 1s infinite alternate; 
+  }
+  .detail-stat-box.flag-bomb .value { color: #000; }
   
   .xg-value {
     display: inline-block;
@@ -240,21 +304,6 @@
   
   .detail-section { margin-bottom: 20px; }
   .detail-section h4 { color: var(--accent); margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
-  .detail-stat-box { padding: 8px 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border); background: var(--surface); transition: background 0.2s, transform 0.1s; min-width: 60px; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .detail-stat-box:hover { transform: scale(1.02); }
-  .detail-stat-box .label { display: block; font-size: 14px; font-weight: 600; color: #ffff00; margin-bottom: 2px; }
-  .detail-stat-box .value { display: block; font-size: 20px; font-weight: bold; }
-  .detail-stat-box .bomb-icon { display: inline-block; font-size: 20px; animation: bomb-bounce 0.8s infinite ease-in-out; transform-origin: center; margin-left: 4px; }
-  .detail-stat-box.flag-red { background: var(--lose); }
-  .detail-stat-box.flag-red .value { color: #000; }
-  .detail-stat-box.flag-neutral { background: var(--pct-neutro); }
-  .detail-stat-box.flag-neutral .value { color: #000; }
-  .detail-stat-box.flag-green { background: var(--win); }
-  .detail-stat-box.flag-green .value { color: #000; }
-  .detail-stat-box.flag-gold { background: var(--accent); }
-  .detail-stat-box.flag-gold .value { color: #000; }
-  .detail-stat-box.flag-bomb { background: var(--accent); animation: bomb-glow 1s infinite alternate; }
-  .detail-stat-box.flag-bomb .value { color: #000; }
   
   .detail-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
   .detail-row .detail-stat-box { flex: 1; min-width: 60px; }
@@ -524,7 +573,6 @@
     flex-wrap: wrap;
   }
   
-  /* File importer styles */
   .file-drop-area {
     border: 2px dashed var(--border);
     border-radius: 12px;
@@ -602,7 +650,6 @@
     }
   }
   
-  /* Giocate selector styles - Famiglie */
   .giocate-selector-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -681,7 +728,6 @@
     color: var(--accent);
   }
   
-  /* Phone simulator styles */
   .phone-simulator {
     background: #1a1a2e;
     border-radius: 40px;
@@ -1673,18 +1719,6 @@ const getBestBetForFamily = (familyId, stats, homeRange, awayRange, homeMG, away
 };
 
 // ============================================================
-// TUTTI I COMPONENTI (Clock, WeatherBadge, Standings, FamiglieSelector, 
-// MatchTab, MatchTabHistory, MatchDetail, RisultatiFrequenti, FrequenzaGol,
-// IndiceAffidabilita, AnalisiMeteo, askGroq, TeamMatchesHistory, 
-// StoricoSchedine, HomeWidget, HeatmapGiocate, HeatmapDetailModal,
-// SofaScoreManager, FileImporter, AIAnalysis, WeatherProfessionale, CittaMeteo)
-// ============================================================
-
-// NOTA: Per brevità, i componenti rimangono identici a prima.
-// Le funzioni chiave (FAMIGLIE_GIOCATE, computeMatchStats, getGiocataPct, getBestBetForFamily) 
-// sono già state corrette sopra.
-
-// ============================================================
 // COMPONENTE CLOCK
 // ============================================================
 
@@ -2096,7 +2130,7 @@ const MatchTabHistory = ({ match, onSelect }) => {
 };
 
 // ============================================================
-// COMPONENTE MATCH DETAIL
+// COMPONENTE MATCH DETAIL - CORRETTO CON I COLORI
 // ============================================================
 
 const MatchDetail = ({ match, allMatches }) => {
@@ -2120,10 +2154,19 @@ const MatchDetail = ({ match, allMatches }) => {
   };
   const last5Home = getLast5Games(match.casa);
   const last5Away = getLast5Games(match.ospiti);
+  
+  // Funzione per determinare la classe corretta per le statistiche
+  const getStatClasse = (valore) => {
+    if (valore >= 90) return 'flag-bomb';
+    if (valore >= 66.67) return 'flag-green';
+    if (valore >= 33.34) return 'flag-white';
+    return 'flag-red';
+  };
+  
   const renderStatBox = (label, value) => {
     const numValue = typeof value === 'number' ? value : 0;
     const roundedValue = Math.round(numValue);
-    const cls = numValue >= 90 ? 'flag-bomb' : (numValue >= 66.67 ? 'flag-green' : (numValue >= 33.34 ? 'flag-white' : 'flag-red'));
+    const cls = getStatClasse(numValue);
     const isBomb = numValue >= 90;
     return (
       <div className={`detail-stat-box ${cls}`}>
@@ -2134,6 +2177,7 @@ const MatchDetail = ({ match, allMatches }) => {
       </div>
     );
   };
+  
   const renderMultigolRow = (data, title, color = 'var(--accent)') => {
     return (
       <div style={{marginBottom: '12px'}}>
@@ -2142,7 +2186,7 @@ const MatchDetail = ({ match, allMatches }) => {
           {Object.entries(data).map(([label, value]) => {
             const pct = Math.round(value);
             const displayLabel = label === '2-4' ? 'Over 1,5' : label;
-            const cls = pct >= 90 ? 'flag-bomb' : (pct >= 66.67 ? 'flag-green' : (pct >= 33.34 ? 'flag-white' : 'flag-red'));
+            const cls = getStatClasse(pct);
             return (
               <div key={label} className={`detail-stat-box ${cls}`} style={{flex: 1, minWidth: '60px'}}>
                 <span className="label" style={{fontSize: '11px'}}>{displayLabel}</span>
@@ -2808,12 +2852,6 @@ const HeatmapDetailModal = ({ championship, matches, onClose }) => {
     </div>
   );
 };
-
-// ============================================================
-// COMPONENTE SOFASCORE MANAGER - RIMOSSO
-// ============================================================
-
-// Il componente SofaScoreManager è stato rimosso come richiesto.
 
 // ============================================================
 // COMPONENTE FILE IMPORTER
@@ -3629,7 +3667,6 @@ function App() {
     let errorCount = 0;
     let totalChecked = 0;
     
-    // Raggruppa le partite future per campionato
     const futureMatches = matches.filter(m => m.stato === 'Futura');
     
     if (futureMatches.length === 0) {
@@ -3639,7 +3676,6 @@ function App() {
       return;
     }
     
-    // Raggruppa per campionato per fare meno richieste
     const matchesByChampionship = {};
     futureMatches.forEach(m => {
       if (!matchesByChampionship[m.campionato]) {
@@ -3651,10 +3687,8 @@ function App() {
     const champNames = Object.keys(matchesByChampionship);
     let processed = 0;
     
-    // Per ogni campionato, recupera i dati aggiornati da SofaScore
     for (const champName of champNames) {
       try {
-        // Trova l'ID del campionato
         let leagueId = SOFASCORE_LEAGUE_IDS[champName];
         if (!leagueId) {
           const customLeagues = getCustomSofaLeagues();
@@ -3667,14 +3701,12 @@ function App() {
           continue;
         }
         
-        // Ottieni le stagioni disponibili
         const seasonsRes = await fetch(`https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/seasons`);
         if (!seasonsRes.ok) throw new Error('Errore nel recupero stagioni');
         const seasonsData = await seasonsRes.json();
         
         let targetSeasonId = null;
         if (seasonsData.seasons) {
-          // Cerca la stagione più recente
           const sortedSeasons = seasonsData.seasons.sort((a, b) => {
             const yearA = parseInt(a.name?.match(/\d{4}/)?.[0] || '0');
             const yearB = parseInt(b.name?.match(/\d{4}/)?.[0] || '0');
@@ -3690,7 +3722,6 @@ function App() {
           continue;
         }
         
-        // Recupera tutti gli eventi del campionato
         let allEvents = [];
         let round = 1;
         let hasMore = true;
@@ -3713,7 +3744,6 @@ function App() {
           }
         }
         
-        // Crea una mappa per cercare velocemente le partite
         const eventMap = {};
         allEvents.forEach(event => {
           const dt = new Date(event.startTimestamp * 1000);
@@ -3726,7 +3756,6 @@ function App() {
           }
         });
         
-        // Controlla ogni partita futura
         const matchesList = matchesByChampionship[champName];
         const updatedMatches = [];
         
@@ -3762,7 +3791,6 @@ function App() {
           }
         });
         
-        // Aggiorna le partite nella lista
         if (updatedMatches.length > 0) {
           const matchIds = new Set(updatedMatches.map(m => m.id));
           setMatches(prev => prev.map(m => {
@@ -3810,7 +3838,6 @@ function App() {
     if (autoImportDoneCheck !== today && !autoImportDone && !updateRunning) {
       const runAutoUpdate = async () => {
         try {
-          // PASSO 1: Importa nuovi campionati
           const allLeagues = getVisibleLeagues(getCustomSofaLeagues());
           const importedNames = new Set(championships.map(c => c.name));
           const leaguesToImport = allLeagues
@@ -3818,7 +3845,6 @@ function App() {
             .map(l => l.name);
           
           if (leaguesToImport.length > 0) {
-            // Verifica quali campionati hanno effettivamente partite
             let leaguesWithMatches = [];
             
             for (const champName of leaguesToImport) {
@@ -3830,12 +3856,9 @@ function App() {
                 if (events && events.length > 0) {
                   leaguesWithMatches.push(champName);
                 }
-              } catch(e) {
-                // Ignora errori
-              }
+              } catch(e) {}
             }
             
-            // Importa solo quelli con partite (max 3)
             const toImport = leaguesWithMatches.slice(0, 3);
             
             if (toImport.length > 0) {
@@ -3855,7 +3878,6 @@ function App() {
             }
           }
           
-          // PASSO 2: Aggiorna le partite terminate
           const futureMatches = matches.filter(m => m.stato === 'Futura');
           if (futureMatches.length > 0) {
             showAlert('info', `🔄 Controllo ${futureMatches.length} partite future...`);
@@ -4045,7 +4067,6 @@ function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     
-    // NOME FILE: GesssAi-ggmmaaaa.json
     const now = new Date();
     const day = String(now.getDate()).padStart(2, '0');
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -4126,392 +4147,396 @@ function App() {
   }, [theme, customTheme]);
 
   // ============================================================
-  // RENDER DELL'APP CON SIMULAZIONE TELEFONO
+  // RENDER DELL'APP CON SIMULAZIONE TELEFONO - FIXATO
   // ============================================================
 
-  const renderAppContent = () => (
-    <div>
-      <div className="header">
-        <div className="header-left"><div style={{fontSize:'28px'}}></div></div>
-        <div className="header-center">
-          <div className="app-name">
-            <span style={{color:'#e74c3c'}}>G</span><span style={{color:'#e67e22'}}>e</span>
-            <span style={{color:'#f1c40f'}}>s</span><span style={{color:'#2ecc71'}}>s</span>
-            <span style={{color:'#3498db'}}>s</span><span style={{color:'#9b59b6'}}>A</span>
-            <span style={{color:'#e74c3c'}}>I</span><span style={{color:'#1abc9c'}}>-</span>
-            <span style={{color:'#f39c12'}}>P</span><span style={{color:'#2ecc71'}}>r</span>
-            <span style={{color:'#e67e22'}}>o</span>
+  // Estraiamo il contenuto dell'app in una funzione separata per evitare
+  // il conflitto di rendering tra modalità PC e Telefono
+  const renderAppContent = () => {
+    return (
+      <div>
+        <div className="header">
+          <div className="header-left"><div style={{fontSize:'28px'}}></div></div>
+          <div className="header-center">
+            <div className="app-name">
+              <span style={{color:'#e74c3c'}}>G</span><span style={{color:'#e67e22'}}>e</span>
+              <span style={{color:'#f1c40f'}}>s</span><span style={{color:'#2ecc71'}}>s</span>
+              <span style={{color:'#3498db'}}>s</span><span style={{color:'#9b59b6'}}>A</span>
+              <span style={{color:'#e74c3c'}}>I</span><span style={{color:'#1abc9c'}}>-</span>
+              <span style={{color:'#f39c12'}}>P</span><span style={{color:'#2ecc71'}}>r</span>
+              <span style={{color:'#e67e22'}}>o</span>
+            </div>
+            <div className="subtitle">Statistiche & Trading Scommesse v3.0 - 2026</div>
           </div>
-          <div className="subtitle">Statistiche & Trading Scommesse v3.0 - 2026</div>
+          <Clock />
         </div>
-        <Clock />
-      </div>
 
-      <div className="tabs-nav">
-        {MAIN_TABS.map(t => (
-          <button key={t} className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>
-            {t === 'Home' && '🏠 '}{t === 'Palinsesto' && '📅 '}{t === 'Statistiche' && '📊 '}
-            {t === 'Storico' && '📜 '}{t === 'API KEY' && '🔑 '}{t === 'Impostazioni' && '⚙️ '}{t}
-          </button>
-        ))}
-      </div>
+        <div className="tabs-nav">
+          {MAIN_TABS.map(t => (
+            <button key={t} className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>
+              {t === 'Home' && '🏠 '}{t === 'Palinsesto' && '📅 '}{t === 'Statistiche' && '📊 '}
+              {t === 'Storico' && '📜 '}{t === 'API KEY' && '🔑 '}{t === 'Impostazioni' && '⚙️ '}{t}
+            </button>
+          ))}
+        </div>
 
-      <div className="container">
-        {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
-        {loading && <div className="alert alert-info">⏳ Elaborazione in corso...</div>}
+        <div className="container">
+          {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
+          {loading && <div className="alert alert-info">⏳ Elaborazione in corso...</div>}
 
-        {tab === 'Home' && (
-          <div>
-            <div style={{display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center'}}>
-              <button 
-                className="btn" 
-                onClick={updateFinishedMatches} 
-                disabled={loading || updateRunning}
-                style={{background: 'var(--accent)', color: '#000'}}
-              >
-                {updateRunning ? '⏳ Aggiornamento...' : '🔄 Aggiorna Dati Partite'}
-              </button>
-              <span style={{fontSize: '12px', color: 'var(--text-muted)'}}>
-                {updateRunning ? 'Controllo partite terminate in corso...' : 'Controlla e aggiorna le partite future diventate giocate'}
-              </span>
-            </div>
-
-            <HomeWidget matches={matches} onSelectMatch={selectMatch} setTab={setTab} selectedFamiglie={selectedFamiglie} />
-            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px'}}>
-              <div><h3 style={{marginBottom: '12px'}}>📊 Statistiche Rapide</h3><div className="perf-grid" style={{gridTemplateColumns: '1fr 1fr'}}>
-                <div className="perf-card"><div className="perf-value" style={{color: 'var(--accent)'}}>{matches.filter(m => m.stato === 'Futura').length}</div><div className="perf-label">Partite Future</div></div>
-                <div className="perf-card"><div className="perf-value" style={{color: 'var(--win)'}}>{matches.filter(m => m.stato === 'Giocata').length}</div><div className="perf-label">Partite Giocate</div></div>
-                <div className="perf-card"><div className="perf-value">{championships.length}</div><div className="perf-label">Campionati</div></div>
-                <div className="perf-card"><div className="perf-value" style={{color: 'var(--accent)'}}>{schedineHistory.length}</div><div className="perf-label">Schedine Salvate</div></div>
-              </div></div>
-              <div><h3 style={{marginBottom: '12px'}}>🔥 Campionati Attivi</h3><div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '8px', maxHeight: '250px', overflowY: 'auto', paddingRight: '8px'}}>
-                {championships.map(c => { const totalMatches = matches.filter(m => m.campionato === c.name).length; const futureMatches = matches.filter(m => m.campionato === c.name && m.stato === 'Futura').length; const color = getChampColor(c.name); return <div key={c.name} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', borderRadius: '6px', background: 'var(--surface)', borderLeft: `3px solid ${color}`, fontSize: '13px'}}><span style={{color: color, fontWeight: 'bold', fontSize: '12px'}}>{c.name}</span><span style={{fontSize: '11px', color: 'var(--text-muted)'}}>{futureMatches} future</span></div>; })}
-                {championships.length === 0 && <div style={{textAlign: 'center', color: 'var(--text-muted)', padding: '20px', gridColumn: '1 / -1'}}>Nessun campionato importato. Vai su <b>Impostazioni → Importa Campionato</b></div>}
-              </div>{championships.length > 0 && <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', textAlign: 'right'}}>📊 {championships.length} campionati • {matches.filter(m => m.stato === 'Futura').length} partite future</div>}</div>
-            </div>
-            <HeatmapGiocate matches={matches} onSelectChampionship={(champ) => setHeatmapDetailChamp(champ)} />
-            {heatmapDetailChamp && <HeatmapDetailModal championship={heatmapDetailChamp} matches={matches} onClose={() => setHeatmapDetailChamp(null)} />}
-            {selectedMatch && (
-              <div style={{marginTop: '16px'}}>
-                <h3 style={{marginBottom: '12px', color: 'var(--accent)'}}>📊 Analisi Partita: {selectedMatch.casa} vs {selectedMatch.ospiti}</h3>
-                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'stretch'}}>
-                  <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}><div style={{flex: 1}}><RisultatiFrequenti teamName={selectedMatch.casa} allMatches={matches} /></div><div style={{flex: 1}}><FrequenzaGol teamName={selectedMatch.casa} allMatches={matches} /></div><div style={{flex: 1}}><IndiceAffidabilita teamName={selectedMatch.casa} allMatches={matches} /></div></div>
-                  <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}><div style={{flex: 1}}><RisultatiFrequenti teamName={selectedMatch.ospiti} allMatches={matches} /></div><div style={{flex: 1}}><FrequenzaGol teamName={selectedMatch.ospiti} allMatches={matches} /></div><div style={{flex: 1}}><IndiceAffidabilita teamName={selectedMatch.ospiti} allMatches={matches} /></div></div>
-                </div>
-                <AnalisiMeteo matches={matches} weatherCache={weatherCache} />
+          {tab === 'Home' && (
+            <div>
+              <div style={{display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center'}}>
+                <button 
+                  className="btn" 
+                  onClick={updateFinishedMatches} 
+                  disabled={loading || updateRunning}
+                  style={{background: 'var(--accent)', color: '#000'}}
+                >
+                  {updateRunning ? '⏳ Aggiornamento...' : '🔄 Aggiorna Dati Partite'}
+                </button>
+                <span style={{fontSize: '12px', color: 'var(--text-muted)'}}>
+                  {updateRunning ? 'Controllo partite terminate in corso...' : 'Controlla e aggiorna le partite future diventate giocate'}
+                </span>
               </div>
-            )}
-            <StoricoSchedine schedineHistory={schedineHistory} setSchedineHistory={setSchedineHistory} />
-          </div>
-        )}
 
-        {tab === 'Palinsesto' && (
-          <div>
-            <div style={{display: 'flex', gap: '12px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center'}}>
-              <div className="form-group" style={{maxWidth: '300px', marginBottom: '0', flex: '1'}}>
+              <HomeWidget matches={matches} onSelectMatch={selectMatch} setTab={setTab} selectedFamiglie={selectedFamiglie} />
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px'}}>
+                <div><h3 style={{marginBottom: '12px'}}>📊 Statistiche Rapide</h3><div className="perf-grid" style={{gridTemplateColumns: '1fr 1fr'}}>
+                  <div className="perf-card"><div className="perf-value" style={{color: 'var(--accent)'}}>{matches.filter(m => m.stato === 'Futura').length}</div><div className="perf-label">Partite Future</div></div>
+                  <div className="perf-card"><div className="perf-value" style={{color: 'var(--win)'}}>{matches.filter(m => m.stato === 'Giocata').length}</div><div className="perf-label">Partite Giocate</div></div>
+                  <div className="perf-card"><div className="perf-value">{championships.length}</div><div className="perf-label">Campionati</div></div>
+                  <div className="perf-card"><div className="perf-value" style={{color: 'var(--accent)'}}>{schedineHistory.length}</div><div className="perf-label">Schedine Salvate</div></div>
+                </div></div>
+                <div><h3 style={{marginBottom: '12px'}}>🔥 Campionati Attivi</h3><div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '8px', maxHeight: '250px', overflowY: 'auto', paddingRight: '8px'}}>
+                  {championships.map(c => { const totalMatches = matches.filter(m => m.campionato === c.name).length; const futureMatches = matches.filter(m => m.campionato === c.name && m.stato === 'Futura').length; const color = getChampColor(c.name); return <div key={c.name} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', borderRadius: '6px', background: 'var(--surface)', borderLeft: `3px solid ${color}`, fontSize: '13px'}}><span style={{color: color, fontWeight: 'bold', fontSize: '12px'}}>{c.name}</span><span style={{fontSize: '11px', color: 'var(--text-muted)'}}>{futureMatches} future</span></div>; })}
+                  {championships.length === 0 && <div style={{textAlign: 'center', color: 'var(--text-muted)', padding: '20px', gridColumn: '1 / -1'}}>Nessun campionato importato. Vai su <b>Impostazioni → Importa Campionato</b></div>}
+                </div>{championships.length > 0 && <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', textAlign: 'right'}}>📊 {championships.length} campionati • {matches.filter(m => m.stato === 'Futura').length} partite future</div>}</div>
+              </div>
+              <HeatmapGiocate matches={matches} onSelectChampionship={(champ) => setHeatmapDetailChamp(champ)} />
+              {heatmapDetailChamp && <HeatmapDetailModal championship={heatmapDetailChamp} matches={matches} onClose={() => setHeatmapDetailChamp(null)} />}
+              {selectedMatch && (
+                <div style={{marginTop: '16px'}}>
+                  <h3 style={{marginBottom: '12px', color: 'var(--accent)'}}>📊 Analisi Partita: {selectedMatch.casa} vs {selectedMatch.ospiti}</h3>
+                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'stretch'}}>
+                    <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}><div style={{flex: 1}}><RisultatiFrequenti teamName={selectedMatch.casa} allMatches={matches} /></div><div style={{flex: 1}}><FrequenzaGol teamName={selectedMatch.casa} allMatches={matches} /></div><div style={{flex: 1}}><IndiceAffidabilita teamName={selectedMatch.casa} allMatches={matches} /></div></div>
+                    <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}><div style={{flex: 1}}><RisultatiFrequenti teamName={selectedMatch.ospiti} allMatches={matches} /></div><div style={{flex: 1}}><FrequenzaGol teamName={selectedMatch.ospiti} allMatches={matches} /></div><div style={{flex: 1}}><IndiceAffidabilita teamName={selectedMatch.ospiti} allMatches={matches} /></div></div>
+                  </div>
+                  <AnalisiMeteo matches={matches} weatherCache={weatherCache} />
+                </div>
+              )}
+              <StoricoSchedine schedineHistory={schedineHistory} setSchedineHistory={setSchedineHistory} />
+            </div>
+          )}
+
+          {tab === 'Palinsesto' && (
+            <div>
+              <div style={{display: 'flex', gap: '12px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center'}}>
+                <div className="form-group" style={{maxWidth: '300px', marginBottom: '0', flex: '1'}}>
+                  <label>Filtra per Campionato</label>
+                  <select value={selectedChamp} onChange={e => setSelectedChamp(e.target.value)}>
+                    <option value="Tutti">Tutti</option>
+                    {championships.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className="form-group" style={{maxWidth: '200px', marginBottom: '0', flex: '1'}}>
+                  <label>Range Giorni</label>
+                  <select value={daysRange} onChange={e => setDaysRange(parseInt(e.target.value))}>
+                    <option value="0">Oggi (0)</option>
+                    <option value="1">Oggi - Domani (0-1)</option>
+                    <option value="2">Oggi - Dopodomani (0-2)</option>
+                    <option value="3">Oggi - +3 giorni (0-3)</option>
+                    <option value="4">Oggi - +4 giorni (0-4)</option>
+                    <option value="5">Oggi - +5 giorni (0-5)</option>
+                    <option value="6">Oggi - +6 giorni (0-6)</option>
+                  </select>
+                </div>
+              </div>
+              <h2 style={{marginBottom:'14px'}}>📅 Palinsesto - Prossimi {daysRange + 1} Giorni</h2>
+              {(() => {
+                try {
+                  let futureMatches = matches.filter(m => m.stato === 'Futura');
+                  if (selectedChamp !== 'Tutti') { futureMatches = futureMatches.filter(m => m.campionato === selectedChamp); }
+                  const todayStr = getTodayStr();
+                  const maxDateStr = addDaysToDateStr(todayStr, daysRange);
+                  const filteredByDays = futureMatches.filter(m => {
+                    if (!m.data) return false;
+                    const normalized = normalizeDate(m.data);
+                    if (!normalized) return false;
+                    return normalized >= todayStr && normalized <= maxDateStr;
+                  }).sort((a, b) => {
+                    const dateA = normalizeDate(a.data);
+                    const dateB = normalizeDate(b.data);
+                    if (!dateA || !dateB) return 0;
+                    return dateA.localeCompare(dateB);
+                  });
+                  if (!filteredByDays || filteredByDays.length === 0) { return <div className="empty-state">Nessuna partita nei prossimi {daysRange + 1} giorni.</div>; }
+                  return <div className="matches-grid">{filteredByDays.map(m => { const weatherKey = `${m.campionato}_${m.data}`; const weather = weatherCache[weatherKey] || null; return <MatchTab key={m.id} match={m} allMatches={matches} onSelect={selectMatch} selectedFamiglie={selectedFamiglie} weatherData={weather} />; })}</div>;
+                } catch (e) { console.error('Errore rendering Palinsesto:', e); return <div className="empty-state">Errore nel caricamento delle partite: {e.message}</div>; }
+              })()}
+            </div>
+          )}
+
+          {tab === 'Statistiche' && (
+            <div>
+              <div className="sub-tabs">
+                <button className={statsSubTab === 'Classifica' ? 'active' : ''} onClick={() => setStatsSubTab('Classifica')}>📊 Classifica</button>
+                <button className={statsSubTab === 'Scontri' ? 'active' : ''} onClick={() => setStatsSubTab('Scontri')}>⚔️ Scontri</button>
+                <button className={statsSubTab === 'Analisi' ? 'active' : ''} onClick={() => setStatsSubTab('Analisi')}>📈 Analisi Avanzata</button>
+              </div>
+              {statsSubTab === 'Classifica' && (
+                <div className="stats-two-col">
+                  <div>{selectedMatch ? <MatchDetail match={selectedMatch} allMatches={matches} /> : <div className="stats-placeholder"><p>👈 Seleziona una partita dal <b>Palinsesto</b> o dallo <b>Storico</b> per vedere le statistiche dettagliate.</p></div>}</div>
+                  <div>{selectedMatch ? <><h3 style={{marginBottom:'12px', color: getChampColor(selectedMatch.campionato)}}>Classifica - {selectedMatch.campionato}</h3><Standings matches={matches} filterChampionship={selectedMatch.campionato} highlightTeams={[selectedMatch.casa, selectedMatch.ospiti]} /></> : <div className="stats-placeholder"><p>📊 Seleziona una partita per vedere la classifica.</p></div>}</div>
+                </div>
+              )}
+              {statsSubTab === 'Scontri' && (
+                <div>{selectedMatch ? <div className="stats-two-col" style={{ gridTemplateColumns: '1fr 1fr' }}><TeamMatchesHistory teamName={selectedMatch.casa} championship={selectedMatch.campionato} allMatches={matches} /><TeamMatchesHistory teamName={selectedMatch.ospiti} championship={selectedMatch.campionato} allMatches={matches} /></div> : <div className="stats-placeholder"><p>👈 Seleziona una partita per vedere lo storico delle due squadre.</p></div>}</div>
+              )}
+              {statsSubTab === 'Analisi' && (
+                <div>
+                  {selectedMatch ? (
+                    <div>
+                      {(() => {
+                        const city = getCityForMatch(selectedMatch.casa, selectedMatch.campionato);
+                        const weatherKey = `${selectedMatch.campionato}_${selectedMatch.data}`;
+                        const weather = weatherCache[weatherKey] || null;
+                        return <WeatherProfessionale weatherData={weather} city={city} matchDate={selectedMatch.data} />;
+                      })()}
+                      
+                      <div className="analisi-compact">
+                        <div>
+                          <RisultatiFrequenti teamName={selectedMatch.casa} allMatches={matches} />
+                          <FrequenzaGol teamName={selectedMatch.casa} allMatches={matches} />
+                          <IndiceAffidabilita teamName={selectedMatch.casa} allMatches={matches} />
+                        </div>
+                        <div>
+                          <RisultatiFrequenti teamName={selectedMatch.ospiti} allMatches={matches} />
+                          <FrequenzaGol teamName={selectedMatch.ospiti} allMatches={matches} />
+                          <IndiceAffidabilita teamName={selectedMatch.ospiti} allMatches={matches} />
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <AnalisiMeteo matches={matches} weatherCache={weatherCache} />
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <AIAnalysis match={selectedMatch} allMatches={matches} apiKeys={apiKeys} setTab={setTab} />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="stats-placeholder">
+                      <p>👈 Seleziona una partita per vedere l'analisi avanzata.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === 'Storico' && (
+            <div>
+              <h2 style={{marginBottom:'14px'}}>📜 Storico Partite Giocate</h2>
+              <div className="form-group">
                 <label>Filtra per Campionato</label>
                 <select value={selectedChamp} onChange={e => setSelectedChamp(e.target.value)}>
-                  <option value="Tutti">Tutti</option>
-                  {championships.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                  <option>Tutti</option>
+                  {championships.map(c => <option key={c.name}>{c.name}</option>)}
                 </select>
               </div>
-              <div className="form-group" style={{maxWidth: '200px', marginBottom: '0', flex: '1'}}>
-                <label>Range Giorni</label>
-                <select value={daysRange} onChange={e => setDaysRange(parseInt(e.target.value))}>
-                  <option value="0">Oggi (0)</option>
-                  <option value="1">Oggi - Domani (0-1)</option>
-                  <option value="2">Oggi - Dopodomani (0-2)</option>
-                  <option value="3">Oggi - +3 giorni (0-3)</option>
-                  <option value="4">Oggi - +4 giorni (0-4)</option>
-                  <option value="5">Oggi - +5 giorni (0-5)</option>
-                  <option value="6">Oggi - +6 giorni (0-6)</option>
-                </select>
-              </div>
-            </div>
-            <h2 style={{marginBottom:'14px'}}>📅 Palinsesto - Prossimi {daysRange + 1} Giorni</h2>
-            {(() => {
-              try {
-                let futureMatches = matches.filter(m => m.stato === 'Futura');
-                if (selectedChamp !== 'Tutti') { futureMatches = futureMatches.filter(m => m.campionato === selectedChamp); }
-                const todayStr = getTodayStr();
-                const maxDateStr = addDaysToDateStr(todayStr, daysRange);
-                const filteredByDays = futureMatches.filter(m => {
-                  if (!m.data) return false;
-                  const normalized = normalizeDate(m.data);
-                  if (!normalized) return false;
-                  return normalized >= todayStr && normalized <= maxDateStr;
-                }).sort((a, b) => {
+              {(() => {
+                let playedMatches = matches.filter(m => m.stato === 'Giocata');
+                if (selectedChamp !== 'Tutti') { playedMatches = playedMatches.filter(m => m.campionato === selectedChamp); }
+                playedMatches.sort((a, b) => {
                   const dateA = normalizeDate(a.data);
                   const dateB = normalizeDate(b.data);
                   if (!dateA || !dateB) return 0;
-                  return dateA.localeCompare(dateB);
+                  return dateB.localeCompare(dateA);
                 });
-                if (!filteredByDays || filteredByDays.length === 0) { return <div className="empty-state">Nessuna partita nei prossimi {daysRange + 1} giorni.</div>; }
-                return <div className="matches-grid">{filteredByDays.map(m => { const weatherKey = `${m.campionato}_${m.data}`; const weather = weatherCache[weatherKey] || null; return <MatchTab key={m.id} match={m} allMatches={matches} onSelect={selectMatch} selectedFamiglie={selectedFamiglie} weatherData={weather} />; })}</div>;
-              } catch (e) { console.error('Errore rendering Palinsesto:', e); return <div className="empty-state">Errore nel caricamento delle partite: {e.message}</div>; }
-            })()}
-          </div>
-        )}
-
-        {tab === 'Statistiche' && (
-          <div>
-            <div className="sub-tabs">
-              <button className={statsSubTab === 'Classifica' ? 'active' : ''} onClick={() => setStatsSubTab('Classifica')}>📊 Classifica</button>
-              <button className={statsSubTab === 'Scontri' ? 'active' : ''} onClick={() => setStatsSubTab('Scontri')}>⚔️ Scontri</button>
-              <button className={statsSubTab === 'Analisi' ? 'active' : ''} onClick={() => setStatsSubTab('Analisi')}>📈 Analisi Avanzata</button>
+                if (playedMatches.length === 0) { return <div className="empty-state">Nessuna partita giocata.</div>; }
+                return <div className="matches-grid">{playedMatches.map(m => <MatchTabHistory key={m.id} match={m} onSelect={selectMatch} />)}</div>;
+              })()}
             </div>
-            {statsSubTab === 'Classifica' && (
-              <div className="stats-two-col">
-                <div>{selectedMatch ? <MatchDetail match={selectedMatch} allMatches={matches} /> : <div className="stats-placeholder"><p>👈 Seleziona una partita dal <b>Palinsesto</b> o dallo <b>Storico</b> per vedere le statistiche dettagliate.</p></div>}</div>
-                <div>{selectedMatch ? <><h3 style={{marginBottom:'12px', color: getChampColor(selectedMatch.campionato)}}>Classifica - {selectedMatch.campionato}</h3><Standings matches={matches} filterChampionship={selectedMatch.campionato} highlightTeams={[selectedMatch.casa, selectedMatch.ospiti]} /></> : <div className="stats-placeholder"><p>📊 Seleziona una partita per vedere la classifica.</p></div>}</div>
-              </div>
-            )}
-            {statsSubTab === 'Scontri' && (
-              <div>{selectedMatch ? <div className="stats-two-col" style={{ gridTemplateColumns: '1fr 1fr' }}><TeamMatchesHistory teamName={selectedMatch.casa} championship={selectedMatch.campionato} allMatches={matches} /><TeamMatchesHistory teamName={selectedMatch.ospiti} championship={selectedMatch.campionato} allMatches={matches} /></div> : <div className="stats-placeholder"><p>👈 Seleziona una partita per vedere lo storico delle due squadre.</p></div>}</div>
-            )}
-            {statsSubTab === 'Analisi' && (
-              <div>
-                {selectedMatch ? (
-                  <div>
-                    {(() => {
-                      const city = getCityForMatch(selectedMatch.casa, selectedMatch.campionato);
-                      const weatherKey = `${selectedMatch.campionato}_${selectedMatch.data}`;
-                      const weather = weatherCache[weatherKey] || null;
-                      return <WeatherProfessionale weatherData={weather} city={city} matchDate={selectedMatch.data} />;
-                    })()}
-                    
-                    <div className="analisi-compact">
-                      <div>
-                        <RisultatiFrequenti teamName={selectedMatch.casa} allMatches={matches} />
-                        <FrequenzaGol teamName={selectedMatch.casa} allMatches={matches} />
-                        <IndiceAffidabilita teamName={selectedMatch.casa} allMatches={matches} />
-                      </div>
-                      <div>
-                        <RisultatiFrequenti teamName={selectedMatch.ospiti} allMatches={matches} />
-                        <FrequenzaGol teamName={selectedMatch.ospiti} allMatches={matches} />
-                        <IndiceAffidabilita teamName={selectedMatch.ospiti} allMatches={matches} />
-                      </div>
-                      <div style={{ gridColumn: '1 / -1' }}>
-                        <AnalisiMeteo matches={matches} weatherCache={weatherCache} />
-                      </div>
-                      <div style={{ gridColumn: '1 / -1' }}>
-                        <AIAnalysis match={selectedMatch} allMatches={matches} apiKeys={apiKeys} setTab={setTab} />
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="stats-placeholder">
-                    <p>👈 Seleziona una partita per vedere l'analisi avanzata.</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+          )}
 
-        {tab === 'Storico' && (
-          <div>
-            <h2 style={{marginBottom:'14px'}}>📜 Storico Partite Giocate</h2>
-            <div className="form-group">
-              <label>Filtra per Campionato</label>
-              <select value={selectedChamp} onChange={e => setSelectedChamp(e.target.value)}>
-                <option>Tutti</option>
-                {championships.map(c => <option key={c.name}>{c.name}</option>)}
-              </select>
-            </div>
-            {(() => {
-              let playedMatches = matches.filter(m => m.stato === 'Giocata');
-              if (selectedChamp !== 'Tutti') { playedMatches = playedMatches.filter(m => m.campionato === selectedChamp); }
-              playedMatches.sort((a, b) => {
-                const dateA = normalizeDate(a.data);
-                const dateB = normalizeDate(b.data);
-                if (!dateA || !dateB) return 0;
-                return dateB.localeCompare(dateA);
-              });
-              if (playedMatches.length === 0) { return <div className="empty-state">Nessuna partita giocata.</div>; }
-              return <div className="matches-grid">{playedMatches.map(m => <MatchTabHistory key={m.id} match={m} onSelect={selectMatch} />)}</div>;
-            })()}
-          </div>
-        )}
-
-        {tab === 'API KEY' && (
-          <div>
-            <h2 style={{marginBottom:'14px'}}>🔑 Gestione API Key</h2>
-            <div className="alert alert-info">💡 <b>GROQ</b> per l'AI. <b>WorldWeatherOnline</b> per il meteo. <b>API-Football</b> per infortuni e statistiche avanzate.</div>
-            {['GROQ','WorldWeatherOnline','API-Football'].map(name => (
-              <div key={name} className="card">
-                <h3>
-                  {name === 'GROQ' && '🧠'} {name === 'WorldWeatherOnline' && '🌦️'} {name === 'API-Football' && '⚽'} {name}
-                </h3>
-                <div className="form-group" style={{marginTop:'10px'}}>
-                  <label>API Key</label>
-                  <input type="password" value={tempKeys[name] || ''} onChange={e => setTempKeys({ ...tempKeys, [name]: e.target.value })} placeholder={`Inserisci la tua key ${name}`} />
-                </div>
-                <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
-                  <button className="btn btn-secondary" onClick={() => testApiKey(name)}>🧪 Test</button>
-                  <button className="btn" onClick={() => confirmApiKey(name)}>💾 Conferma</button>
-                  {apiTestResult[name] && <span style={{padding:'10px', color: apiTestResult[name]==='OK' ? 'var(--win)' : 'var(--lose)'}}><b>Test: {apiTestResult[name]}</b></span>}
-                  {apiKeys[name] && <span style={{padding:'10px', color:'var(--win)'}}>✅ Configurata</span>}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {tab === 'Impostazioni' && (
-          <div>
-            <div className="tabs-sub">
-              {SETTINGS_TABS.map(t => <button key={t} className={settingsTab === t ? 'active' : ''} onClick={() => setSettingsTab(t)}>{t === 'Temi' && '🎨 '}{t === 'API KEY' && '🔑 '}{t === 'Dati Locali' && '💾 '}{t === 'Importa Campionato' && '📥 '}{t === 'Giocate' && '🎯 '}{t === 'Grandezza Caratteri' && '📏 '}{t === 'Città Meteo' && '🌍 '}{t === 'Visuale' && '📱 '}{t}</button>)}
-            </div>
-            {settingsTab === 'Temi' && (
-              <div>
-                <h3 style={{marginBottom:'12px'}}>🎨 Scegli un Tema</h3>
-                <div className="theme-grid">
-                  {Object.entries(THEMES).map(([name, t]) => <div key={name} className={`theme-card ${theme === name ? 'active' : ''}`} style={{background: t.card, color: t.text, borderColor: theme === name ? t.accent : t.border}} onClick={() => setTheme(name)}><div className="theme-name" style={{color: t.accent}}>{name}</div><div style={{display:'flex', gap:'4px', justifyContent:'center', marginTop:'6px'}}><div style={{width:'20px',height:'20px',background:t.bg,borderRadius:'50%'}}></div><div style={{width:'20px',height:'20px',background:t.accent,borderRadius:'50%'}}></div><div style={{width:'20px',height:'20px',background:t.text,borderRadius:'50%'}}></div></div></div>)}
-                  <div className={`theme-card ${theme === 'Custom' ? 'active' : ''}`} style={{background: customTheme.card, color: customTheme.text, borderColor: theme === 'Custom' ? customTheme.accent : customTheme.border}} onClick={() => setTheme('Custom')}><div className="theme-name" style={{color: customTheme.accent}}>🎨 Custom</div></div>
-                </div>
-                {theme === 'Custom' && <div className="card" style={{marginTop:'20px'}}><h3 style={{marginBottom:'12px'}}>Personalizza Colori</h3>{[['Sfondo','bg'],['Superficie','surface'],['Card','card'],['Banner','banner'],['Testo','text'],['Testo Muted','textMuted'],['Accento','accent'],['Accento 2','accent2'],['Bordo','border']].map(([label, key]) => <div key={key} className="color-picker-row"><input type="color" value={customTheme[key]} onChange={e => setCustomTheme({ ...customTheme, [key]: e.target.value })} /><span>{label}</span></div>)}</div>}
-              </div>
-            )}
-            {settingsTab === 'API KEY' && <div><p style={{color:'var(--text-muted)'}}>Le API Key sono gestite nel TAB dedicato.</p><button className="btn" onClick={() => setTab('API KEY')} style={{marginTop:'10px'}}>🔑 Vai al TAB API KEY</button></div>}
-            {settingsTab === 'Dati Locali' && (
-              <div>
-                <h3 style={{marginBottom:'12px'}}>💾 Salvataggio / Caricamento</h3>
-                <div className="card">
-                  <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px'}}>
-                    <button className="btn" onClick={updateFinishedMatches} disabled={loading || updateRunning} style={{background: 'var(--accent)', color: '#000'}}>
-                      {updateRunning ? '⏳ Aggiornamento...' : '🔄 Aggiorna Tutte le Partite'}
-                    </button>
-                    <button className="btn" onClick={saveLocal}>💾 Scarica Backup JSON</button>
+          {tab === 'API KEY' && (
+            <div>
+              <h2 style={{marginBottom:'14px'}}>🔑 Gestione API Key</h2>
+              <div className="alert alert-info">💡 <b>GROQ</b> per l'AI. <b>WorldWeatherOnline</b> per il meteo. <b>API-Football</b> per infortuni e statistiche avanzate.</div>
+              {['GROQ','WorldWeatherOnline','API-Football'].map(name => (
+                <div key={name} className="card">
+                  <h3>
+                    {name === 'GROQ' && '🧠'} {name === 'WorldWeatherOnline' && '🌦️'} {name === 'API-Football' && '⚽'} {name}
+                  </h3>
+                  <div className="form-group" style={{marginTop:'10px'}}>
+                    <label>API Key</label>
+                    <input type="password" value={tempKeys[name] || ''} onChange={e => setTempKeys({ ...tempKeys, [name]: e.target.value })} placeholder={`Inserisci la tua key ${name}`} />
                   </div>
-                  <p style={{marginBottom:'12px'}}>I dati vengono salvati automaticamente in localStorage.</p>
-                  <hr style={{margin:'14px 0', borderColor:'var(--border)'}}/>
-                  <label style={{display:'block', marginBottom:'6px'}}>📂 Carica Backup JSON</label>
-                  <input type="file" accept=".json" onChange={e => e.target.files[0] && loadLocal(e.target.files[0])} />
-                  <hr style={{margin:'14px 0', borderColor:'var(--border)'}}/>
-                  <button className="btn btn-danger" onClick={() => { if (confirm('Vuoi davvero resettare TUTTI i dati?')) { localStorage.clear(); saveBlacklist([]); saveCustomSofaLeagues([]); localStorage.removeItem('ft_football_data_imported'); localStorage.removeItem('ft_sportsapipro_imported'); setChampionships([]); setMatches([]); setApiKeys({}); setTempKeys({}); setSchedineHistory([]); setRefreshSofaTrigger(prev => prev + 1); showAlert('success', '🗑️ Dati resettati completamente.'); } }}>🗑️ Reset Completo</button>
-                </div>
-              </div>
-            )}
-            {settingsTab === 'Importa Campionato' && (
-              <div>
-                <h3 style={{marginBottom:'12px'}}>📥 Importa Campionato</h3>
-                <div className="sub-tabs" style={{marginBottom:'16px'}}>
-                  <button className="active" onClick={() => {}}>📁 File</button>
-                </div>
-                {/* Il componente SofaScoreManager è stato rimosso come richiesto */}
-                <FileImporter 
-                  matches={matches} 
-                  setMatches={setMatches} 
-                  championships={championships} 
-                  setChampionships={setChampionships} 
-                  loading={loading} 
-                  setLoading={setLoading} 
-                  showAlert={showAlert} 
-                />
-                <hr style={{borderColor:'var(--border)', margin:'20px 0'}}/>
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', margin:'20px 0 12px', flexWrap:'wrap', gap:'10px'}}>
-                  <h3 style={{margin:0}}>📋 Campionati Importati</h3>
                   <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
-                    <button className="btn btn-danger" onClick={clearAllChampionships}>🗑️ Elimina Tutti</button>
+                    <button className="btn btn-secondary" onClick={() => testApiKey(name)}>🧪 Test</button>
+                    <button className="btn" onClick={() => confirmApiKey(name)}>💾 Conferma</button>
+                    {apiTestResult[name] && <span style={{padding:'10px', color: apiTestResult[name]==='OK' ? 'var(--win)' : 'var(--lose)'}}><b>Test: {apiTestResult[name]}</b></span>}
+                    {apiKeys[name] && <span style={{padding:'10px', color:'var(--win)'}}>✅ Configurata</span>}
                   </div>
                 </div>
-                {championships.length === 0 ? <div className="empty-state">Nessun campionato importato.</div> : (
-                  <div className="champ-list">
-                    {championships.map(c => {
-                      const totalMatches = matches.filter(m => m.campionato === c.name).length;
-                      const futureMatches = matches.filter(m => m.campionato === c.name && m.stato === 'Futura').length;
-                      const playedMatches = matches.filter(m => m.campionato === c.name && m.stato === 'Giocata').length;
-                      return (
-                        <div key={c.name} className="champ-item" style={{borderLeft: `4px solid ${getChampColor(c.name)}`, paddingLeft:'12px'}}>
-                          <div><b>{c.name}</b><div style={{fontSize:'11px', color:'var(--text-muted)'}}>{totalMatches} partite ({futureMatches} future, {playedMatches} giocate) <span style={{marginLeft:'8px', fontSize:'10px', color:'var(--text-muted)'}}>📅 {new Date(c.importedAt).toLocaleDateString()}</span></div></div>
-                          <button className="btn btn-danger" onClick={() => { if (confirm(`Eliminare ${c.name} e tutte le sue partite?`)) { setChampionships(championships.filter(x => x.name !== c.name)); setMatches(matches.filter(m => m.campionato !== c.name)); } }}>🗑️ Elimina</button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-            {settingsTab === 'Giocate' && (
-              <div>
-                <FamiglieSelector selectedFamiglie={selectedFamiglie} setSelectedFamiglie={setSelectedFamiglie} showAlert={showAlert} />
-              </div>
-            )}
-            {settingsTab === 'Grandezza Caratteri' && (
-              <div>
-                <div className="card">
-                  <h3 style={{marginBottom: '12px'}}>📏 Grandezza Caratteri</h3>
-                  <div style={{display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap'}}>
-                    <button className="btn btn-secondary" onClick={() => setFontSize(prev => Math.max(70, prev - 5))} style={{fontSize: '18px', fontWeight: 'bold', padding: '8px 16px', minWidth: '44px', minHeight: '44px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer'}}>−</button>
-                    <div style={{flex: 1, minWidth: '150px'}}>
-                      <input type="range" min="70" max="150" step="5" value={fontSize} onChange={(e) => setFontSize(parseInt(e.target.value))} style={{width: '100%', accentColor: 'var(--accent)', height: '6px', borderRadius: '3px', background: 'var(--surface)', cursor: 'pointer'}} />
-                      <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px'}}><span>70%</span><span style={{fontWeight: 'bold', color: 'var(--accent)'}}>{fontSize}%</span><span>150%</span></div>
-                    </div>
-                    <button className="btn btn-secondary" onClick={() => setFontSize(prev => Math.min(150, prev + 5))} style={{fontSize: '18px', fontWeight: 'bold', padding: '8px 16px', minWidth: '44px', minHeight: '44px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer'}}>+</button>
-                    <button className="btn btn-secondary" onClick={() => setFontSize(100)} style={{fontSize: '12px', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer'}}>🔄 Reset (100%)</button>
-                  </div>
-                  <div style={{marginTop: '12px', fontSize: '12px', color: 'var(--text-muted)', borderTop: '1px solid var(--border)', paddingTop: '10px'}}>
-                    <div style={{display: 'flex', gap: '16px', flexWrap: 'wrap'}}><span>📱 <b>Consigliato:</b> 100% (PC) / 110-120% (Mobile)</span><span>💡 La modifica si applica immediatamente a tutta l'app</span></div>
-                    <div style={{marginTop: '6px', padding: '8px 12px', borderRadius: '6px', background: 'var(--surface)', border: '1px solid var(--border)', fontSize: `${fontSize}%`, transition: 'font-size 0.2s'}}><span style={{fontWeight: 'bold'}}>Anteprima:</span> Questo è un testo di esempio alla dimensione <b>{fontSize}%</b></div>
-                  </div>
-                </div>
-              </div>
-            )}
-            {settingsTab === 'Città Meteo' && (
-              <div>
-                <CittaMeteo matches={matches} />
-              </div>
-            )}
-            {settingsTab === 'Visuale' && (
-              <div className="card">
-                <h3 style={{marginBottom: '12px'}}>📱 Cambia Visuale</h3>
-                <div style={{display: 'flex', gap: '16px', flexWrap: 'wrap'}}>
-                  <button className={`btn ${viewMode === 'pc' ? '' : 'btn-secondary'}`} onClick={() => setViewMode('pc')} style={{flex: 1, minWidth: '120px'}}>🖥️ PC</button>
-                  <button className={`btn ${viewMode === 'mobile' ? '' : 'btn-secondary'}`} onClick={() => setViewMode('mobile')} style={{flex: 1, minWidth: '120px'}}>📱 Telefono</button>
-                </div>
-                <div style={{marginTop: '12px', fontSize: '13px', color: 'var(--text-muted)'}}>
-                  Modalità attuale: <b>{viewMode === 'pc' ? '🖥️ PC' : '📱 Telefono'}</b>
-                </div>
-                <div style={{marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)'}}>
-                  {viewMode === 'mobile' 
-                    ? '✅ La visuale è ottimizzata per schermi piccoli. Il contenuto si adatta automaticamente.'
-                    : '✅ Visuale ottimizzata per schermi grandi. Massima visibilità dei dati.'}
-                </div>
-                {viewMode === 'mobile' && (
-                  <div style={{marginTop: '12px', padding: '12px', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--border)'}}>
-                    <div style={{fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px'}}>📱 Anteprima simulazione telefono</div>
-                    <div className="phone-simulator">
-                      <div className="phone-notch">
-                        <div className="notch-speaker"></div>
-                        <div className="notch-camera"></div>
-                      </div>
-                      <div className="phone-screen">
-                        <div className="phone-scroll" style={{paddingTop: '32px'}}>
-                          {renderAppContent()}
-                        </div>
-                        <div className="phone-home-indicator"></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
 
-      <button 
-        className="home-btn-overlay" 
-        onClick={() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        title="Torna su"
-      >
-        🏠
-      </button>
-    </div>
-  );
+          {tab === 'Impostazioni' && (
+            <div>
+              <div className="tabs-sub">
+                {SETTINGS_TABS.map(t => <button key={t} className={settingsTab === t ? 'active' : ''} onClick={() => setSettingsTab(t)}>{t === 'Temi' && '🎨 '}{t === 'API KEY' && '🔑 '}{t === 'Dati Locali' && '💾 '}{t === 'Importa Campionato' && '📥 '}{t === 'Giocate' && '🎯 '}{t === 'Grandezza Caratteri' && '📏 '}{t === 'Città Meteo' && '🌍 '}{t === 'Visuale' && '📱 '}{t}</button>)}
+              </div>
+              {settingsTab === 'Temi' && (
+                <div>
+                  <h3 style={{marginBottom:'12px'}}>🎨 Scegli un Tema</h3>
+                  <div className="theme-grid">
+                    {Object.entries(THEMES).map(([name, t]) => <div key={name} className={`theme-card ${theme === name ? 'active' : ''}`} style={{background: t.card, color: t.text, borderColor: theme === name ? t.accent : t.border}} onClick={() => setTheme(name)}><div className="theme-name" style={{color: t.accent}}>{name}</div><div style={{display:'flex', gap:'4px', justifyContent:'center', marginTop:'6px'}}><div style={{width:'20px',height:'20px',background:t.bg,borderRadius:'50%'}}></div><div style={{width:'20px',height:'20px',background:t.accent,borderRadius:'50%'}}></div><div style={{width:'20px',height:'20px',background:t.text,borderRadius:'50%'}}></div></div></div>)}
+                    <div className={`theme-card ${theme === 'Custom' ? 'active' : ''}`} style={{background: customTheme.card, color: customTheme.text, borderColor: theme === 'Custom' ? customTheme.accent : customTheme.border}} onClick={() => setTheme('Custom')}><div className="theme-name" style={{color: customTheme.accent}}>🎨 Custom</div></div>
+                  </div>
+                  {theme === 'Custom' && <div className="card" style={{marginTop:'20px'}}><h3 style={{marginBottom:'12px'}}>Personalizza Colori</h3>{[['Sfondo','bg'],['Superficie','surface'],['Card','card'],['Banner','banner'],['Testo','text'],['Testo Muted','textMuted'],['Accento','accent'],['Accento 2','accent2'],['Bordo','border']].map(([label, key]) => <div key={key} className="color-picker-row"><input type="color" value={customTheme[key]} onChange={e => setCustomTheme({ ...customTheme, [key]: e.target.value })} /><span>{label}</span></div>)}</div>}
+                </div>
+              )}
+              {settingsTab === 'API KEY' && <div><p style={{color:'var(--text-muted)'}}>Le API Key sono gestite nel TAB dedicato.</p><button className="btn" onClick={() => setTab('API KEY')} style={{marginTop:'10px'}}>🔑 Vai al TAB API KEY</button></div>}
+              {settingsTab === 'Dati Locali' && (
+                <div>
+                  <h3 style={{marginBottom:'12px'}}>💾 Salvataggio / Caricamento</h3>
+                  <div className="card">
+                    <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px'}}>
+                      <button className="btn" onClick={updateFinishedMatches} disabled={loading || updateRunning} style={{background: 'var(--accent)', color: '#000'}}>
+                        {updateRunning ? '⏳ Aggiornamento...' : '🔄 Aggiorna Tutte le Partite'}
+                      </button>
+                      <button className="btn" onClick={saveLocal}>💾 Scarica Backup JSON</button>
+                    </div>
+                    <p style={{marginBottom:'12px'}}>I dati vengono salvati automaticamente in localStorage.</p>
+                    <hr style={{margin:'14px 0', borderColor:'var(--border)'}}/>
+                    <label style={{display:'block', marginBottom:'6px'}}>📂 Carica Backup JSON</label>
+                    <input type="file" accept=".json" onChange={e => e.target.files[0] && loadLocal(e.target.files[0])} />
+                    <hr style={{margin:'14px 0', borderColor:'var(--border)'}}/>
+                    <button className="btn btn-danger" onClick={() => { if (confirm('Vuoi davvero resettare TUTTI i dati?')) { localStorage.clear(); saveBlacklist([]); saveCustomSofaLeagues([]); localStorage.removeItem('ft_football_data_imported'); localStorage.removeItem('ft_sportsapipro_imported'); setChampionships([]); setMatches([]); setApiKeys({}); setTempKeys({}); setSchedineHistory([]); setRefreshSofaTrigger(prev => prev + 1); showAlert('success', '🗑️ Dati resettati completamente.'); } }}>🗑️ Reset Completo</button>
+                  </div>
+                </div>
+              )}
+              {settingsTab === 'Importa Campionato' && (
+                <div>
+                  <h3 style={{marginBottom:'12px'}}>📥 Importa Campionato</h3>
+                  <div className="sub-tabs" style={{marginBottom:'16px'}}>
+                    <button className="active" onClick={() => {}}>📁 File</button>
+                  </div>
+                  <FileImporter 
+                    matches={matches} 
+                    setMatches={setMatches} 
+                    championships={championships} 
+                    setChampionships={setChampionships} 
+                    loading={loading} 
+                    setLoading={setLoading} 
+                    showAlert={showAlert} 
+                  />
+                  <hr style={{borderColor:'var(--border)', margin:'20px 0'}}/>
+                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', margin:'20px 0 12px', flexWrap:'wrap', gap:'10px'}}>
+                    <h3 style={{margin:0}}>📋 Campionati Importati</h3>
+                    <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
+                      <button className="btn btn-danger" onClick={clearAllChampionships}>🗑️ Elimina Tutti</button>
+                    </div>
+                  </div>
+                  {championships.length === 0 ? <div className="empty-state">Nessun campionato importato.</div> : (
+                    <div className="champ-list">
+                      {championships.map(c => {
+                        const totalMatches = matches.filter(m => m.campionato === c.name).length;
+                        const futureMatches = matches.filter(m => m.campionato === c.name && m.stato === 'Futura').length;
+                        const playedMatches = matches.filter(m => m.campionato === c.name && m.stato === 'Giocata').length;
+                        return (
+                          <div key={c.name} className="champ-item" style={{borderLeft: `4px solid ${getChampColor(c.name)}`, paddingLeft:'12px'}}>
+                            <div><b>{c.name}</b><div style={{fontSize:'11px', color:'var(--text-muted)'}}>{totalMatches} partite ({futureMatches} future, {playedMatches} giocate) <span style={{marginLeft:'8px', fontSize:'10px', color:'var(--text-muted)'}}>📅 {new Date(c.importedAt).toLocaleDateString()}</span></div></div>
+                            <button className="btn btn-danger" onClick={() => { if (confirm(`Eliminare ${c.name} e tutte le sue partite?`)) { setChampionships(championships.filter(x => x.name !== c.name)); setMatches(matches.filter(m => m.campionato !== c.name)); } }}>🗑️ Elimina</button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+              {settingsTab === 'Giocate' && (
+                <div>
+                  <FamiglieSelector selectedFamiglie={selectedFamiglie} setSelectedFamiglie={setSelectedFamiglie} showAlert={showAlert} />
+                </div>
+              )}
+              {settingsTab === 'Grandezza Caratteri' && (
+                <div>
+                  <div className="card">
+                    <h3 style={{marginBottom: '12px'}}>📏 Grandezza Caratteri</h3>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap'}}>
+                      <button className="btn btn-secondary" onClick={() => setFontSize(prev => Math.max(70, prev - 5))} style={{fontSize: '18px', fontWeight: 'bold', padding: '8px 16px', minWidth: '44px', minHeight: '44px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer'}}>−</button>
+                      <div style={{flex: 1, minWidth: '150px'}}>
+                        <input type="range" min="70" max="150" step="5" value={fontSize} onChange={(e) => setFontSize(parseInt(e.target.value))} style={{width: '100%', accentColor: 'var(--accent)', height: '6px', borderRadius: '3px', background: 'var(--surface)', cursor: 'pointer'}} />
+                        <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px'}}><span>70%</span><span style={{fontWeight: 'bold', color: 'var(--accent)'}}>{fontSize}%</span><span>150%</span></div>
+                      </div>
+                      <button className="btn btn-secondary" onClick={() => setFontSize(prev => Math.min(150, prev + 5))} style={{fontSize: '18px', fontWeight: 'bold', padding: '8px 16px', minWidth: '44px', minHeight: '44px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer'}}>+</button>
+                      <button className="btn btn-secondary" onClick={() => setFontSize(100)} style={{fontSize: '12px', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer'}}>🔄 Reset (100%)</button>
+                    </div>
+                    <div style={{marginTop: '12px', fontSize: '12px', color: 'var(--text-muted)', borderTop: '1px solid var(--border)', paddingTop: '10px'}}>
+                      <div style={{display: 'flex', gap: '16px', flexWrap: 'wrap'}}><span>📱 <b>Consigliato:</b> 100% (PC) / 110-120% (Mobile)</span><span>💡 La modifica si applica immediatamente a tutta l'app</span></div>
+                      <div style={{marginTop: '6px', padding: '8px 12px', borderRadius: '6px', background: 'var(--surface)', border: '1px solid var(--border)', fontSize: `${fontSize}%`, transition: 'font-size 0.2s'}}><span style={{fontWeight: 'bold'}}>Anteprima:</span> Questo è un testo di esempio alla dimensione <b>{fontSize}%</b></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {settingsTab === 'Città Meteo' && (
+                <div>
+                  <CittaMeteo matches={matches} />
+                </div>
+              )}
+              {settingsTab === 'Visuale' && (
+                <div className="card">
+                  <h3 style={{marginBottom: '12px'}}>📱 Cambia Visuale</h3>
+                  <div style={{display: 'flex', gap: '16px', flexWrap: 'wrap'}}>
+                    <button 
+                      className={`btn ${viewMode === 'pc' ? '' : 'btn-secondary'}`} 
+                      onClick={() => {
+                        setViewMode('pc');
+                        setTimeout(() => window.scrollTo(0, 0), 100);
+                      }} 
+                      style={{flex: 1, minWidth: '120px'}}
+                    >
+                      🖥️ PC
+                    </button>
+                    <button 
+                      className={`btn ${viewMode === 'mobile' ? '' : 'btn-secondary'}`} 
+                      onClick={() => {
+                        setViewMode('mobile');
+                        setTimeout(() => window.scrollTo(0, 0), 100);
+                      }} 
+                      style={{flex: 1, minWidth: '120px'}}
+                    >
+                      📱 Telefono
+                    </button>
+                  </div>
+                  <div style={{marginTop: '12px', fontSize: '13px', color: 'var(--text-muted)'}}>
+                    Modalità attuale: <b>{viewMode === 'pc' ? '🖥️ PC' : '📱 Telefono'}</b>
+                  </div>
+                  <div style={{marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)'}}>
+                    {viewMode === 'mobile' 
+                      ? '✅ La visuale è ottimizzata per schermi piccoli. Il contenuto si adatta automaticamente.'
+                      : '✅ Visuale ottimizzata per schermi grandi. Massima visibilità dei dati.'}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <button 
+          className="home-btn-overlay" 
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          title="Torna su"
+        >
+          🏠
+        </button>
+      </div>
+    );
+  };
 
   // Se la modalità è mobile, mostriamo l'app dentro il simulatore
   if (viewMode === 'mobile') {
@@ -4533,6 +4558,7 @@ function App() {
     );
   }
 
+  // Modalità PC - rendering normale
   return renderAppContent();
 }
 
