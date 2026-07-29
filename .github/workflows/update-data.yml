@@ -37,18 +37,18 @@ jobs:
           echo "CHROME_BIN=/usr/bin/chromium-browser" >> $GITHUB_ENV
           echo "CHROME_DRIVER=/usr/bin/chromedriver" >> $GITHUB_ENV
 
-      - name: Esegui scarica.py e cattura errore
+      - name: Esegui scarica.py e mostra errore
         run: |
+          set -e
           echo "### Inizio esecuzione di scarica.py ###"
-          python scarica.py 2> error_log.txt
-          exit_code=$?
+          python -u scarica.py 2>&1 | tee output.log
+          exit_code=${PIPESTATUS[0]}
           echo "### Fine esecuzione con codice: $exit_code ###"
-          if [ -s error_log.txt ]; then
-            echo "❌ ERRORE DETTAGLIATO:"
-            cat error_log.txt
-          fi
           if [ $exit_code -ne 0 ]; then
-            echo "❌ Lo script è fallito. Controlla l'errore qui sopra."
+            echo "❌ Lo script è fallito con errore."
+            echo "--- ULTIME 10 RIGHE DI OUTPUT ---"
+            tail -n 10 output.log
+            echo "--- FINE OUTPUT ---"
             exit $exit_code
           fi
         env:
