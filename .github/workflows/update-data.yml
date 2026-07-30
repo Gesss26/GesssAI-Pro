@@ -3,36 +3,36 @@ name: Aggiorna JSON
 on:
   push:
     paths:
-      - 'GesssAI_Input.xlsx'  # Si attiva quando carichi l'Excel
-  workflow_dispatch:  # Puoi eseguirlo anche manualmente
+      - 'GesssAI_Input.xlsx'
+  workflow_dispatch:
 
 jobs:
   convert:
     runs-on: ubuntu-latest
-    timeout-minutes: 5  # Timeout dopo 5 minuti
-    
+    timeout-minutes: 5
+
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
-    
+      uses: actions/checkout@v4  # Aggiornato anche questo
+
     - name: Setup Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5  # Aggiornato anche questo
       with:
         python-version: '3.10'
-    
+
     - name: Installa dipendenze
       run: |
         pip install pandas openpyxl requests
-    
+
     - name: Converti Excel in JSON
       run: |
         python excel_to_json.py
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_REPO: ${{ github.repository }}
-    
-    - name: Upload JSON come artifact (opzionale)
-      uses: actions/upload-artifact@v3
+
+    - name: Upload JSON come artifact
+      uses: actions/upload-artifact@v4  # <<<--- QUI LA CORREZIONE
       with:
         name: GesssAI_Input.json
         path: GesssAI_Input.json
