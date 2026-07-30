@@ -1,63 +1,38 @@
-name: Aggiorna Dati GesssAI
+name: Aggiorna JSON
 
 on:
-  schedule:
-    - cron: '0 3 * * *'
-  workflow_dispatch:
-
-permissions:
-  contents: write
-  pages: write
-  id-token: write
+  push:
+    paths:
+      - 'GesssAI_Input.xlsx'  # Si attiva quando carichi l'Excel
+  workflow_dispatch:  # Puoi eseguirlo anche manualmente
 
 jobs:
-  update-data:
+  convert:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 5  # Timeout dopo 5 minuti
+    
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Installa dipendenze
-        run: |
-          pip install pandas beautifulsoup4 selenium webdriver-manager lxml openpyxl requests python-dateutil
-          sudo apt-get update
-          sudo apt-get install -y chromium-browser chromium-chromedriver
-
-      - name: Configura Chrome
-        run: |
-          echo "CHROME_BIN=/usr/bin/chromium-browser" >> $GITHUB_ENV
-          echo "CHROME_DRIVER=/usr/bin/chromedriver" >> $GITHUB_ENV
-
-      - name: Esegui scarica.py
-        run: python scarica.py
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPO: ${{ github.repository }}
-          CHROME_BIN: /usr/bin/chromium-browser
-          CHROME_DRIVER: /usr/bin/chromedriver
-
-      - name: Verifica JSON
-        run: |
-          if [ -f "excel/GesssAI_Input.json" ]; then
-            echo "✅ JSON generato!"
-            echo "📊 Dimensioni: $(du -h excel/GesssAI_Input.json | cut -f1)"
-          else
-            echo "❌ JSON NON generato!"
-          fi
-
-      - name: Deploy su GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./excel
-          publish_branch: gh-pages
-          keep_files: false
-          destination_dir: data
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Installa dipendenze
+      run: |
+        pip install pandas openpyxl requests
+    
+    - name: Converti Excel in JSON
+      run: |
+        python excel_to_json.py
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_REPO: ${{ github.repository }}
+    
+    - name: Upload JSON come artifact (opzionale)
+      uses: actions/upload-artifact@v3
+      with:
+        name: GesssAI_Input.json
+        path: GesssAI_Input.json
