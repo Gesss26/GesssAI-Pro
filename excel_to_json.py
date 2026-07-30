@@ -145,14 +145,18 @@ def is_github_actions():
 # MAIN
 # ============================================
 def main():
-    # Usa la stessa cartella del file originale
-    output_folder = r"d:\\ai\\excel"
+    # Usa la cartella corrente o quella specificata
+    output_folder = os.getcwd()
     
-    input_file = os.path.join(output_folder, "GesssAI_Input.xlsx")
+    # Cerca il file Excel nella cartella corrente
+    excel_files = [f for f in os.listdir(output_folder) if f.endswith('.xlsx') and 'GesssAI_Input' in f]
     
-    if not os.path.exists(input_file):
-        print(f"❌ File non trovato: {input_file}")
+    if not excel_files:
+        print(f"❌ File GesssAI_Input.xlsx non trovato in {output_folder}")
+        print(f"   Files trovati: {[f for f in os.listdir(output_folder) if f.endswith('.xlsx')]}")
         return
+    
+    input_file = os.path.join(output_folder, excel_files[0])
     
     print(f"📖 Leggo {input_file}...")
     df = pd.read_excel(input_file)
