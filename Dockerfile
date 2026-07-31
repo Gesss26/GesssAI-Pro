@@ -20,5 +20,4 @@ COPY . .
 # Espone la porta su cui girerà l'app
 EXPOSE 10000
 
-# Comando di avvio
-CMD ["gunicorn", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "app:app"]
