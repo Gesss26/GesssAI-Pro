@@ -3,38 +3,42 @@ from flask_cors import CORS
 import yt_dlp
 import os
 import json
-from datetime import datetime
+import re
 
 app = Flask(__name__)
 CORS(app)
 
-# Configurazione
-UPLOAD_FOLDER = 'downloads'
-PLAYLIST_FILE = 'playlist.json'
+# ============ CONFIGURAZIONE PER AMBIENTE ============
+# Su Render: salva in /tmp
+# In locale: salva in downloads
+IS_RENDER = os.environ.get('RENDER', False)
+UPLOAD_FOLDER = '/tmp' if IS_RENDER else 'downloads'
+PLAYLIST_FILE = 'playlist.json' if not IS_RENDER else '/tmp/playlist.json'
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # ============ GESTIONE PLAYLIST ============
 def load_playlists():
-    """Carica le playlist dal file JSON"""
     if os.path.exists(PLAYLIST_FILE):
         with open(PLAYLIST_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
     return {}
 
 def save_playlists(playlists):
-    """Salva le playlist nel file JSON"""
     with open(PLAYLIST_FILE, 'w', encoding='utf-8') as f:
         json.dump(playlists, f, ensure_ascii=False, indent=2)
+
+def sanitize_filename(filename):
+    """Rimuove caratteri non validi per i nomi dei file"""
+    return re.sub(r'[<>:"/\\|?*]', '', filename).strip()
 
 # ============ ROTTE PRINCIPALI ============
 @app.route('/')
 def index():
-    """Pagina principale"""
     return render_template('index.html')
 
 @app.route('/search', methods=['POST'])
 def search():
-    """Cerca su YouTube"""
     data = request.get_json()
     query = data.get('query', '')
     
@@ -44,7 +48,7 @@ def search():
     ydl_opts = {
         'quiet': True,
         'extract_flat': True,
-        'force_generic_extractor': False,
+        'no_warnings': True,
     }
     
     try:
@@ -73,50 +77,55 @@ def download():
     if not url:
         return jsonify({'error': 'URL non valido'}), 400
     
- ydl_opts = {
-    'format': 'bestaudio/best',
-    'postprocessors': [{
-        'key': 'FFmpegExtractAudio',
-        'preferredcodec': 'mp3',
-        'preferredquality': '192',
-    }],
-    'outtmpl': '/tmp/%(title)s.%(ext)s',  # SALVA IN /tmp/ su Render
-    'quiet': True,
-    'no_warnings': True,
-    # NON USARE 'ffmpeg_location' su Render - non serve
-}
-
-@app.route('/downloads/<filename>')
-def serve_download(filename):
-    """Serve i file MP3 scaricati su Render"""
-    return send_from_directory('/tmp', filename)
+    # Opzioni per yt-dlp
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+        'outtmpl': os.path.join(UPLOAD_FOLDER, '%(title)s.%(ext)s'),
+        'quiet': True,
+        'no_warnings': True,
+        'ignoreerrors': True,
+    }
+    
+    # Su Render, aggiungi il cookie se presente
+    if IS_RENDER and os.path.exists('/etc/secrets/youtube_cookies.txt'):
+        ydl_opts['cookiefile'] = '/etc/secrets/youtube_cookies.txt'
     
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
-            filename = f"{info.get('title', 'audio')}.mp3"
-            # Pulisce il nome file da caratteri non validi
-            filename = "".join(c for c in filename if c.isalnum() or c in " ._-()[]")
-            # Rinominare il file scaricato
-            old_path = os.path.join(UPLOAD_FOLDER, f"{info.get('title', 'audio')}.mp3")
-            new_path = os.path.join(UPLOAD_FOLDER, filename)
-            if os.path.exists(old_path) and old_path != new_path:
-                os.rename(old_path, new_path)
+            
+            # Genera il nome del file
+            raw_title = info.get('title', 'audio')
+            clean_title = sanitize_filename(raw_title)
+            filename = f"{clean_title}.mp3"
+            
+            # Verifica che il file esista
+            expected_path = os.path.join(UPLOAD_FOLDER, filename)
+            if not os.path.exists(expected_path):
+                # Cerca un file che corrisponda
+                for f in os.listdir(UPLOAD_FOLDER):
+                    if f.endswith('.mp3') and clean_title in f:
+                        filename = f
+                        break
             
             return jsonify({
                 'success': True,
                 'filename': filename,
-                'title': info.get('title', 'Senza titolo')
+                'title': raw_title
             })
+            
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/library')
 def get_library():
-    """Restituisce la lista dei file MP3 scaricati"""
     try:
         files = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith('.mp3')]
-        # Ordina per data di modifica (più recenti prima)
         files.sort(key=lambda x: os.path.getmtime(os.path.join(UPLOAD_FOLDER, x)), reverse=True)
         return jsonify(files)
     except Exception as e:
@@ -129,7 +138,6 @@ def serve_audio(filename):
 
 @app.route('/playlists', methods=['GET', 'POST', 'DELETE'])
 def manage_playlists():
-    """Gestisce le playlist"""
     if request.method == 'GET':
         return jsonify(load_playlists())
     
@@ -171,13 +179,11 @@ def manage_playlists():
             return jsonify({'error': 'Playlist non trovata'}), 400
     
     elif request.method == 'DELETE':
-        playlists = {}
-        save_playlists(playlists)
+        save_playlists({})
         return jsonify({'success': True, 'message': 'Tutte le playlist cancellate'})
 
 @app.route('/delete_song', methods=['POST'])
 def delete_song():
-    """Elimina un file MP3 dalla libreria"""
     data = request.get_json()
     filename = data.get('filename')
     
@@ -191,4 +197,5 @@ def delete_song():
     return jsonify({'error': 'File non trovato'}), 404
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
