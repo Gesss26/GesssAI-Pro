@@ -19,12 +19,14 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # ============ GESTIONE PLAYLIST ============
 def load_playlists():
+    """Carica le playlist dal file JSON"""
     if os.path.exists(PLAYLIST_FILE):
         with open(PLAYLIST_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
     return {}
 
 def save_playlists(playlists):
+    """Salva le playlist nel file JSON"""
     with open(PLAYLIST_FILE, 'w', encoding='utf-8') as f:
         json.dump(playlists, f, ensure_ascii=False, indent=2)
 
@@ -35,10 +37,12 @@ def sanitize_filename(filename):
 # ============ ROTTE PRINCIPALI ============
 @app.route('/')
 def index():
+    """Pagina principale"""
     return render_template('index.html')
 
 @app.route('/search', methods=['POST'])
 def search():
+    """Cerca su YouTube"""
     data = request.get_json()
     query = data.get('query', '')
     
@@ -91,7 +95,7 @@ def download():
         'ignoreerrors': True,
     }
     
-    # Su Render, aggiungi il cookie se presente
+    # Se siamo su Render e il file dei cookie esiste, usalo
     if IS_RENDER and os.path.exists('/etc/secrets/youtube_cookies.txt'):
         ydl_opts['cookiefile'] = '/etc/secrets/youtube_cookies.txt'
     
@@ -124,6 +128,7 @@ def download():
 
 @app.route('/library')
 def get_library():
+    """Restituisce la lista dei file MP3 scaricati"""
     try:
         files = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith('.mp3')]
         files.sort(key=lambda x: os.path.getmtime(os.path.join(UPLOAD_FOLDER, x)), reverse=True)
@@ -138,6 +143,7 @@ def serve_audio(filename):
 
 @app.route('/playlists', methods=['GET', 'POST', 'DELETE'])
 def manage_playlists():
+    """Gestisce le playlist"""
     if request.method == 'GET':
         return jsonify(load_playlists())
     
@@ -179,11 +185,13 @@ def manage_playlists():
             return jsonify({'error': 'Playlist non trovata'}), 400
     
     elif request.method == 'DELETE':
-        save_playlists({})
+        playlists = {}
+        save_playlists(playlists)
         return jsonify({'success': True, 'message': 'Tutte le playlist cancellate'})
 
 @app.route('/delete_song', methods=['POST'])
 def delete_song():
+    """Elimina un file MP3 dalla libreria"""
     data = request.get_json()
     filename = data.get('filename')
     
