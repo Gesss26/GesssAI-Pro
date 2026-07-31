@@ -85,6 +85,11 @@ def download():
     'no_warnings': True,
     # NON USARE 'ffmpeg_location' su Render - non serve
 }
+
+@app.route('/downloads/<filename>')
+def serve_download(filename):
+    """Serve i file MP3 scaricati su Render"""
+    return send_from_directory('/tmp', filename)
     
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
