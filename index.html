@@ -1675,48 +1675,137 @@ const getWeatherDescription = (code) => {
   return weatherCodes[code] || 'Condizioni variabili';
 };
 
+// SOSTITUISCI COMPLETAMENTE la funzione fetchWeatherForMatch con questa:
+
 const fetchWeatherForMatch = async (match) => {
   if (!match) return null;
   
   const city = getCityForMatch(match.casa, match.campionato);
   if (!city) return null;
   
+  // Mappa di fallback per nomi di città in diverse lingue
+  const cityNameVariants = {
+    'Stoccolma': ['Stockholm', 'Stoccolma'],
+    'Stockholm': ['Stockholm', 'Stoccolma'],
+    'Göteborg': ['Gothenburg', 'Göteborg'],
+    'Gothenburg': ['Gothenburg', 'Göteborg'],
+    'Malmö': ['Malmo', 'Malmö'],
+    'Malmo': ['Malmo', 'Malmö'],
+    'Copenaghen': ['Copenhagen', 'Copenaghen'],
+    'Copenhagen': ['Copenhagen', 'Copenaghen'],
+    'Londra': ['London', 'Londra'],
+    'London': ['London', 'Londra'],
+    'Monaco': ['Munich', 'Monaco'],
+    'Munich': ['Munich', 'Monaco'],
+    'Vienna': ['Vienna', 'Vienna'],
+    'Berlino': ['Berlin', 'Berlino'],
+    'Berlin': ['Berlin', 'Berlino'],
+    'Parigi': ['Paris', 'Parigi'],
+    'Paris': ['Paris', 'Parigi'],
+    'Roma': ['Rome', 'Roma'],
+    'Rome': ['Rome', 'Roma'],
+    'Milano': ['Milan', 'Milano'],
+    'Milan': ['Milan', 'Milano'],
+    'Torino': ['Turin', 'Torino'],
+    'Turin': ['Turin', 'Torino'],
+    'Napoli': ['Naples', 'Napoli'],
+    'Naples': ['Naples', 'Napoli'],
+    'Firenze': ['Florence', 'Firenze'],
+    'Florence': ['Florence', 'Firenze'],
+    'Genova': ['Genoa', 'Genova'],
+    'Genoa': ['Genoa', 'Genova'],
+    'Barcellona': ['Barcelona', 'Barcellona'],
+    'Barcelona': ['Barcelona', 'Barcellona'],
+    'Siviglia': ['Seville', 'Siviglia'],
+    'Seville': ['Seville', 'Siviglia'],
+    'Amsterdam': ['Amsterdam', 'Amsterdam'],
+    'Rotterdam': ['Rotterdam', 'Rotterdam'],
+    'Bruxelles': ['Brussels', 'Bruxelles'],
+    'Brussels': ['Brussels', 'Bruxelles'],
+    'Lisbona': ['Lisbon', 'Lisbona'],
+    'Lisbon': ['Lisbon', 'Lisbona'],
+    'Porto': ['Porto', 'Porto'],
+    'Oslo': ['Oslo', 'Oslo'],
+    'Helsinki': ['Helsinki', 'Helsinki'],
+    'Dublino': ['Dublin', 'Dublino'],
+    'Dublin': ['Dublin', 'Dublino'],
+    'Reykjavik': ['Reykjavik', 'Reykjavik'],
+    'Tokyo': ['Tokyo', 'Tokyo'],
+    'Seul': ['Seoul', 'Seul'],
+    'Seoul': ['Seoul', 'Seoul'],
+    'Pechino': ['Beijing', 'Pechino'],
+    'Beijing': ['Beijing', 'Pechino'],
+    'Shanghai': ['Shanghai', 'Shanghai'],
+    'New York': ['New York', 'New York'],
+    'Città del Messico': ['Mexico City', 'Città del Messico'],
+    'Mexico City': ['Mexico City', 'Mexico City']
+  };
+  
   try {
     let lat, lon;
     
-    // 1. Prima controlla se la città è nella mappa delle coordinate
+    // 1. PRIMA: controlla se la città è direttamente nella mappa delle coordinate
     if (CITY_COORDINATES[city]) {
       lat = CITY_COORDINATES[city].lat;
       lon = CITY_COORDINATES[city].lon;
+      console.log(`✅ Coordinate trovate per ${city}: ${lat}, ${lon}`);
     } else {
-      // 2. Prova il geocoding come fallback
-      try {
-        const geoRes = await fetch(
-          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=it&format=json`
-        );
-        
-        if (geoRes.ok) {
-          const geoData = await geoRes.json();
-          if (geoData.results && geoData.results.length > 0) {
-            lat = geoData.results[0].latitude;
-            lon = geoData.results[0].longitude;
-          }
+      // 2. SECONDO: prova le varianti del nome
+      const variants = cityNameVariants[city] || [city];
+      let found = false;
+      
+      for (const variant of variants) {
+        if (CITY_COORDINATES[variant]) {
+          lat = CITY_COORDINATES[variant].lat;
+          lon = CITY_COORDINATES[variant].lon;
+          found = true;
+          console.log(`✅ Coordinate trovate per variante "${variant}" di ${city}: ${lat}, ${lon}`);
+          break;
         }
-      } catch (e) {
-        console.warn(`Geocoding fallito per ${city}:`, e);
       }
       
-      // 3. Se ancora non abbiamo coordinate, usa un default
-      if (!lat || !lon) {
-        // Default: centro Europa (Parigi)
-        lat = 48.8566;
-        lon = 2.3522;
-        console.warn(`Usando coordinate di default per ${city}`);
+      // 3. TERZO: prova il geocoding come fallback
+      if (!found) {
+        try {
+          console.log(`🔍 Tentativo geocoding per ${city}...`);
+          const geoRes = await fetch(
+            `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=it&format=json`
+          );
+          
+          if (geoRes.ok) {
+            const geoData = await geoRes.json();
+            if (geoData.results && geoData.results.length > 0) {
+              lat = geoData.results[0].latitude;
+              lon = geoData.results[0].longitude;
+              found = true;
+              console.log(`✅ Geocoding trovato per ${city}: ${lat}, ${lon}`);
+            }
+          }
+        } catch (e) {
+          console.warn(`Geocoding fallito per ${city}:`, e);
+        }
+      }
+      
+      // 4. QUARTO: coordinate di default per la Svezia (se la città è svedese)
+      if (!found) {
+        const swedishCities = ['Stoccolma', 'Stockholm', 'Göteborg', 'Gothenburg', 'Malmö', 'Malmo', 'Borås', 'Norrköping', 'Kalmar', 'Helsingborg'];
+        if (swedishCities.includes(city) || swedishCities.some(s => city.includes(s))) {
+          lat = 59.3293; // Stoccolma come default per la Svezia
+          lon = 18.0686;
+          console.log(`📍 Default Svezia usato per ${city}: ${lat}, ${lon}`);
+        } else {
+          // Default assoluto: Parigi
+          lat = 48.8566;
+          lon = 2.3522;
+          console.log(`📍 Default assoluto usato per ${city}: ${lat}, ${lon}`);
+        }
       }
     }
     
     // Ottieni il meteo per le coordinate
     const dateToUse = match.data || new Date().toISOString().slice(0, 10);
+    
+    console.log(`🌤️ Richiesta meteo per ${city} (${lat}, ${lon}) data: ${dateToUse}`);
     
     const weatherRes = await fetch(
       `https://api.open-meteo.com/v1/forecast?` +
@@ -1727,13 +1816,22 @@ const fetchWeatherForMatch = async (match) => {
       `&start_date=${dateToUse}&end_date=${dateToUse}`
     );
     
-    if (!weatherRes.ok) throw new Error('Errore meteo');
+    if (!weatherRes.ok) {
+      console.error(`❌ Errore meteo per ${city}: ${weatherRes.status}`);
+      throw new Error(`Errore meteo: ${weatherRes.status}`);
+    }
+    
     const weatherData = await weatherRes.json();
     
-    if (!weatherData.daily) return null;
+    if (!weatherData.daily) {
+      console.warn(`⚠️ Nessun dato daily per ${city}`);
+      return null;
+    }
     
     const weatherCode = weatherData.daily.weathercode[0] || 0;
     const weatherDesc = getWeatherDescription(weatherCode);
+    
+    console.log(`✅ Meteo ottenuto per ${city}: ${weatherDesc}, ${weatherData.current_weather?.temperature || 0}°C`);
     
     return {
       temp: weatherData.current_weather?.temperature || 0,
@@ -1751,12 +1849,10 @@ const fetchWeatherForMatch = async (match) => {
     };
     
   } catch (e) {
-    console.error('Errore fetch meteo:', e);
+    console.error('❌ Errore fetch meteo per', city, ':', e);
     return null;
   }
 };
-
-// [RESTANTE CODICE CONTINUA...]
 
 const fetchSofaScoreMatches = async (leagueId, seasonYear) => {
   try {
