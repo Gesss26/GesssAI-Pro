@@ -1363,6 +1363,108 @@ const getCityForMatch = (homeTeam, championship) => {
   return city;
 };
 
+// ============================================================
+// FUNZIONI METEO OPEN-METEO
+// ============================================================
+
+const getWeatherDescription = (code) => {
+  const weatherCodes = {
+    0: 'Sereno',
+    1: 'Poco nuvoloso',
+    2: 'Parzialmente nuvoloso',
+    3: 'Coperto',
+    45: 'Nebbia',
+    48: 'Nebbia ghiacciata',
+    51: 'Pioviggine leggera',
+    53: 'Pioviggine moderata',
+    55: 'Pioviggine fitta',
+    56: 'Pioviggine gelata leggera',
+    57: 'Pioviggine gelata fitta',
+    61: 'Pioggia leggera',
+    63: 'Pioggia moderata',
+    65: 'Pioggia fitta',
+    66: 'Pioggia gelata leggera',
+    67: 'Pioggia gelata fitta',
+    71: 'Neve leggera',
+    73: 'Neve moderata',
+    75: 'Neve fitta',
+    77: 'Granuli di neve',
+    80: 'Rovesci di pioggia leggeri',
+    81: 'Rovesci di pioggia moderati',
+    82: 'Rovesci di pioggia forti',
+    85: 'Rovesci di neve leggeri',
+    86: 'Rovesci di neve forti',
+    95: 'Temporale leggero',
+    96: 'Temporale con grandine leggera',
+    99: 'Temporale con grandine forte'
+  };
+  return weatherCodes[code] || 'Condizioni variabili';
+};
+
+const fetchWeatherForMatch = async (match) => {
+  if (!match) return null;
+  
+  const city = getCityForMatch(match.casa, match.campionato);
+  if (!city) return null;
+  
+  try {
+    // 1. Prima otteniamo le coordinate della città
+    const geoRes = await fetch(
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=it&format=json`
+    );
+    
+    if (!geoRes.ok) throw new Error('Errore geocoding');
+    const geoData = await geoRes.json();
+    
+    if (!geoData.results || geoData.results.length === 0) {
+      console.warn(`Città non trovata: ${city}`);
+      return null;
+    }
+    
+    const { latitude, longitude } = geoData.results[0];
+    
+    // 2. Poi otteniamo il meteo per quelle coordinate
+    const dateToUse = match.data || new Date().toISOString().slice(0, 10);
+    
+    const weatherRes = await fetch(
+      `https://api.open-meteo.com/v1/forecast?` +
+      `latitude=${latitude}&longitude=${longitude}` +
+      `&current_weather=true` +
+      `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode` +
+      `&timezone=auto` +
+      `&start_date=${dateToUse}&end_date=${dateToUse}`
+    );
+    
+    if (!weatherRes.ok) throw new Error('Errore meteo');
+    const weatherData = await weatherRes.json();
+    
+    // 3. Elaboriamo i dati
+    if (!weatherData.daily) return null;
+    
+    const weatherCode = weatherData.daily.weathercode[0] || 0;
+    const weatherDesc = getWeatherDescription(weatherCode);
+    
+    return {
+      temp: weatherData.current_weather?.temperature || 0,
+      temp_min: weatherData.daily.temperature_2m_min[0] || 0,
+      temp_max: weatherData.daily.temperature_2m_max[0] || 0,
+      weather: weatherDesc,
+      wind_speed: weatherData.current_weather?.windspeed || 0,
+      rain: weatherData.daily.precipitation_sum[0] || 0,
+      humidity: 0,
+      pressure: 0,
+      forecast_date: dateToUse,
+      city: city,
+      latitude: latitude,
+      longitude: longitude
+    };
+    
+  } catch (e) {
+    console.error('Errore fetch meteo:', e);
+    return null;
+  }
+};
+
 const fetchSofaScoreMatches = async (leagueId, seasonYear) => {
   try {
     const seasonsRes = await fetch(`https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/seasons`);
@@ -1764,10 +1866,13 @@ const Clock = () => {
 const WeatherBadge = ({ weatherData, city }) => {
   if (!weatherData) return <span style={{color:'var(--text-muted)'}}>⏳ Caricamento meteo...</span>;
   const iconMap = {
-    'clear sky': '☀️', 'few clouds': '🌤️', 'scattered clouds': '⛅',
-    'broken clouds': '☁️', 'overcast clouds': '☁️', 'light rain': '🌦️',
-    'moderate rain': '🌧️', 'heavy rain': '🌧️', 'rain': '🌧️',
-    'snow': '❄️', 'thunderstorm': '⛈️'
+    'Sereno': '☀️', 'Poco nuvoloso': '🌤️', 'Parzialmente nuvoloso': '⛅',
+    'Coperto': '☁️', 'Nebbia': '🌫️', 'Pioviggine leggera': '🌦️',
+    'Pioviggine moderata': '🌦️', 'Pioggia leggera': '🌦️',
+    'Pioggia moderata': '🌧️', 'Pioggia fitta': '🌧️', 'Rovesci di pioggia leggeri': '🌧️',
+    'Rovesci di pioggia moderati': '🌧️', 'Rovesci di pioggia forti': '🌧️',
+    'Neve leggera': '❄️', 'Neve moderata': '❄️', 'Neve fitta': '❄️',
+    'Temporale leggero': '⛈️', 'Temporale con grandine leggera': '⛈️', 'Temporale con grandine forte': '⛈️'
   };
   const icon = iconMap[weatherData.weather] || '🌡️';
   return (
@@ -1936,7 +2041,7 @@ const FamiglieSelector = ({ selectedFamiglie, setSelectedFamiglie, showAlert }) 
       </div>
       
       {tempSelected.length > 0 && (
-        <div style={{marginTop: '16px', padding: '12px 16px', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--border)'}}>
+        <div style={{marginTop: '16px', padding: '12px 16px', background: 'var(--surface)', border:'1px solid var(--border)', borderRadius: '8px'}}>
           <div style={{fontSize: '13px', color: 'var(--text-muted)'}}>
             🔥 Famiglie attive: 
             {tempSelected.map((id, i) => {
@@ -2886,7 +2991,7 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
     golCasa: '',
     golOspite: '',
     stato: '',
-    risultato: ''  // Aggiunta colonna Risultato
+    risultato: ''
   });
   const [previewRows, setPreviewRows] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -2964,7 +3069,6 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
 
         setMapping(autoMapping);
         
-        // Mostra anteprima con stato calcolato
         const previewWithStatus = getPreviewWithStatus(jsonData.slice(0, 10));
         setPreviewRows(previewWithStatus);
         
@@ -2986,10 +3090,8 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
     reader.readAsArrayBuffer(file);
   };
 
-  // Funzione per calcolare lo stato in base al risultato
   const getPreviewWithStatus = (rows) => {
     return rows.map(row => {
-      // Cerca il risultato in diverse colonne
       let risultato = '';
       const colonneRisultato = ['Risultato', 'Result', 'Score', 'Ris', 'risultato'];
       for (const col of colonneRisultato) {
@@ -3002,7 +3104,6 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
         }
       }
       
-      // Se non trova nelle colonne specifiche, cerca in tutte le colonne
       if (!risultato) {
         for (const key of Object.keys(row)) {
           const val = row[key].toString().trim();
@@ -3013,7 +3114,6 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
         }
       }
       
-      // Determina lo stato
       const stato = (risultato && risultato !== '') ? 'Giocata' : 'Futura';
       
       return { 
@@ -3027,7 +3127,6 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
   const handleMappingChange = (field, value) => {
     setMapping(prev => ({ ...prev, [field]: value }));
     
-    // Aggiorna l'anteprima quando cambia il mapping
     if (parsedData.length > 0) {
       const previewWithStatus = getPreviewWithStatus(parsedData.slice(0, 10));
       setPreviewRows(previewWithStatus);
@@ -3068,15 +3167,9 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
         const oraRaw = row[mapping.ora]?.toString().trim() || '';
         const squadraCasa = row[mapping.squadraCasa]?.toString().trim() || '';
         const squadraOspite = row[mapping.squadraOspite]?.toString().trim() || '';
-        
-        // LEGGI IL RISULTATO DALLA COLONNA MAPPATA
         const risultatoRaw = row[mapping.risultato]?.toString().trim() || '';
-        
-        // LEGGI I GOL DALLE COLONNE SEPARATE
         const golCasaRaw = row[mapping.golCasa]?.toString().trim();
         const golOspiteRaw = row[mapping.golOspite]?.toString().trim();
-        
-        // LEGGI LA COLONNA STATO
         const statoRaw = row[mapping.stato]?.toString().trim().toLowerCase() || '';
 
         if (!squadraCasa || !squadraOspite) {
@@ -3090,15 +3183,11 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
           continue;
         }
 
-        // ============================================================
-        // DETERMINA STATO E GOL
-        // ============================================================
         let stato = 'Futura';
         let golCasa = 0;
         let golOspite = 0;
         let risultato = '';
 
-        // 1) CERCA RISULTATO NELLA COLONNA MAPPATA
         if (risultatoRaw && risultatoRaw !== '') {
           const matchResult = risultatoRaw.match(/(\d+)\s*[-–:.]\s*(\d+)/);
           if (matchResult) {
@@ -3108,7 +3197,6 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
           }
         }
 
-        // 2) SE CI SONO COLONNE GOL SEPARATE, USA QUELLE
         if (golCasaRaw && golCasaRaw !== '' && !isNaN(parseFloat(golCasaRaw))) {
           golCasa = parseFloat(golCasaRaw);
         }
@@ -3116,40 +3204,20 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
           golOspite = parseFloat(golOspiteRaw);
         }
 
-        // 3) SE STATO DICE "GIOCATA"
         if (statoRaw === 'giocata' || statoRaw === 'played' || statoRaw === 'finished') {
           stato = 'Giocata';
         }
 
-        // 4) SE C'È UN RISULTATO VALIDO → GIOCATA
         if (risultato && risultato !== '') {
           stato = 'Giocata';
         }
 
-        // 5) SE NON C'È RISULTATO → FUTURA
         if (!risultato || risultato === '') {
           stato = 'Futura';
           golCasa = 0;
           golOspite = 0;
         }
 
-        // 6) SE LA DATA È PASSATA E NON C'È RISULTATO, VERIFICA
-        if (stato === 'Futura' && dataRaw) {
-          try {
-            const dataPartita = new Date(dataRaw);
-            const oggi = new Date();
-            oggi.setHours(0,0,0,0);
-            if (dataPartita < oggi) {
-              // Se la data è passata ma non c'è risultato, rimane Futura
-              // ma potremmo volerla marcare come Giocata con 0-0
-              // Lasciamo Futura per permettere all'utente di decidere
-            }
-          } catch(e) {}
-        }
-
-        // ============================================================
-        // RIMUOVI DUPLICATI
-        // ============================================================
         const key = `${campionato}|${dataNormalizzata}|${oraRaw}|${squadraCasa}|${squadraOspite}`;
         if (existingKeys.has(key)) {
           skippedCount++;
@@ -3157,9 +3225,6 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
         }
         existingKeys.add(key);
 
-        // ============================================================
-        // CREA LA PARTITA
-        // ============================================================
         const newMatch = {
           id: Math.random().toString(36).slice(2) + Date.now().toString(36),
           campionato: campionato,
@@ -3190,9 +3255,6 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
         importedCount++;
       }
 
-      // ============================================================
-      // AGGIUNGI LE NUOVE PARTITE
-      // ============================================================
       const allMatches = [...matches, ...newMatches];
       const uniqueMatches = deduplicateMatches(allMatches);
       
@@ -3445,7 +3507,6 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
             </div>
           )}
           
-          {/* Riepilogo statistiche */}
           {previewRows.length > 0 && (
             <div style={{marginTop:'12px', padding:'10px 14px', background:'var(--surface)', borderRadius:'8px', border:'1px solid var(--border)', display:'flex', gap:'20px', flexWrap:'wrap', fontSize:'13px'}}>
               <span>📊 Totale: <b>{parsedData.length}</b> righe</span>
@@ -3669,22 +3730,24 @@ const WeatherProfessionale = ({ weatherData, city, matchDate }) => {
       <div className="weather-professionale" style={{textAlign: 'center', color: 'var(--text-muted)'}}>
         <div style={{fontSize: '48px', marginBottom: '8px'}}>🌤️</div>
         <p>Dati meteo non disponibili per {city || 'questa località'}</p>
-        <p style={{fontSize: '12px'}}>Configura WorldWeatherOnline nel tab API KEY</p>
+        <p style={{fontSize: '12px'}}>Open-Meteo è gratuito e non richiede chiave API</p>
       </div>
     );
   }
 
-  const getWeatherIcon = (desc) => {
+  const getWeatherIcon = (desc, rain) => {
     if (!desc) return '🌤️';
     const d = desc.toLowerCase();
-    if (d.includes('clear') || d.includes('sunny')) return '☀️';
-    if (d.includes('few cloud')) return '🌤️';
-    if (d.includes('cloud') || d.includes('overcast')) return '☁️';
-    if (d.includes('rain') && d.includes('light')) return '🌦️';
-    if (d.includes('rain')) return '🌧️';
-    if (d.includes('thunder') || d.includes('storm')) return '⛈️';
-    if (d.includes('snow')) return '❄️';
-    if (d.includes('fog') || d.includes('mist')) return '🌫️';
+    
+    if (rain > 5) return '🌧️';
+    if (rain > 1) return '🌦️';
+    
+    if (d.includes('sereno')) return '☀️';
+    if (d.includes('nuvoloso') || d.includes('coperto')) return '☁️';
+    if (d.includes('nebbia')) return '🌫️';
+    if (d.includes('pioggia')) return '🌧️';
+    if (d.includes('temporale')) return '⛈️';
+    if (d.includes('neve')) return '❄️';
     return '🌤️';
   };
 
@@ -3698,7 +3761,7 @@ const WeatherProfessionale = ({ weatherData, city, matchDate }) => {
     else if (weather.wind_speed > 5) risk += 1;
     if (weather.temp < -5 || weather.temp > 35) risk += 2;
     else if (weather.temp < 0 || weather.temp > 30) risk += 1;
-    if (weather.weather && (weather.weather.includes('thunder') || weather.weather.includes('storm'))) risk += 3;
+    if (weather.weather && (weather.weather.includes('Temporale') || weather.weather.includes('temporale'))) risk += 3;
     
     if (risk >= 6) return { level: 'high', label: '🔴 ALTO - Rischio di rinvio o condizioni proibitive', color: 'var(--lose)' };
     if (risk >= 4) return { level: 'medium', label: '🟡 MEDIO - Possibili difficoltà per i giocatori', color: 'var(--draw)' };
@@ -3707,7 +3770,7 @@ const WeatherProfessionale = ({ weatherData, city, matchDate }) => {
   };
 
   const risk = getRiskLevel(weatherData);
-  const icon = getWeatherIcon(weatherData.weather);
+  const icon = getWeatherIcon(weatherData.weather, weatherData.rain);
 
   return (
     <div className="weather-professionale">
@@ -3733,19 +3796,9 @@ const WeatherProfessionale = ({ weatherData, city, matchDate }) => {
           <div className="wd-label">Vento</div>
         </div>
         <div className="weather-detail-item">
-          <div className="wd-icon">💧</div>
-          <div className="wd-value">{weatherData.humidity || 'N/A'}%</div>
-          <div className="wd-label">Umidità</div>
-        </div>
-        <div className="weather-detail-item">
           <div className="wd-icon">🌧️</div>
           <div className="wd-value">{weatherData.rain > 0 ? weatherData.rain + ' mm' : '0 mm'}</div>
           <div className="wd-label">Precipitazioni</div>
-        </div>
-        <div className="weather-detail-item">
-          <div className="wd-icon">📊</div>
-          <div className="wd-value">{weatherData.pressure || 'N/A'} hPa</div>
-          <div className="wd-label">Pressione</div>
         </div>
       </div>
 
@@ -3787,7 +3840,7 @@ const CittaMeteo = ({ matches }) => {
           );
         })}
       </div>
-      <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px'}}>💡 Usa WorldWeatherOnline nel tab API KEY per i dati meteo</div>
+      <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px'}}>💡 Open-Meteo è gratuito e non richiede chiave API</div>
     </div>
   );
 };
@@ -4246,7 +4299,6 @@ function App() {
     if (!key) { showAlert('error', `❌ Inserisci la chiave API ${name}`); return; }
     try {
       if (name === 'GROQ') { const r = await fetch('https://api.groq.com/openai/v1/models', { headers: { 'Authorization': `Bearer ${key}` } }); setApiTestResult({ ...apiTestResult, [name]: r.ok ? 'OK' : 'FAIL' }); }
-      else if (name === 'WorldWeatherOnline') { const r = await fetch(`https://api.worldweatheronline.com/premium/v1/weather.ashx?q=Rome&format=json&key=${key}`); setApiTestResult({ ...apiTestResult, [name]: r.ok ? 'OK' : 'FAIL' }); }
       else if (name === 'API-Football') { const r = await fetch('https://v3.football.api-sports.io/teams?search=Arsenal', { headers: { 'x-apisports-key': key } }); setApiTestResult({ ...apiTestResult, [name]: r.ok ? 'OK' : 'FAIL' }); }
     } catch(e) { setApiTestResult({ ...apiTestResult, [name]: 'ERROR' }); }
   };
@@ -4295,44 +4347,19 @@ function App() {
 
   const selectedMatch = matches.find(m => m.id === selectedMatchId);
 
+  // ============================================================
+  // EFFETTO PER CARICARE IL METEO CON OPEN-METEO
+  // ============================================================
   useEffect(() => {
-    if (selectedMatch && apiKeys['WorldWeatherOnline']) {
+    if (selectedMatch) {
       const weatherKey = `${selectedMatch.campionato}_${selectedMatch.data}`;
       if (!weatherCache[weatherKey]) {
-        const fetchWeatherForMatch = async (match) => {
-          if (!match || !apiKeys['WorldWeatherOnline']) return null;
-          const city = getCityForMatch(match.casa, match.campionato);
-          if (!city) return null;
-          try {
-            const today = new Date();
-            const dateToUse = match.data || today.toISOString().slice(0, 10);
-            const r = await fetch(
-              `https://api.worldweatheronline.com/premium/v1/weather.ashx?q=${encodeURIComponent(city)}&format=json&date=${dateToUse}&key=${apiKeys['WorldWeatherOnline']}`
-            );
-            if (!r.ok) return null;
-            const data = await r.json();
-            const weather = data.data?.weather?.[0];
-            if (!weather) return null;
-            const hourly = weather.hourly?.[0] || {};
-            return {
-              temp: parseFloat(weather.tempC) || 0,
-              temp_min: parseFloat(weather.mintempC) || 0,
-              temp_max: parseFloat(weather.maxtempC) || 0,
-              weather: hourly.weatherDesc?.[0]?.value || weather.weatherDesc?.[0]?.value || 'N/A',
-              wind_speed: parseFloat(hourly.windspeedKmph) || parseFloat(weather.windspeedKmph) || 0,
-              rain: parseFloat(hourly.precipMM) || parseFloat(weather.precipMM) || 0,
-              humidity: parseFloat(hourly.humidity) || parseFloat(weather.humidity) || 0,
-              pressure: parseFloat(hourly.pressure) || parseFloat(weather.pressure) || 0,
-              forecast_date: dateToUse
-            };
-          } catch (e) { return null; }
-        };
         fetchWeatherForMatch(selectedMatch).then(w => {
           if (w) setWeatherCache(prev => ({ ...prev, [weatherKey]: w }));
         });
       }
     }
-  }, [selectedMatch, apiKeys]);
+  }, [selectedMatch]);
 
   useEffect(() => { saveState({ championships, matches, apiKeys, theme, customTheme, schedineHistory, selectedFamiglie }); }, [championships, matches, apiKeys, theme, customTheme, schedineHistory, selectedFamiglie]);
 
@@ -4343,11 +4370,9 @@ function App() {
   }, [theme, customTheme]);
 
   // ============================================================
-  // RENDER DELL'APP CON SIMULAZIONE TELEFONO - FIXATO
+  // RENDER DELL'APP CON SIMULAZIONE TELEFONO
   // ============================================================
 
-  // Estraiamo il contenuto dell'app in una funzione separata per evitare
-  // il conflitto di rendering tra modalità PC e Telefono
   const renderAppContent = () => {
     return (
       <div>
@@ -4557,24 +4582,66 @@ function App() {
           {tab === 'API KEY' && (
             <div>
               <h2 style={{marginBottom:'14px'}}>🔑 Gestione API Key</h2>
-              <div className="alert alert-info">💡 <b>GROQ</b> per l'AI. <b>WorldWeatherOnline</b> per il meteo. <b>API-Football</b> per infortuni e statistiche avanzate.</div>
-              {['GROQ','WorldWeatherOnline','API-Football'].map(name => (
-                <div key={name} className="card">
-                  <h3>
-                    {name === 'GROQ' && '🧠'} {name === 'WorldWeatherOnline' && '🌦️'} {name === 'API-Football' && '⚽'} {name}
-                  </h3>
-                  <div className="form-group" style={{marginTop:'10px'}}>
-                    <label>API Key</label>
-                    <input type="password" value={tempKeys[name] || ''} onChange={e => setTempKeys({ ...tempKeys, [name]: e.target.value })} placeholder={`Inserisci la tua key ${name}`} />
-                  </div>
-                  <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
-                    <button className="btn btn-secondary" onClick={() => testApiKey(name)}>🧪 Test</button>
-                    <button className="btn" onClick={() => confirmApiKey(name)}>💾 Conferma</button>
-                    {apiTestResult[name] && <span style={{padding:'10px', color: apiTestResult[name]==='OK' ? 'var(--win)' : 'var(--lose)'}}><b>Test: {apiTestResult[name]}</b></span>}
-                    {apiKeys[name] && <span style={{padding:'10px', color:'var(--win)'}}>✅ Configurata</span>}
-                  </div>
+              <div className="alert alert-info">
+                💡 <b>GROQ</b> per l'AI (opzionale). <br/>
+                🌤️ <b>Open-Meteo</b> per il meteo - <b>GRATUITO e senza chiave API!</b>
+              </div>
+              
+              <div className="card">
+                <h3>🧠 GROQ (opzionale)</h3>
+                <div className="form-group" style={{marginTop:'10px'}}>
+                  <label>API Key GROQ</label>
+                  <input 
+                    type="password" 
+                    value={tempKeys['GROQ'] || ''} 
+                    onChange={e => setTempKeys({ ...tempKeys, 'GROQ': e.target.value })} 
+                    placeholder="Inserisci la tua key GROQ (opzionale)" 
+                  />
                 </div>
-              ))}
+                <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
+                  <button className="btn btn-secondary" onClick={() => testApiKey('GROQ')}>🧪 Test</button>
+                  <button className="btn" onClick={() => confirmApiKey('GROQ')}>💾 Salva GROQ</button>
+                  {apiTestResult['GROQ'] && <span style={{padding:'10px', color: apiTestResult['GROQ']==='OK' ? 'var(--win)' : 'var(--lose)'}}><b>Test: {apiTestResult['GROQ']}</b></span>}
+                  {apiKeys['GROQ'] && <span style={{padding:'10px', color:'var(--win)'}}>✅ Configurata</span>}
+                </div>
+              </div>
+              
+              <div className="card" style={{border: '2px solid var(--win)'}}>
+                <h3>🌤️ Open-Meteo (GRATUITO)</h3>
+                <p style={{color: 'var(--text-muted)'}}>
+                  ✅ <b>Nessuna chiave API necessaria!</b> Il meteo funziona automaticamente.
+                </p>
+                <div style={{display:'flex', gap:'8px', flexWrap:'wrap', marginTop:'10px'}}>
+                  <span style={{padding:'8px 16px', background: 'var(--win)', color: '#000', borderRadius: '6px', fontWeight: 'bold'}}>
+                    ✅ Attivo
+                  </span>
+                  <span style={{padding:'8px 16px', background: 'var(--surface)', borderRadius: '6px', fontSize: '13px'}}>
+                    🌍 Copre tutte le città del mondo
+                  </span>
+                </div>
+                <div style={{marginTop:'10px', fontSize:'12px', color:'var(--text-muted)'}}>
+                  📊 Dati disponibili: Temperatura, Precipitazioni, Vento, Condizioni meteo
+                </div>
+              </div>
+              
+              <div className="card">
+                <h3>⚽ API-Football (opzionale)</h3>
+                <div className="form-group" style={{marginTop:'10px'}}>
+                  <label>API Key</label>
+                  <input 
+                    type="password" 
+                    value={tempKeys['API-Football'] || ''} 
+                    onChange={e => setTempKeys({ ...tempKeys, 'API-Football': e.target.value })} 
+                    placeholder="Inserisci la tua key API-Football" 
+                  />
+                </div>
+                <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
+                  <button className="btn btn-secondary" onClick={() => testApiKey('API-Football')}>🧪 Test</button>
+                  <button className="btn" onClick={() => confirmApiKey('API-Football')}>💾 Salva API-Football</button>
+                  {apiTestResult['API-Football'] && <span style={{padding:'10px', color: apiTestResult['API-Football']==='OK' ? 'var(--win)' : 'var(--lose)'}}><b>Test: {apiTestResult['API-Football']}</b></span>}
+                  {apiKeys['API-Football'] && <span style={{padding:'10px', color:'var(--win)'}}>✅ Configurata</span>}
+                </div>
+              </div>
             </div>
           )}
 
