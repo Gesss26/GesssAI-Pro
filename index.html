@@ -1401,30 +1401,426 @@ const getWeatherDescription = (code) => {
   return weatherCodes[code] || 'Condizioni variabili';
 };
 
+// SOSTITUISCI la funzione fetchWeatherForMatch con questa versione migliorata
+
 const fetchWeatherForMatch = async (match) => {
   if (!match) return null;
   
   const city = getCityForMatch(match.casa, match.campionato);
   if (!city) return null;
   
+  // Mappa di fallback per città che potrebbero non essere trovate
+  const cityFallbackMap = {
+    'Stoccolma': 'Stockholm',
+    'Milano': 'Milan',
+    'Roma': 'Rome',
+    'Torino': 'Turin',
+    'Genova': 'Genoa',
+    'Firenze': 'Florence',
+    'Napoli': 'Naples',
+    'Bologna': 'Bologna',
+    'Bergamo': 'Bergamo',
+    'Copenaghen': 'Copenhagen',
+    'Monaco': 'Munich',
+    'Lipsia': 'Leipzig',
+    'Colonia': 'Cologne',
+    'Berlino': 'Berlin',
+    'Siviglia': 'Seville',
+    'Barcellona': 'Barcelona',
+    'Madrid': 'Madrid',
+    'Valencia': 'Valencia',
+    'Parigi': 'Paris',
+    'Marsiglia': 'Marseille',
+    'Lione': 'Lyon',
+    'Lisbona': 'Lisbon',
+    'Porto': 'Porto',
+    'Amsterdam': 'Amsterdam',
+    'Rotterdam': 'Rotterdam',
+    'Bruxelles': 'Brussels',
+    'Anversa': 'Antwerp',
+    'Vienna': 'Vienna',
+    'Salisburgo': 'Salzburg',
+    'Berna': 'Bern',
+    'Zurigo': 'Zurich',
+    'Basilea': 'Basel',
+    'Ginevra': 'Geneva',
+    'Tokyo': 'Tokyo',
+    'Osaka': 'Osaka',
+    'Seul': 'Seoul',
+    'Pechino': 'Beijing',
+    'Shanghai': 'Shanghai',
+    'New York': 'New York',
+    'Los Angeles': 'Los Angeles',
+    'Chicago': 'Chicago',
+    'Houston': 'Houston',
+    'Phoenix': 'Phoenix',
+    'Philadelphia': 'Philadelphia',
+    'San Antonio': 'San Antonio',
+    'San Diego': 'San Diego',
+    'Dallas': 'Dallas',
+    'Austin': 'Austin',
+    'Jacksonville': 'Jacksonville',
+    'Fort Worth': 'Fort Worth',
+    'Columbus': 'Columbus',
+    'Charlotte': 'Charlotte',
+    'San Francisco': 'San Francisco',
+    'Indianapolis': 'Indianapolis',
+    'Seattle': 'Seattle',
+    'Denver': 'Denver',
+    'Washington': 'Washington',
+    'Boston': 'Boston',
+    'El Paso': 'El Paso',
+    'Detroit': 'Detroit',
+    'Nashville': 'Nashville',
+    'Memphis': 'Memphis',
+    'Portland': 'Portland',
+    'Oklahoma City': 'Oklahoma City',
+    'Las Vegas': 'Las Vegas',
+    'Louisville': 'Louisville',
+    'Baltimore': 'Baltimore',
+    'Milwaukee': 'Milwaukee',
+    'Albuquerque': 'Albuquerque',
+    'Tucson': 'Tucson',
+    'Fresno': 'Fresno',
+    'Sacramento': 'Sacramento',
+    'Kansas City': 'Kansas City',
+    'Mesa': 'Mesa',
+    'Atlanta': 'Atlanta',
+    'Miami': 'Miami',
+    'Reykjavik': 'Reykjavik',
+    'Dublino': 'Dublin',
+    'Cork': 'Cork',
+    'Galway': 'Galway',
+    'Helsinki': 'Helsinki',
+    'Turku': 'Turku',
+    'Tampere': 'Tampere',
+    'Oslo': 'Oslo',
+    'Bergen': 'Bergen',
+    'Trondheim': 'Trondheim',
+    'Stavanger': 'Stavanger',
+    'Tromsø': 'Tromso',
+    'Göteborg': 'Gothenburg',
+    'Malmö': 'Malmo',
+    'Borås': 'Boras',
+    'Norrköping': 'Norrkoping',
+    'Kalmar': 'Kalmar',
+    'Helsingborg': 'Helsingborg',
+    'Sinsheim': 'Sinsheim',
+    'Leverkusen': 'Leverkusen',
+    'Mönchengladbach': 'Monchengladbach',
+    'Friburgo': 'Freiburg',
+    'Stoccarda': 'Stuttgart',
+    'Brema': 'Bremen',
+    'Augusta': 'Augsburg',
+    'Gelsenkirchen': 'Gelsenkirchen',
+    'Bochum': 'Bochum',
+    'Magonza': 'Mainz',
+    'Wolfsburg': 'Wolfsburg',
+    'Francoforte': 'Frankfurt',
+    'Dortmund': 'Dortmund',
+    'Getafe': 'Getafe',
+    'Vigo': 'Vigo',
+    'Pamplona': 'Pamplona',
+    'San Sebastián': 'San Sebastian',
+    'Bilbao': 'Bilbao',
+    'Palma di Maiorca': 'Palma de Mallorca',
+    'Villarreal': 'Villarreal',
+    'Nizza': 'Nice',
+    'Lilla': 'Lille',
+    'Rennes': 'Rennes',
+    'Strasburgo': 'Strasbourg',
+    'Nantes': 'Nantes',
+    'Montpellier': 'Montpellier',
+    'Reims': 'Reims',
+    'Tolosa': 'Toulouse',
+    'Bordeaux': 'Bordeaux',
+    'Gand': 'Ghent',
+    'Liegi': 'Liege',
+    'Charleroi': 'Charleroi',
+    'Genk': 'Genk',
+    'Bruges': 'Bruges',
+    'Enschede': 'Enschede',
+    'Heerenveen': 'Heerenveen',
+    'Arnhem': 'Arnhem',
+    'Groningen': 'Groningen',
+    'Alkmaar': 'Alkmaar',
+    'Eindhoven': 'Eindhoven',
+    'Utrecht': 'Utrecht',
+    'Guimarães': 'Guimaraes',
+    'Braga': 'Braga',
+    'Vila do Conde': 'Vila do Conde',
+    'Faro': 'Faro',
+    'Portimão': 'Portimao',
+    'Funchal': 'Funchal',
+    'Barcelos': 'Barcelos',
+    'Moreira de Cónegos': 'Moreira de Conegos',
+    'Estoril': 'Estoril',
+    'Graz': 'Graz',
+    'Linz': 'Linz',
+    'Wolfsberg': 'Wolfsberg',
+    'Lugano': 'Lugano',
+    'San Gallo': 'St. Gallen',
+    'Lucerna': 'Lucerne',
+    'Kawasaki': 'Kawasaki',
+    'Yokohama': 'Yokohama',
+    'Saitama': 'Saitama',
+    'Kashima': 'Kashima',
+    'Nagoya': 'Nagoya',
+    'Kobe': 'Kobe',
+    'Hiroshima': 'Hiroshima',
+    'Ulsan': 'Ulsan',
+    'Jeonju': 'Jeonju',
+    'Suwon': 'Suwon',
+    'Pohang': 'Pohang',
+    'Daegu': 'Daegu',
+    'Incheon': 'Incheon',
+    'Zhengzhou': 'Zhengzhou',
+    'Dalian': 'Dalian',
+    'Cangzhou': 'Cangzhou',
+    'Meizhou': 'Meizhou',
+    'Nantong': 'Nantong',
+    'Qingdao': 'Qingdao',
+    'Changchun': 'Changchun',
+    'Chengdu': 'Chengdu',
+    'Wuhan': 'Wuhan',
+    'Hangzhou': 'Hangzhou',
+    'Canton': 'Guangzhou',
+    'Jinan': 'Jinan',
+    'Tianjin': 'Tianjin',
+    'Shenzhen': 'Shenzhen',
+    'Kópavogur': 'Kopavogur',
+    'Hafnarfjörður': 'Hafnarfjordur',
+    'Akureyri': 'Akureyri',
+    'Rio de Janeiro': 'Rio de Janeiro',
+    'San Paolo': 'Sao Paulo',
+    'Belo Horizonte': 'Belo Horizonte',
+    'Porto Alegre': 'Porto Alegre',
+    'Santos': 'Santos',
+    'Curitiba': 'Curitiba',
+    'Salvador': 'Salvador',
+    'Fortaleza': 'Fortaleza',
+    'Città del Messico': 'Mexico City',
+    'Guadalajara': 'Guadalajara',
+    'Monterrey': 'Monterrey',
+    'San Nicolás de los Garza': 'San Nicolas de los Garza',
+    'Torreón': 'Torreon',
+    'Tijuana': 'Tijuana',
+    'Pachuca': 'Pachuca',
+    'Toluca': 'Toluca',
+    'Derry': 'Derry',
+    'Dundalk': 'Dundalk',
+    'Sligo': 'Sligo',
+    'Waterford': 'Waterford',
+    'Newcastle upon Tyne': 'Newcastle',
+    'Birmingham': 'Birmingham',
+    'Wolverhampton': 'Wolverhampton',
+    'Leeds': 'Leeds',
+    'Leicester': 'Leicester',
+    'Southampton': 'Southampton',
+    'Brighton': 'Brighton',
+    'Bournemouth': 'Bournemouth',
+    'Nottingham': 'Nottingham',
+    'Sheffield': 'Sheffield',
+    'Burnley': 'Burnley',
+    'Luton': 'Luton',
+    'Reggio Emilia': 'Reggio Emilia',
+    'Empoli': 'Empoli',
+    'Salerno': 'Salerno',
+    'Lecce': 'Lecce',
+    'Verona': 'Verona',
+    'Cagliari': 'Cagliari',
+    'Monza': 'Monza',
+    'Parma': 'Parma',
+    'Como': 'Como',
+    'Venezia': 'Venice',
+    'Frosinone': 'Frosinone',
+    'Cremona': 'Cremona',
+    'La Spezia': 'La Spezia'
+  };
+  
   try {
-    // 1. Prima otteniamo le coordinate della città
-    const geoRes = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=it&format=json`
-    );
+    // 1. Prova con il nome originale
+    let cityToSearch = city;
+    let geoData = null;
     
-    if (!geoRes.ok) throw new Error('Errore geocoding');
-    const geoData = await geoRes.json();
-    
-    if (!geoData.results || geoData.results.length === 0) {
-      console.warn(`Città non trovata: ${city}`);
-      return null;
+    // 2. Se la città è nella mappa di fallback, usa il nome inglese
+    if (cityFallbackMap[city]) {
+      cityToSearch = cityFallbackMap[city];
     }
     
-    const { latitude, longitude } = geoData.results[0];
+    // 3. Prova il geocoding
+    const geoRes = await fetch(
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityToSearch)}&count=3&language=it&format=json`
+    );
     
-    // 2. Poi otteniamo il meteo per quelle coordinate
-    const dateToUse = match.data || new Date().toISOString().slice(0, 10);
+    if (geoRes.ok) {
+      geoData = await geoRes.json();
+    }
+    
+    // 4. Se non trova risultati, prova con il nome originale
+    if (!geoData || !geoData.results || geoData.results.length === 0) {
+      if (cityToSearch !== city) {
+        const geoRes2 = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=3&language=it&format=json`
+        );
+        if (geoRes2.ok) {
+          geoData = await geoRes2.json();
+        }
+      }
+    }
+    
+    // 5. Se ancora non trova, usa coordinate di default per la città
+    if (!geoData || !geoData.results || geoData.results.length === 0) {
+      // Coordinate di default per le principali città europee
+      const defaultCoords = {
+        'Stockholm': { latitude: 59.3293, longitude: 18.0686 },
+        'Stoccolma': { latitude: 59.3293, longitude: 18.0686 },
+        'Milan': { latitude: 45.4642, longitude: 9.1900 },
+        'Milano': { latitude: 45.4642, longitude: 9.1900 },
+        'Rome': { latitude: 41.9028, longitude: 12.4964 },
+        'Roma': { latitude: 41.9028, longitude: 12.4964 },
+        'Turin': { latitude: 45.0703, longitude: 7.6869 },
+        'Torino': { latitude: 45.0703, longitude: 7.6869 },
+        'London': { latitude: 51.5074, longitude: -0.1278 },
+        'Londra': { latitude: 51.5074, longitude: -0.1278 },
+        'Paris': { latitude: 48.8566, longitude: 2.3522 },
+        'Parigi': { latitude: 48.8566, longitude: 2.3522 },
+        'Berlin': { latitude: 52.5200, longitude: 13.4050 },
+        'Berlino': { latitude: 52.5200, longitude: 13.4050 },
+        'Madrid': { latitude: 40.4168, longitude: -3.7038 },
+        'Barcelona': { latitude: 41.3851, longitude: 2.1734 },
+        'Barcellona': { latitude: 41.3851, longitude: 2.1734 },
+        'Lisbon': { latitude: 38.7223, longitude: -9.1393 },
+        'Lisbona': { latitude: 38.7223, longitude: -9.1393 },
+        'Amsterdam': { latitude: 52.3676, longitude: 4.9041 },
+        'Brussels': { latitude: 50.8503, longitude: 4.3517 },
+        'Bruxelles': { latitude: 50.8503, longitude: 4.3517 },
+        'Vienna': { latitude: 48.2082, longitude: 16.3738 },
+        'Vienna': { latitude: 48.2082, longitude: 16.3738 },
+        'Zurich': { latitude: 47.3769, longitude: 8.5417 },
+        'Zurigo': { latitude: 47.3769, longitude: 8.5417 },
+        'Geneva': { latitude: 46.2044, longitude: 6.1432 },
+        'Ginevra': { latitude: 46.2044, longitude: 6.1432 },
+        'Copenhagen': { latitude: 55.6761, longitude: 12.5683 },
+        'Copenaghen': { latitude: 55.6761, longitude: 12.5683 },
+        'Oslo': { latitude: 59.9139, longitude: 10.7522 },
+        'Helsinki': { latitude: 60.1699, longitude: 24.9384 },
+        'Dublin': { latitude: 53.3498, longitude: -6.2603 },
+        'Dublino': { latitude: 53.3498, longitude: -6.2603 },
+        'Reykjavik': { latitude: 64.1466, longitude: -21.9426 },
+        'Tokyo': { latitude: 35.6762, longitude: 139.6503 },
+        'Seoul': { latitude: 37.5665, longitude: 126.9780 },
+        'Seul': { latitude: 37.5665, longitude: 126.9780 },
+        'Beijing': { latitude: 39.9042, longitude: 116.4074 },
+        'Pechino': { latitude: 39.9042, longitude: 116.4074 },
+        'Shanghai': { latitude: 31.2304, longitude: 121.4737 },
+        'New York': { latitude: 40.7128, longitude: -74.0060 },
+        'Los Angeles': { latitude: 34.0522, longitude: -118.2437 },
+        'Chicago': { latitude: 41.8781, longitude: -87.6298 },
+        'Houston': { latitude: 29.7604, longitude: -95.3698 },
+        'Phoenix': { latitude: 33.4484, longitude: -112.0740 },
+        'Philadelphia': { latitude: 39.9526, longitude: -75.1652 },
+        'San Antonio': { latitude: 29.4241, longitude: -98.4936 },
+        'San Diego': { latitude: 32.7157, longitude: -117.1611 },
+        'Dallas': { latitude: 32.7767, longitude: -96.7970 },
+        'Austin': { latitude: 30.2672, longitude: -97.7431 },
+        'Jacksonville': { latitude: 30.3322, longitude: -81.6557 },
+        'Fort Worth': { latitude: 32.7555, longitude: -97.3308 },
+        'Columbus': { latitude: 39.9612, longitude: -82.9988 },
+        'Charlotte': { latitude: 35.2271, longitude: -80.8431 },
+        'San Francisco': { latitude: 37.7749, longitude: -122.4194 },
+        'Indianapolis': { latitude: 39.7684, longitude: -86.1581 },
+        'Seattle': { latitude: 47.6062, longitude: -122.3321 },
+        'Denver': { latitude: 39.7392, longitude: -104.9903 },
+        'Washington': { latitude: 38.9072, longitude: -77.0369 },
+        'Boston': { latitude: 42.3601, longitude: -71.0589 },
+        'El Paso': { latitude: 31.7776, longitude: -106.4424 },
+        'Detroit': { latitude: 42.3314, longitude: -83.0458 },
+        'Nashville': { latitude: 36.1627, longitude: -86.7816 },
+        'Memphis': { latitude: 35.1495, longitude: -90.0490 },
+        'Portland': { latitude: 45.5152, longitude: -122.6784 },
+        'Oklahoma City': { latitude: 35.4676, longitude: -97.5164 },
+        'Las Vegas': { latitude: 36.1699, longitude: -115.1398 },
+        'Louisville': { latitude: 38.2527, longitude: -85.7585 },
+        'Baltimore': { latitude: 39.2904, longitude: -76.6122 },
+        'Milwaukee': { latitude: 43.0389, longitude: -87.9065 },
+        'Albuquerque': { latitude: 35.0853, longitude: -106.6056 },
+        'Tucson': { latitude: 32.2226, longitude: -110.9747 },
+        'Fresno': { latitude: 36.7378, longitude: -119.7871 },
+        'Sacramento': { latitude: 38.5816, longitude: -121.4944 },
+        'Kansas City': { latitude: 39.0997, longitude: -94.5786 },
+        'Mesa': { latitude: 33.4152, longitude: -111.8315 },
+        'Atlanta': { latitude: 33.7490, longitude: -84.3880 },
+        'Miami': { latitude: 25.7617, longitude: -80.1918 },
+        'Mexico City': { latitude: 19.4326, longitude: -99.1332 },
+        'Città del Messico': { latitude: 19.4326, longitude: -99.1332 },
+        'Guadalajara': { latitude: 20.6597, longitude: -103.3496 },
+        'Monterrey': { latitude: 25.6866, longitude: -100.3161 },
+        'Torreón': { latitude: 25.5428, longitude: -103.4068 },
+        'Tijuana': { latitude: 32.5149, longitude: -117.0382 },
+        'Pachuca': { latitude: 20.1224, longitude: -98.7358 },
+        'Toluca': { latitude: 19.2826, longitude: -99.6557 },
+        'Rio de Janeiro': { latitude: -22.9068, longitude: -43.1729 },
+        'Sao Paulo': { latitude: -23.5505, longitude: -46.6333 },
+        'San Paolo': { latitude: -23.5505, longitude: -46.6333 },
+        'Belo Horizonte': { latitude: -19.9167, longitude: -43.9346 },
+        'Porto Alegre': { latitude: -30.0346, longitude: -51.2177 },
+        'Santos': { latitude: -23.9608, longitude: -46.3322 },
+        'Curitiba': { latitude: -25.4290, longitude: -49.2671 },
+        'Salvador': { latitude: -12.9777, longitude: -38.5016 },
+        'Fortaleza': { latitude: -3.7172, longitude: -38.5433 },
+        'Brasilia': { latitude: -15.7975, longitude: -47.8919 },
+        'Newcastle': { latitude: 54.9783, longitude: -1.6174 },
+        'Birmingham': { latitude: 52.4862, longitude: -1.8904 },
+        'Wolverhampton': { latitude: 52.5870, longitude: -2.1311 },
+        'Leeds': { latitude: 53.8008, longitude: -1.5491 },
+        'Leicester': { latitude: 52.6369, longitude: -1.1398 },
+        'Southampton': { latitude: 50.9097, longitude: -1.4044 },
+        'Brighton': { latitude: 50.8225, longitude: -0.1372 },
+        'Bournemouth': { latitude: 50.7192, longitude: -1.8808 },
+        'Nottingham': { latitude: 52.9548, longitude: -1.1581 },
+        'Sheffield': { latitude: 53.3811, longitude: -1.4701 },
+        'Burnley': { latitude: 53.7893, longitude: -2.2408 },
+        'Luton': { latitude: 51.8787, longitude: -0.4200 },
+        'Reggio Emilia': { latitude: 44.6988, longitude: 10.6324 },
+        'Empoli': { latitude: 43.7188, longitude: 10.9455 },
+        'Salerno': { latitude: 40.6823, longitude: 14.7700 },
+        'Lecce': { latitude: 40.3547, longitude: 18.1724 },
+        'Verona': { latitude: 45.4384, longitude: 10.9916 },
+        'Cagliari': { latitude: 39.2238, longitude: 9.1217 },
+        'Monza': { latitude: 45.5883, longitude: 9.2738 },
+        'Parma': { latitude: 44.8015, longitude: 10.3280 },
+        'Como': { latitude: 45.8080, longitude: 9.0852 },
+        'Venice': { latitude: 45.4408, longitude: 12.3155 },
+        'Venezia': { latitude: 45.4408, longitude: 12.3155 },
+        'Frosinone': { latitude: 41.6415, longitude: 13.3548 },
+        'Cremona': { latitude: 45.1363, longitude: 10.0191 },
+        'La Spezia': { latitude: 44.1025, longitude: 9.8241 }
+      };
+      
+      if (defaultCoords[cityToSearch]) {
+        const coords = defaultCoords[cityToSearch];
+        return await getWeatherForCoordinates(coords.latitude, coords.longitude, match.data, city);
+      } else {
+        console.warn(`Città non trovata: ${city}`);
+        return null;
+      }
+    }
+    
+    // Usa il primo risultato
+    const { latitude, longitude } = geoData.results[0];
+    return await getWeatherForCoordinates(latitude, longitude, match.data, city);
+    
+  } catch (e) {
+    console.error('Errore fetch meteo:', e);
+    return null;
+  }
+};
+
+// Funzione helper per ottenere il meteo da coordinate
+const getWeatherForCoordinates = async (latitude, longitude, date, city) => {
+  try {
+    const dateToUse = date || new Date().toISOString().slice(0, 10);
     
     const weatherRes = await fetch(
       `https://api.open-meteo.com/v1/forecast?` +
@@ -1438,7 +1834,6 @@ const fetchWeatherForMatch = async (match) => {
     if (!weatherRes.ok) throw new Error('Errore meteo');
     const weatherData = await weatherRes.json();
     
-    // 3. Elaboriamo i dati
     if (!weatherData.daily) return null;
     
     const weatherCode = weatherData.daily.weathercode[0] || 0;
@@ -1458,12 +1853,13 @@ const fetchWeatherForMatch = async (match) => {
       latitude: latitude,
       longitude: longitude
     };
-    
   } catch (e) {
-    console.error('Errore fetch meteo:', e);
+    console.error('Errore getWeatherForCoordinates:', e);
     return null;
   }
 };
+
+// La funzione getWeatherDescription rimane invariata
 
 const fetchSofaScoreMatches = async (leagueId, seasonYear) => {
   try {
