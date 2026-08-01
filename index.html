@@ -1677,6 +1677,8 @@ const getWeatherDescription = (code) => {
 
 // SOSTITUISCI COMPLETAMENTE la funzione fetchWeatherForMatch con questa:
 
+// SOSTITUISCI COMPLETAMENTE la funzione fetchWeatherForMatch con questa versione corretta:
+
 const fetchWeatherForMatch = async (match) => {
   if (!match) return null;
   
@@ -1802,23 +1804,46 @@ const fetchWeatherForMatch = async (match) => {
       }
     }
     
-    // Ottieni il meteo per le coordinate
-    const dateToUse = match.data || new Date().toISOString().slice(0, 10);
+    // ============================================================
+    // FIX: Formatta la data correttamente per Open-Meteo
+    // ============================================================
+    let dateToUse;
+    
+    // Se la data è nel formato DD/MM/YYYY, convertila in YYYY-MM-DD
+    if (match.data && match.data.match(/^\d{2}\/\d{2}\/\d{4}/)) {
+      const parts = match.data.split('/');
+      // parts[0] = giorno, parts[1] = mese, parts[2] = anno
+      dateToUse = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      console.log(`📅 Data convertita da ${match.data} a ${dateToUse}`);
+    } else if (match.data && match.data.match(/^\d{4}-\d{2}-\d{2}/)) {
+      // Già in formato YYYY-MM-DD
+      dateToUse = match.data;
+      console.log(`📅 Data già in formato corretto: ${dateToUse}`);
+    } else {
+      // Usa oggi se la data non è valida
+      const today = new Date();
+      dateToUse = today.toISOString().slice(0, 10);
+      console.log(`📅 Data non valida, uso oggi: ${dateToUse}`);
+    }
     
     console.log(`🌤️ Richiesta meteo per ${city} (${lat}, ${lon}) data: ${dateToUse}`);
     
-    const weatherRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?` +
+    // Costruisci l'URL con la data corretta
+    const url = `https://api.open-meteo.com/v1/forecast?` +
       `latitude=${lat}&longitude=${lon}` +
       `&current_weather=true` +
       `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode` +
       `&timezone=auto` +
-      `&start_date=${dateToUse}&end_date=${dateToUse}`
-    );
+      `&start_date=${dateToUse}&end_date=${dateToUse}`;
+    
+    console.log(`🔗 URL: ${url}`);
+    
+    const weatherRes = await fetch(url);
     
     if (!weatherRes.ok) {
-      console.error(`❌ Errore meteo per ${city}: ${weatherRes.status}`);
-      throw new Error(`Errore meteo: ${weatherRes.status}`);
+      const errorText = await weatherRes.text();
+      console.error(`❌ Errore meteo per ${city}: ${weatherRes.status} - ${errorText}`);
+      throw new Error(`Errore meteo: ${weatherRes.status} - ${errorText}`);
     }
     
     const weatherData = await weatherRes.json();
