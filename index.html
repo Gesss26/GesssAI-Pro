@@ -446,6 +446,7 @@
   .alert-info { background: #2980b9; color: #fff; }
   .alert-success { background: var(--win); color: #000; }
   .alert-error { background: var(--lose); color: #fff; }
+  .alert-warning { background: var(--draw); color: #000; }
   
   .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
   input, select, textarea { width: 100%; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-size: 14px; }
@@ -1208,6 +1209,19 @@ const normalizeDate = (dateStr) => {
   return dateStr;
 };
 
+// ============================================================
+// NUOVA FUNZIONE: verifica se una data è già passata
+// ============================================================
+const isDatePassed = (dateStr) => {
+  if (!dateStr) return false;
+  const normalized = normalizeDate(dateStr);
+  if (!normalized) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const matchDate = new Date(normalized + 'T00:00:00');
+  return matchDate < today;
+};
+
 const formatDateEU = (dateStr) => {
   if (!dateStr) return 'N/D';
   if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}/)) return dateStr;
@@ -1675,10 +1689,6 @@ const getWeatherDescription = (code) => {
   return weatherCodes[code] || 'Condizioni variabili';
 };
 
-// SOSTITUISCI COMPLETAMENTE la funzione fetchWeatherForMatch con questa:
-
-// SOSTITUISCI COMPLETAMENTE la funzione fetchWeatherForMatch con questa versione corretta:
-
 const fetchWeatherForMatch = async (match) => {
   if (!match) return null;
   
@@ -1812,15 +1822,12 @@ const fetchWeatherForMatch = async (match) => {
     // Se la data è nel formato DD/MM/YYYY, convertila in YYYY-MM-DD
     if (match.data && match.data.match(/^\d{2}\/\d{2}\/\d{4}/)) {
       const parts = match.data.split('/');
-      // parts[0] = giorno, parts[1] = mese, parts[2] = anno
       dateToUse = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
       console.log(`📅 Data convertita da ${match.data} a ${dateToUse}`);
     } else if (match.data && match.data.match(/^\d{4}-\d{2}-\d{2}/)) {
-      // Già in formato YYYY-MM-DD
       dateToUse = match.data;
       console.log(`📅 Data già in formato corretto: ${dateToUse}`);
     } else {
-      // Usa oggi se la data non è valida
       const today = new Date();
       dateToUse = today.toISOString().slice(0, 10);
       console.log(`📅 Data non valida, uso oggi: ${dateToUse}`);
@@ -1828,7 +1835,6 @@ const fetchWeatherForMatch = async (match) => {
     
     console.log(`🌤️ Richiesta meteo per ${city} (${lat}, ${lon}) data: ${dateToUse}`);
     
-    // Costruisci l'URL con la data corretta
     const url = `https://api.open-meteo.com/v1/forecast?` +
       `latitude=${lat}&longitude=${lon}` +
       `&current_weather=true` +
@@ -4979,16 +4985,45 @@ function App() {
                 </select>
               </div>
               {(() => {
-                let playedMatches = matches.filter(m => m.stato === 'Giocata');
-                if (selectedChamp !== 'Tutti') { playedMatches = playedMatches.filter(m => m.campionato === selectedChamp); }
+                // Filtra le partite: stato "Giocata" OPPURE data passata
+                let playedMatches = matches.filter(m => {
+                  if (m.stato === 'Giocata') return true;
+                  // Se la data è passata e non ha risultato, la mostriamo come "Da verificare"
+                  if (m.stato === 'Futura' && isDatePassed(m.data)) return true;
+                  return false;
+                });
+                
+                if (selectedChamp !== 'Tutti') { 
+                  playedMatches = playedMatches.filter(m => m.campionato === selectedChamp); 
+                }
+                
                 playedMatches.sort((a, b) => {
                   const dateA = normalizeDate(a.data);
                   const dateB = normalizeDate(b.data);
                   if (!dateA || !dateB) return 0;
                   return dateB.localeCompare(dateA);
                 });
-                if (playedMatches.length === 0) { return <div className="empty-state">Nessuna partita giocata.</div>; }
-                return <div className="matches-grid">{playedMatches.map(m => <MatchTabHistory key={m.id} match={m} onSelect={selectMatch} />)}</div>;
+                
+                if (playedMatches.length === 0) { 
+                  return <div className="empty-state">Nessuna partita giocata o con data passata.</div>; 
+                }
+                
+                // Conta le partite con data passata ma senza risultato
+                const senzaRisultato = playedMatches.filter(m => m.stato === 'Futura' && isDatePassed(m.data));
+                
+                return (
+                  <div>
+                    {senzaRisultato.length > 0 && (
+                      <div className="alert alert-info" style={{marginBottom:'12px'}}>
+                        ⚠️ {senzaRisultato.length} partita/e hanno data passata ma non hanno risultato. 
+                        Clicca su <b>"Aggiorna Dati Partite"</b> nella Home per recuperare i risultati.
+                      </div>
+                    )}
+                    <div className="matches-grid">
+                      {playedMatches.map(m => <MatchTabHistory key={m.id} match={m} onSelect={selectMatch} />)}
+                    </div>
+                  </div>
+                );
               })()}
             </div>
           )}
