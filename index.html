@@ -392,76 +392,6 @@
   .weather-stat .weather-pct { font-size: 11px; margin: 4px 0; }
   .weather-stat .weather-count { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
   
-  .schedina-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
-  .schedina-controls .left-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .schedina-controls .left-group select { padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; min-width: 150px; }
-  .schedina-controls .num-buttons { display: flex; gap: 6px; }
-  .schedina-controls .num-buttons button { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-weight: bold; cursor: pointer; transition: all 0.2s; }
-  .schedina-controls .num-buttons button.active { background: var(--accent); color: #000; border-color: var(--accent); }
-  .schedina-controls .right-group { display: flex; align-items: center; gap: 12px; margin-left: auto; }
-  .schedina-controls .right-group select { padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; min-width: 160px; }
-  .schedina-controls .btn-generate { background: var(--accent); color: #000; border: none; padding: 8px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-  .schedina-controls .btn-generate:hover { background: var(--accent2); }
-  .schedina-controls .btn-reset-cards { background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
-  .schedina-controls .btn-reset-cards:hover { border-color: var(--accent); background: var(--card); }
-  
-  .schedina-match-card { background: var(--card); border: 1px solid var(--border); border-left-width: 6px; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.4); transition: transform 0.15s, box-shadow 0.15s; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-  .schedina-match-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.6); }
-  .schedina-match-card .match-info { flex: 1; min-width: 150px; }
-  .schedina-match-card .match-info .teams { font-weight: bold; font-size: 16px; }
-  .schedina-match-card .match-info .details { font-size: 12px; color: var(--text-muted); }
-  .schedina-match-card .giocate { display: flex; gap: 8px; flex-wrap: wrap; }
-  .schedina-match-card .giocate .giocata-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer; transition: all 0.2s; color: var(--text); }
-  .schedina-match-card .giocate .giocata-btn:hover { border-color: var(--accent); background: var(--card); }
-  .schedina-match-card .giocate .giocata-btn.disabled { opacity: 0.4; cursor: not-allowed; background: #3a3f4a; border-color: #3a3f4a; color: #888; }
-  .schedina-match-card .giocate .giocata-btn.disabled:hover { border-color: #3a3f4a; background: #3a3f4a; }
-  
-  .schedina-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
-  .schedina-actions button { padding: 6px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; transition: all 0.2s; font-size: 13px; }
-  .schedina-actions button:hover { border-color: var(--accent); background: var(--card); }
-  .schedina-actions .btn-reset { border-color: var(--lose); color: var(--lose); }
-  .schedina-actions .btn-reset:hover { background: var(--lose); color: #fff; }
-  .schedina-actions .btn-save { border-color: var(--win); color: var(--win); }
-  .schedina-actions .btn-save:hover { background: var(--win); color: #000; }
-  
-  .schedina-list { margin-top: 16px; background: var(--surface); padding: 12px; border-radius: 8px; border-left: 4px solid var(--accent); }
-  .schedina-list .entry { padding: 4px 0; border-bottom: 1px solid var(--border); font-size: 14px; display: flex; justify-content: space-between; }
-  .schedina-list .entry:last-child { border-bottom: none; }
-  .schedina-list .entry .remove-btn { color: var(--lose); cursor: pointer; margin-left: 8px; }
-  
-  .schedina-output { background: var(--surface); padding: 16px; border-radius: 8px; white-space: pre-wrap; font-family: monospace; font-size: 13px; margin-top: 12px; border-left: 4px solid var(--accent); }
-  .ai-result { background: var(--surface); padding: 16px; border-radius: 8px; margin-top: 16px; border-left: 4px solid var(--accent); }
-  .ai-result h2 { margin-bottom: 8px; font-size: 18px; }
-  .ai-result .consigli-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 10px; }
-  @media (max-width: 768px) { .ai-result .consigli-grid { grid-template-columns: 1fr; } }
-  .ai-result .consiglio-card { background: var(--card); padding: 12px; border-radius: 8px; border: 1px solid var(--border); }
-  .ai-result .consiglio-card .tipo { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; }
-  .ai-result .consiglio-card .giocata { font-size: 16px; font-weight: bold; color: #ffff00; }
-  .ai-result .consiglio-card .percentuale { font-size: 28px; font-weight: bold; margin-top: 4px; }
-  .ai-result .consiglio-card .percentuale.flag-bomb { animation: bomb-glow 1s infinite alternate; display: inline-block; }
-  .ai-result .analisi-testo { margin-top: 10px; font-size: 13px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 10px; }
-  
-  .schedina-history-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 8px; }
-  .schedina-history-item:last-child { border-bottom: none; }
-  .schedina-history-item .date { font-size: 12px; color: var(--text-muted); }
-  .schedina-history-item .entries { font-size: 13px; }
-  .schedina-history-item .status { padding: 2px 12px; border-radius: 10px; font-size: 11px; font-weight: bold; }
-  .schedina-history-item .status.win { background: var(--win); color: #000; }
-  .schedina-history-item .status.loss { background: var(--lose); color: #fff; }
-  .schedina-history-item .status.pending { background: var(--draw); color: #000; }
-  
-  .perf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 12px 0; }
-  .perf-card { background: var(--surface); padding: 16px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
-  .perf-card .perf-value { font-size: 28px; font-weight: bold; }
-  .perf-card .perf-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-  
-  .heatmap-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-  .heatmap-table th { background: var(--surface); color: var(--text-muted); padding: 8px 6px; text-align: center; border-bottom: 2px solid var(--border); font-weight: 600; font-size: 11px; }
-  .heatmap-table td { padding: 6px; text-align: center; border-bottom: 1px solid var(--border); }
-  .heatmap-table tr:hover td { background: var(--card); }
-  .heatmap-table tr.clickable { cursor: pointer; }
-  .heatmap-table tr.clickable:hover td { background: var(--surface); }
-  
   .home-widget { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 2px solid var(--accent); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
   .home-widget .day-selector { display: flex; gap: 4px; background: var(--surface); border-radius: 8px; padding: 3px; }
   .home-widget .day-selector button { padding: 4px 12px; border: none; background: transparent; color: var(--text-muted); border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
@@ -844,7 +774,7 @@
     }
   }
   
-  @media (max-width: 768px) { .match-tab, .match-tab-history { min-width: 100%; max-width: 100%; } .header { flex-direction: column; align-items: center; padding: 12px; } .header .header-left { position: static; } .clock { position: static; width: 100%; text-align: center; margin-top: 8px; } .schedina-controls .btn-generate { margin-left: 0; } .schedina-controls .right-group { margin-left: 0; width: 100%; } .schedina-match-card { flex-direction: column; align-items: stretch; } .schedina-match-card .giocate { justify-content: center; } .stats-two-col { grid-template-columns: 1fr; } .home-widget .day-selector { flex-direction: row; flex-wrap: wrap; } .giocata-item { flex-direction: column; align-items: stretch; text-align: center; } .heatmap-detail-modal { padding: 16px; margin: 10px; max-height: 90vh; } .ai-analysis-box .pronostico-mini { grid-template-columns: 1fr 1fr; } .freq-table { min-width: 280px; font-size: 11px; } .freq-table th, .freq-table td { padding: 4px 3px; font-size: 10px; } .affidabilita-grid { grid-template-columns: 1fr 1fr; } .intervalli-grid { grid-template-columns: 1fr 1fr; } .weather-impact-grid { grid-template-columns: 1fr 1fr; } .ai-analysis-box .consigli-grid { grid-template-columns: 1fr; } .ai-result .consigli-grid { grid-template-columns: 1fr; } .standings-table { min-width: 400px; font-size: 11px; } }
+  @media (max-width: 768px) { .match-tab, .match-tab-history { min-width: 100%; max-width: 100%; } .header { flex-direction: column; align-items: center; padding: 12px; } .header .header-left { position: static; } .clock { position: static; width: 100%; text-align: center; margin-top: 8px; } .stats-two-col { grid-template-columns: 1fr; } .home-widget .day-selector { flex-direction: row; flex-wrap: wrap; } .giocata-item { flex-direction: column; align-items: stretch; text-align: center; } .heatmap-detail-modal { padding: 16px; margin: 10px; max-height: 90vh; } .ai-analysis-box .pronostico-mini { grid-template-columns: 1fr 1fr; } .freq-table { min-width: 280px; font-size: 11px; } .freq-table th, .freq-table td { padding: 4px 3px; font-size: 10px; } .affidabilita-grid { grid-template-columns: 1fr 1fr; } .intervalli-grid { grid-template-columns: 1fr 1fr; } .weather-impact-grid { grid-template-columns: 1fr 1fr; } .ai-analysis-box .consigli-grid { grid-template-columns: 1fr; } .ai-result .consigli-grid { grid-template-columns: 1fr; } .standings-table { min-width: 400px; font-size: 11px; } }
   @media (max-width: 480px) { .affidabilita-grid { grid-template-columns: 1fr; } .intervalli-grid { grid-template-columns: 1fr; } .weather-impact-grid { grid-template-columns: 1fr; } .ai-analysis-box .pronostico-mini { grid-template-columns: 1fr; } .freq-table { min-width: 220px; font-size: 10px; } .standings-table { min-width: 300px; font-size: 10px; } .standings-table th, .standings-table td { padding: 3px 2px; } .match-tab .score-badge { font-size: 14px; padding: 1px 8px; } .team-name { font-size: 16px; } .detail-stat-box .value { font-size: 16px; } }
 </style>
 </head>
@@ -1042,31 +972,62 @@ const CITTÀ_PER_CAMPIONATO = {
 };
 
 // ============================================================
-// FUNZIONI PER LOGHI SQUADRE
+// FUNZIONI PER LOGHI SQUADRE - VERSIONE FINALE
 // ============================================================
 
-// Converte il nome del campionato in nome cartella
+// Converte il nome del campionato in nome cartella (con underscore)
 const getChampFolderName = (champName) => {
   if (!champName) return '';
-  // Sostituisce spazi con underscore e rimuove caratteri speciali
-  return champName
+  // Sostituisce spazi con underscore per i nomi dei campionati
+  let folderName = champName
     .replace(/ /g, '_')
     .replace(/[^a-zA-Z0-9_]/g, '');
+  
+  // Gestione casi speciali per i nomi dei campionati
+  const specialCases = {
+    'Ireland_Premier': 'Ireland_Premier',
+    'Russian_PL': 'Russian_PL',
+    'Swiss_Super_League': 'Swiss_Super_League',
+    'Chinese_Super_League': 'Chinese_Super_League',
+    'Danish_Superliga': 'Danish_Superliga',
+    'Austrian_Bundesliga': 'Austrian_Bundesliga',
+    'J1_League': 'J1_League',
+    'K_League_1': 'K_League_1',
+    'Allsvenskan': 'Allsvenskan',
+    'Eliteserien': 'Eliteserien',
+    'Veikkausliiga': 'Veikkausliiga',
+    'Eredivisie': 'Eredivisie',
+    'La_Liga': 'La_Liga'
+  };
+  
+  if (specialCases[folderName]) return specialCases[folderName];
+  return folderName;
 };
 
-// Converte il nome della squadra in nome file
+// Converte il nome della squadra in nome file (mantiene gli spazi)
 const getTeamFileName = (teamName) => {
   if (!teamName) return '';
-  return teamName
-    .replace(/ /g, '_')
-    .replace(/[^a-zA-Z0-9_]/g, '') + '.png';
+  let name = teamName;
+  
+  // Gestione caso speciale: Bodo/Glimt → Bodo-Glimt.png
+  name = name.replace(/\//g, '-');
+  
+  // Rimuove solo caratteri problematici per i file system
+  name = name.replace(/[<>:"|?*]/g, '');
+  
+  return name + '.png';
 };
 
 // Costruisce il percorso completo del logo
 const getLogoPath = (teamName, championship) => {
   if (!teamName || !championship) return null;
+  
+  // Se il campionato è "Tutti", non abbiamo una cartella specifica
+  if (championship === 'Tutti') return null;
+  
   const champFolder = getChampFolderName(championship);
   const teamFile = getTeamFileName(teamName);
+  
   return `${champFolder}/${teamFile}`;
 };
 
@@ -1084,7 +1045,8 @@ const TeamLogo = ({ teamName, championship, size = 40, className = '' }) => {
     return words.map(w => w[0]).join('').substring(0, 3).toUpperCase();
   };
 
-  if (hasError || !path) {
+  // Se non c'è un campionato valido o c'è errore, mostra il fallback
+  if (!championship || championship === 'Tutti' || hasError || !path) {
     const initials = getInitials(teamName);
     return (
       <div 
@@ -3234,14 +3196,6 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
 };
 
 // ============================================================
-// COMPONENTE STORICO SCHEDINE (vuoto)
-// ============================================================
-
-const StoricoSchedine = ({ schedineHistory, setSchedineHistory }) => {
-  return null;
-};
-
-// ============================================================
 // COMPONENTE HOME WIDGET CON LOGHI
 // ============================================================
 
@@ -4434,10 +4388,9 @@ const loadState = () => {
       apiKeys: JSON.parse(localStorage.getItem('ft_apikeys') || '{}'),
       theme: JSON.parse(localStorage.getItem('ft_theme') || '"Scuro Blu Notte"'),
       customTheme: JSON.parse(localStorage.getItem('ft_custom_theme') || 'null'),
-      schedineHistory: JSON.parse(localStorage.getItem('ft_schedine_history') || '[]'),
       selectedFamiglie: JSON.parse(localStorage.getItem('ft_selected_famiglie') || '["dc_under","mg_casa_ospite","over"]'),
     };
-  } catch(e) { return { championships:[], matches:[], apiKeys:{}, theme:'Scuro Blu Notte', customTheme:null, schedineHistory:[], selectedFamiglie:['dc_under','mg_casa_ospite','over'] }; }
+  } catch(e) { return { championships:[], matches:[], apiKeys:{}, theme:'Scuro Blu Notte', customTheme:null, selectedFamiglie:['dc_under','mg_casa_ospite','over'] }; }
 };
 
 const saveState = (data) => {
@@ -4446,7 +4399,6 @@ const saveState = (data) => {
   localStorage.setItem('ft_apikeys', JSON.stringify(data.apiKeys));
   localStorage.setItem('ft_theme', JSON.stringify(data.theme));
   localStorage.setItem('ft_custom_theme', JSON.stringify(data.customTheme));
-  localStorage.setItem('ft_schedine_history', JSON.stringify(data.schedineHistory || []));
   localStorage.setItem('ft_selected_famiglie', JSON.stringify(data.selectedFamiglie || ['dc_under','mg_casa_ospite','over']));
 };
 
@@ -4463,7 +4415,6 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [weatherCache, setWeatherCache] = useState({});
-  const [schedineHistory, setSchedineHistory] = useState(initial.schedineHistory || []);
   const [heatmapDetailChamp, setHeatmapDetailChamp] = useState(null);
   const [refreshSofaTrigger, setRefreshSofaTrigger] = useState(0);
   const [fontSize, setFontSize] = useState(() => { const saved = localStorage.getItem('ft_font_size'); return saved ? parseInt(saved) : 100; });
@@ -4887,7 +4838,7 @@ function App() {
   };
 
   const saveLocal = () => {
-    const data = { championships, matches, apiKeys, theme, customTheme, schedineHistory, selectedFamiglie, exportedAt: new Date().toISOString() };
+    const data = { championships, matches, apiKeys, theme, customTheme, selectedFamiglie, exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -4914,7 +4865,6 @@ function App() {
         if (data.apiKeys) { setApiKeys(data.apiKeys); setTempKeys(data.apiKeys); }
         if (data.theme) setTheme(data.theme);
         if (data.customTheme) setCustomTheme(data.customTheme);
-        if (data.schedineHistory) setSchedineHistory(data.schedineHistory);
         if (data.selectedFamiglie) setSelectedFamiglie(data.selectedFamiglie);
         showAlert('success', '📂 Dati caricati!');
       } catch(err) { showAlert('error', 'File non valido'); }
@@ -4938,7 +4888,7 @@ function App() {
     }
   }, [selectedMatch]);
 
-  useEffect(() => { saveState({ championships, matches, apiKeys, theme, customTheme, schedineHistory, selectedFamiglie }); }, [championships, matches, apiKeys, theme, customTheme, schedineHistory, selectedFamiglie]);
+  useEffect(() => { saveState({ championships, matches, apiKeys, theme, customTheme, selectedFamiglie }); }, [championships, matches, apiKeys, theme, customTheme, selectedFamiglie]);
 
   useEffect(() => {
     const t = theme === 'Custom' ? customTheme : THEMES[theme] || THEMES['Scuro Blu Notte'];
@@ -5004,7 +4954,6 @@ function App() {
                   <div className="perf-card"><div className="perf-value" style={{color: 'var(--accent)'}}>{matches.filter(m => m.stato === 'Futura').length}</div><div className="perf-label">Partite Future</div></div>
                   <div className="perf-card"><div className="perf-value" style={{color: 'var(--win)'}}>{matches.filter(m => m.stato === 'Giocata').length}</div><div className="perf-label">Partite Giocate</div></div>
                   <div className="perf-card"><div className="perf-value">{championships.length}</div><div className="perf-label">Campionati</div></div>
-                  <div className="perf-card"><div className="perf-value" style={{color: 'var(--accent)'}}>{schedineHistory.length}</div><div className="perf-label">Schedine Salvate</div></div>
                 </div></div>
                 <div><h3 style={{marginBottom: '12px'}}>🔥 Campionati Attivi</h3><div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '8px', maxHeight: '250px', overflowY: 'auto', paddingRight: '8px'}}>
                   {championships.map(c => { const totalMatches = matches.filter(m => m.campionato === c.name).length; const futureMatches = matches.filter(m => m.campionato === c.name && m.stato === 'Futura').length; const color = getChampColor(c.name); return <div key={c.name} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', borderRadius: '6px', background: 'var(--surface)', borderLeft: `3px solid ${color}`, fontSize: '13px'}}><span style={{color: color, fontWeight: 'bold', fontSize: '12px'}}>{c.name}</span><span style={{fontSize: '11px', color: 'var(--text-muted)'}}>{futureMatches} future</span></div>; })}
@@ -5023,7 +4972,6 @@ function App() {
                   <AnalisiMeteo matches={matches} weatherCache={weatherCache} />
                 </div>
               )}
-              <StoricoSchedine schedineHistory={schedineHistory} setSchedineHistory={setSchedineHistory} />
             </div>
           )}
 
@@ -5279,7 +5227,7 @@ function App() {
                     <label style={{display:'block', marginBottom:'6px'}}>📂 Carica Backup JSON</label>
                     <input type="file" accept=".json" onChange={e => e.target.files[0] && loadLocal(e.target.files[0])} />
                     <hr style={{margin:'14px 0', borderColor:'var(--border)'}}/>
-                    <button className="btn btn-danger" onClick={() => { if (confirm('Vuoi davvero resettare TUTTI i dati?')) { localStorage.clear(); saveBlacklist([]); saveCustomSofaLeagues([]); localStorage.removeItem('ft_football_data_imported'); localStorage.removeItem('ft_sportsapipro_imported'); setChampionships([]); setMatches([]); setApiKeys({}); setTempKeys({}); setSchedineHistory([]); setRefreshSofaTrigger(prev => prev + 1); showAlert('success', '🗑️ Dati resettati completamente.'); } }}>🗑️ Reset Completo</button>
+                    <button className="btn btn-danger" onClick={() => { if (confirm('Vuoi davvero resettare TUTTI i dati?')) { localStorage.clear(); saveBlacklist([]); saveCustomSofaLeagues([]); localStorage.removeItem('ft_football_data_imported'); localStorage.removeItem('ft_sportsapipro_imported'); setChampionships([]); setMatches([]); setApiKeys({}); setTempKeys({}); setRefreshSofaTrigger(prev => prev + 1); showAlert('success', '🗑️ Dati resettati completamente.'); } }}>🗑️ Reset Completo</button>
                   </div>
                 </div>
               )}
