@@ -40,7 +40,7 @@ print(f"\n📂 Cartella DOWNLOAD: {download_folder}")
 print(f"📂 Cartella OUTPUT Excel: {output_folder}")
 
 # ============================================
-# LISTA DEI 26 SITI (AGGIORNATA)
+# LISTA DEI 36 SITI (AGGIORNATA)
 # ============================================
 sites = [
     # Allsvenskan (Svezia)
@@ -50,6 +50,10 @@ sites = [
     # Austrian Bundesliga (Austria)
     {'nome': 'Austrian Bundesliga - Stats', 'url': 'https://fbref.com/en/comps/56/Austrian-Bundesliga-Stats'},
     {'nome': 'Austrian Bundesliga - Schedule', 'url': 'https://fbref.com/en/comps/56/schedule/Austrian-Bundesliga-Scores-and-Fixtures'},
+
+    # Bundesliga (Germania)
+    {'nome': 'Bundesliga - Stats', 'url': 'https://fbref.com/en/comps/20/2026-2027/2026-2027-Bundesliga-Stats'},
+    {'nome': 'Bundesliga - Schedule', 'url': 'https://fbref.com/en/comps/20/2026-2027/schedule/2026-2027-Bundesliga-Scores-and-Fixtures'},
     
     # Chinese Super League (Cina)
     {'nome': 'Chinese Super League - Stats', 'url': 'https://fbref.com/en/comps/62/Chinese-Super-League-Stats'},
@@ -70,6 +74,10 @@ sites = [
     # La Liga (Spagna) 
     {'nome': 'La Liga - Stats', 'url': 'https://fbref.com/en/comps/12/2026-2027/2026-2027-La-Liga-Stats'},
     {'nome': 'La Liga - Schedule', 'url': 'https://fbref.com/en/comps/12/2026-2027/schedule/2026-2027-La-Liga-Scores-and-Fixtures'},
+
+    # Ligue 1 (Francia) 
+    {'nome': 'Ligue 1 - Stats', 'url': 'https://fbref.com/en/comps/13/2026-2027/2026-2027-Ligue-1-Stats'},
+    {'nome': 'Ligue 1 - Schedule', 'url': 'https://fbref.com/en/comps/13/2026-2027/schedule/2026-2027-Ligue-1-Scores-and-Fixtures'},
     
     # League of Ireland Premier Division (Irlanda)
     {'nome': 'Ireland Premier - Stats', 'url': 'https://fbref.com/en/comps/80/League-of-Ireland-Premier-Division-Stats'},
@@ -82,10 +90,22 @@ sites = [
     # K League 1 (Corea del Sud)
     {'nome': 'K League 1 - Stats', 'url': 'https://fbref.com/en/comps/55/K-League-1-Stats'},
     {'nome': 'K League 1 - Schedule', 'url': 'https://fbref.com/en/comps/55/schedule/K-League-1-Scores-and-Fixtures'},
+
+    # Premier League (Inghilterra)
+    {'nome': 'K League 1 - Stats', 'url': 'https://fbref.com/en/comps/9/2026-2027/2026-2027-Premier-League-Stats'},
+    {'nome': 'K League 1 - Schedule', 'url': 'https://fbref.com/en/comps/9/2026-2027/schedule/2026-2027-Premier-League-Scores-and-Fixtures'},
     
     # Russian Premier League (Russia)
     {'nome': 'Russian PL - Stats', 'url': 'https://fbref.com/en/comps/30/Russian-Premier-League-Stats'},
     {'nome': 'Russian PL - Schedule', 'url': 'https://fbref.com/en/comps/30/schedule/Russian-Premier-League-Scores-and-Fixtures'},
+
+    # Serie A (Italia)
+    {'nome': 'Serie A - Stats', 'url': 'https://fbref.com/en/comps/11/2026-2027/2026-2027-Serie-A-M-Stats'},
+    {'nome': 'Serie A - Schedule', 'url': 'https://fbref.com/en/comps/11/2026-2027/schedule/2026-2027-Serie-A-M-Scores-and-Fixtures'},
+
+    # Serie B (Italia)
+    {'nome': 'Serie B - Stats', 'url': 'https://fbref.com/en/comps/18/2026-2027/2026-2027-Serie-B-M-Stats'},
+    {'nome': 'Serie B - Schedule', 'url': 'https://fbref.com/en/comps/18/2026-2027/schedule/2026-2027-Serie-B-M-Scores-and-Fixtures'},
     
     # Swiss Super League (Svizzera)
     {'nome': 'Swiss Super League - Stats', 'url': 'https://fbref.com/en/comps/57/Swiss-Super-League-Stats'},
@@ -95,89 +115,6 @@ sites = [
     {'nome': 'Veikkausliiga - Stats', 'url': 'https://fbref.com/en/comps/43/Veikkausliiga-Stats'},
     {'nome': 'Veikkausliiga - Schedule', 'url': 'https://fbref.com/en/comps/43/schedule/Veikkausliiga-Scores-and-Fixtures'}
 ]
-
-# ============================================
-# FUNZIONE PER SCARICARE CON RISULTATI
-# ============================================
-def scarica_con_risultati(driver, url, timeout=30):
-    """
-    Scarica la pagina assicurandosi che i risultati siano caricati
-    """
-    print("   🔄 Caricamento pagina...")
-    driver.get(url)
-    time.sleep(3)
-    
-    # Attendi la tabella
-    try:
-        WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.TAG_NAME, "table"))
-        )
-        print("   ✅ Tabella trovata")
-    except:
-        print("   ⚠️ Tabella non trovata, continuo comunque...")
-    
-    # SCROLLA PER CARICARE I DATI DINAMICI
-    print("   🔄 Scrolling per caricare i risultati...")
-    
-    # Scrolla gradualmente
-    for step in range(4):
-        scroll_position = (step + 1) * 25  # 25%, 50%, 75%, 100%
-        driver.execute_script(f"window.scrollTo(0, document.body.scrollHeight * {scroll_position/100});")
-        time.sleep(1.5)
-    
-    # Torna in cima
-    driver.execute_script("window.scrollTo(0, 0);")
-    time.sleep(2)
-    
-    # Scrolla di nuovo lentamente per caricare tutto
-    for step in range(8):
-        scroll_position = (step + 1) * 12.5  # 12.5%, 25%, 37.5%, etc.
-        driver.execute_script(f"window.scrollTo(0, document.body.scrollHeight * {scroll_position/100});")
-        time.sleep(0.8)
-    
-    # Torna in cima
-    driver.execute_script("window.scrollTo(0, 0);")
-    time.sleep(2)
-    
-    # VERIFICA LA PRESENZA DEI RISULTATI
-    html = driver.page_source
-    
-    # Cerca pattern di risultati (es. 2-1, 3-0, etc.)
-    results_pattern = r'\d+[-–:\.]\d+'
-    results_found = re.findall(results_pattern, html)
-    
-    if results_found:
-        print(f"   ✅ Trovati {len(results_found)} risultati nella pagina")
-        # Mostra alcuni esempi
-        for r in results_found[:3]:
-            print(f"      Esempio: {r}")
-    else:
-        print("   ⚠️ Nessun risultato trovato, aspetto ulteriormente...")
-        time.sleep(5)
-        
-        # Prova un refresh
-        print("   🔄 Refresh della pagina...")
-        driver.refresh()
-        time.sleep(5)
-        
-        # Scrolla di nuovo
-        for step in range(4):
-            scroll_position = (step + 1) * 25
-            driver.execute_script(f"window.scrollTo(0, document.body.scrollHeight * {scroll_position/100});")
-            time.sleep(1.5)
-        
-        driver.execute_script("window.scrollTo(0, 0);")
-        time.sleep(2)
-        
-        html = driver.page_source
-        results_found = re.findall(results_pattern, html)
-        
-        if results_found:
-            print(f"   ✅ Trovati {len(results_found)} risultati dopo il refresh")
-        else:
-            print("   ❌ Ancora nessun risultato trovato!")
-    
-    return html
 
 # ============================================
 # FUNZIONI DI UTILITÀ
@@ -238,14 +175,10 @@ def estrai_tabella(soup, html_content):
     tables = soup.find_all('table')
     if not tables:
         return None
-    
-    # Cerca tabelle specifiche
     for table in tables:
         table_id = table.get('id', '')
         if 'stats_standard' in table_id or 'results' in table_id or 'schedule' in table_id:
             return table
-    
-    # Se non trova tabelle specifiche, prendi la più grande
     return max(tables, key=lambda t: len(t.find_all('tr')))
 
 def table_to_dataframe(table_element):
@@ -456,12 +389,13 @@ def estrai_risultato(score_str):
     return None, None
 
 # ============================================
-# FUNZIONE PER CONVERTIRE IN FORMATO GESSSAI
+# FUNZIONE PER CONVERTIRE IN FORMATO GESSSAI (SOLUZIONE 2 - SEMPLICE)
 # ============================================
 def converti_per_gesssai(file_schedule, file_stats, output_file):
     """
     Converte i file Schedule nel formato per l'app GesssAI
-    REGOLA: Se Risultato ha un valore → Giocata, altrimenti → Futura
+    REGOLA SEMPLICE: Se Risultato ha un valore → Giocata, altrimenti → Futura
+    Se Risultato è vuoto, anche Gol Casa e Gol Ospite sono vuoti (0)
     """
     try:
         print("\n📱 Conversione per l'app GesssAI...")
@@ -520,7 +454,7 @@ def converti_per_gesssai(file_schedule, file_stats, output_file):
             return None
         
         # ============================================================
-        # CONVERSIONE
+        # CONVERSIONE - REGOLA SEMPLICE
         # ============================================================
         risultati = []
         conteggio_giocate = 0
@@ -546,7 +480,10 @@ def converti_per_gesssai(file_schedule, file_stats, output_file):
                 if giornata == 'nan': giornata = ''
                 if score == 'nan': score = ''
                 
+                # ============================================================
                 # REGOLA: Se Risultato ha un valore → Giocata
+                # Se Risultato è vuoto → Futura (Gol Casa e Gol Ospite rimangono 0)
+                # ============================================================
                 gol_casa = 0
                 gol_ospite = 0
                 risultato = ''
@@ -700,203 +637,6 @@ def genera_json_per_app(df_schedule, output_folder):
         return None
 
 # ============================================
-# CREA IL FILE excel_to_json.py PER GITHUB ACTIONS
-# ============================================
-def crea_file_excel_to_json():
-    """Crea il file excel_to_json.py per GitHub Actions"""
-    
-    print("\n" + "=" * 70)
-    print("📝 CREAZIONE FILE excel_to_json.py")
-    print("=" * 70)
-    
-    script_content = '''import os
-import pandas as pd
-import json
-import re
-from datetime import datetime
-
-# ============================================
-# FUNZIONI NECESSARIE
-# ============================================
-
-def genera_json_per_app(df_schedule, output_folder):
-    """Genera il JSON per l'app"""
-    try:
-        print("📱 Generazione JSON per l'app...")
-        
-        if df_schedule is None or df_schedule.empty:
-            print("   ❌ Nessun dato disponibile per il JSON")
-            return None
-        
-        matches_data = []
-        campionati_set = set()
-        
-        for _, row in df_schedule.iterrows():
-            campionato = str(row.get('Campionato', 'Sconosciuto')).strip()
-            if campionato == 'nan' or campionato == 'None':
-                campionato = 'Sconosciuto'
-            
-            campionati_set.add(campionato)
-            
-            data_europea = str(row.get('Data', '')).strip()
-            if data_europea == 'nan' or data_europea == 'None':
-                data_europea = ''
-            
-            gol_casa = row.get('Gol Casa', 0)
-            gol_ospite = row.get('Gol Ospite', 0)
-            
-            stato = row.get('Stato', 'Futura')
-            if stato == 'nan' or stato == 'None':
-                stato = 'Futura'
-            
-            risultato = row.get('Risultato', '')
-            if risultato and risultato != '' and risultato != 'nan':
-                stato = 'Giocata'
-            
-            id_parts = [
-                campionato,
-                data_europea.replace('/', '_'),
-                str(row.get('Squadra Casa', '')).replace(' ', '_'),
-                str(row.get('Squadra Ospite', '')).replace(' ', '_')
-            ]
-            match_id = "_".join(id_parts)
-            
-            match_data = {
-                "id": match_id,
-                "campionato": campionato,
-                "round": str(row.get('Numero Giornata (Wk)', 'N/A')),
-                "data": data_europea,
-                "ora": str(row.get('Ora', 'TBD')),
-                "casa": str(row.get('Squadra Casa', '')),
-                "ospiti": str(row.get('Squadra Ospite', '')),
-                "stato": stato,
-                "golCasa": int(gol_casa) if gol_casa != 'nan' and gol_casa != '' else 0,
-                "golOspite": int(gol_ospite) if gol_ospite != 'nan' and gol_ospite != '' else 0,
-                "citta": "N/D"
-            }
-            matches_data.append(match_data)
-        
-        data = {
-            "championships": [{"name": c, "importedAt": datetime.now().isoformat()} for c in sorted(campionati_set)],
-            "matches": matches_data,
-            "apiKeys": {},
-            "theme": "Scuro Blu Notte",
-            "customTheme": None,
-            "schedineHistory": [],
-            "selectedFamiglie": ["dc_under", "mg_casa_ospite", "over"],
-            "exportedAt": datetime.now().isoformat()
-        }
-        
-        output_path = os.path.join(output_folder, "GesssAI_Input.json")
-        with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        
-        print(f"\\n   ✅ Creato file JSON per l'app: {output_path}")
-        print(f"      📊 {len(matches_data)} partite")
-        print(f"      🏆 {len(campionati_set)} campionati")
-        
-        return output_path
-        
-    except Exception as e:
-        print(f"   ❌ Errore nella generazione JSON: {e}")
-        import traceback
-        traceback.print_exc()
-        return None
-
-def carica_json_su_github(file_path):
-    """Carica il JSON su GitHub"""
-    try:
-        import requests
-        import base64
-        
-        token = os.environ.get('GITHUB_TOKEN', '')
-        repo = os.environ.get('GITHUB_REPO', 'Gesss26/GesssAI-Pro')
-        
-        if not token:
-            print("   ⚠️ GITHUB_TOKEN non configurato.")
-            return False
-        
-        print("\\n📤 Caricamento JSON su GitHub...")
-        
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        encoded = base64.b64encode(content.encode()).decode()
-        
-        url = f"https://api.github.com/repos/{repo}/contents/GesssAI_Input.json"
-        
-        data = {
-            "message": f"Aggiornamento automatico dati - {datetime.now().strftime('%d/%m/%Y %H:%M')}",
-            "content": encoded,
-            "branch": "main"
-        }
-        
-        headers = {
-            "Authorization": f"token {token}",
-            "Accept": "application/vnd.github.v3+json"
-        }
-        
-        response = requests.put(url, json=data, headers=headers)
-        
-        if response.status_code in [200, 201]:
-            print(f"\\n   ✅ JSON caricato con successo su GitHub!")
-            return True
-        else:
-            print(f"   ❌ Errore nel caricamento: {response.status_code}")
-            return False
-            
-    except Exception as e:
-        print(f"   ❌ Errore durante il caricamento: {e}")
-        return False
-
-def is_github_actions():
-    return os.environ.get('GITHUB_ACTIONS') == 'true'
-
-# ============================================
-# MAIN
-# ============================================
-def main():
-    # Usa la stessa cartella del file originale
-    output_folder = r"d:\\\\ai\\\\excel"
-    
-    input_file = os.path.join(output_folder, "GesssAI_Input.xlsx")
-    
-    if not os.path.exists(input_file):
-        print(f"❌ File non trovato: {input_file}")
-        return
-    
-    print(f"📖 Leggo {input_file}...")
-    df = pd.read_excel(input_file)
-    print(f"   ✅ Lette {len(df)} righe")
-    
-    print("🔄 Generazione JSON...")
-    json_path = genera_json_per_app(df, output_folder)
-    
-    if json_path:
-        print(f"✅ JSON creato: {json_path}")
-        
-        if is_github_actions():
-            print("📤 Caricamento su GitHub...")
-            carica_json_su_github(json_path)
-        else:
-            print("📁 JSON pronto per upload manuale")
-
-if __name__ == "__main__":
-    main()
-'''
-    
-    # Salva il file nella cartella di output
-    script_path = os.path.join(output_folder, "excel_to_json.py")
-    
-    with open(script_path, 'w', encoding='utf-8') as f:
-        f.write(script_content)
-    
-    print(f"\n✅ File excel_to_json.py creato: {script_path}")
-    print(f"   📊 Dimensioni: {len(script_content)} caratteri")
-    
-    return script_path
-
-# ============================================
 # FASE 1: DOWNLOAD
 # ============================================
 print("\n" + "=" * 70)
@@ -909,14 +649,6 @@ chrome_options = Options()
 chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
 chrome_options.add_experimental_option('useAutomationExtension', False)
-
-# User-Agent realistico
-chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-
-# Disabilita cache per ottenere dati freschi
-chrome_options.add_argument("--disable-cache")
-chrome_options.add_argument("--disable-application-cache")
-chrome_options.add_argument("--disk-cache-size=0")
 
 # Per vedere il browser, commenta la riga seguente
 # chrome_options.add_argument("--headless")
@@ -943,17 +675,81 @@ for i, site in enumerate(sites, 1):
     print(f"   URL: {site['url']}")
     
     try:
-        # Usa la nuova funzione per scaricare con i risultati
-        html = scarica_con_risultati(driver, site['url'])
+        driver.get(site['url'])
+        print("   ⏳ Attendo caricamento iniziale...")
+        time.sleep(5)  # Aumentato da 3 a 5 secondi
         
-        # Verifica la presenza di risultati nell'HTML finale
+        # Attendi la tabella
+        WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.TAG_NAME, "table"))
+        )
+        print("   ✅ Tabella trovata")
+        
+        # ============================================================
+        # SCROLLA PER CARICARE I DATI DINAMICI (I RISULTATI)
+        # ============================================================
+        print("   🔄 Scrolling per caricare i risultati...")
+        
+        # Scrolla gradualmente fino in fondo
+        last_height = driver.execute_script("return document.body.scrollHeight")
+        scroll_attempts = 0
+        max_scroll_attempts = 10
+        
+        while scroll_attempts < max_scroll_attempts:
+            # Scrolla in basso
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(2)
+            
+            # Scrolla in alto (questo aiuta a caricare i contenuti lazy)
+            driver.execute_script("window.scrollTo(0, 0);")
+            time.sleep(1)
+            
+            # Scrolla di nuovo in basso
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(2)
+            
+            # Controlla se l'altezza è cambiata
+            new_height = driver.execute_script("return document.body.scrollHeight")
+            if new_height == last_height:
+                scroll_attempts += 1
+            else:
+                scroll_attempts = 0
+                last_height = new_height
+                print(f"      Nuovo contenuto caricato: {new_height}px")
+            
+            if scroll_attempts > 3:
+                break
+        
+        # Un ultimo scroll completo
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(3)
+        driver.execute_script("window.scrollTo(0, 0);")
+        time.sleep(2)
+        
+        # ============================================================
+        # VERIFICA LA PRESENZA DEI RISULTATI
+        # ============================================================
+        html = driver.page_source
+        
+        # Cerca pattern di risultati (es. 2-1, 3-0, etc.)
         results_pattern = r'\d+[-–:\.]\d+'
         results_found = re.findall(results_pattern, html)
         
         if results_found:
-            print(f"   ✅ Pagina scaricata con {len(results_found)} risultati")
+            print(f"   ✅ Trovati {len(results_found)} risultati nella pagina")
+            # Mostra alcuni esempi
+            for r in results_found[:3]:
+                print(f"      Esempio: {r}")
         else:
-            print(f"   ⚠️ Pagina scaricata ma senza risultati visibili")
+            print("   ⚠️ Nessun risultato trovato, aspetto ulteriormente...")
+            # Aspetta ancora e ricontrolla
+            time.sleep(5)
+            html = driver.page_source
+            results_found = re.findall(results_pattern, html)
+            if results_found:
+                print(f"   ✅ Trovati {len(results_found)} risultati dopo l'attesa")
+            else:
+                print("   ⚠️ Ancora nessun risultato visibile")
         
         # Salva l'HTML
         html_filename = f"{site['nome'].replace(' ', '_').replace('/', '_')}.html"
@@ -1053,25 +849,6 @@ else:
     print("\n⚠️ File Tutti_Schedule.xlsx non trovato.")
 
 # ============================================
-# FASE 5: CREA excel_to_json.py
-# ============================================
-if not os.environ.get('GITHUB_ACTIONS'):
-    print("\n" + "=" * 70)
-    print("📝 FASE 5: CREAZIONE FILE PER GITHUB ACTIONS")
-    print("=" * 70)
-    
-    crea_file_excel_to_json()
-    
-    print("\n" + "=" * 70)
-    print("📋 ISTRUZIONI PER GITHUB ACTIONS")
-    print("=" * 70)
-    print("\n1️⃣ Carica su GitHub il file:")
-    print(f"   📁 {os.path.join(output_folder, 'GesssAI_Input.xlsx')}")
-    print("\n2️⃣ Carica anche il file excel_to_json.py nella repository")
-    print("\n3️⃣ Crea un workflow .github/workflows/update_json.yml")
-    print("\n4️⃣ Il JSON verrà generato automaticamente su GitHub Actions!")
-
-# ============================================
 # RIEPILOGO FINALE
 # ============================================
 print("\n" + "=" * 70)
@@ -1101,23 +878,6 @@ json_file = os.path.join(output_folder, "GesssAI_Input.json")
 if os.path.exists(json_file):
     dimensione = os.path.getsize(json_file) / 1024
     print(f"   📱 GesssAI_Input.json ({dimensione:.1f} KB) - PRONTO PER IMPORT")
-
-# Verifica la presenza di risultati nei file Excel
-print("\n🔍 Verifica presenza risultati nei file Excel...")
-schedule_file = os.path.join(output_folder, "Tutti_Schedule.xlsx")
-if os.path.exists(schedule_file):
-    try:
-        df_check = pd.read_excel(schedule_file)
-        results_found = 0
-        for col in df_check.columns:
-            col_str = df_check[col].astype(str)
-            if col_str.str.contains(r'\d+[-–:\.]\d+').sum() > 0:
-                results_found += col_str.str.contains(r'\d+[-–:\.]\d+').sum()
-        print(f"   📊 Trovati {results_found} risultati nel file Schedule")
-        if results_found == 0:
-            print("   ⚠️ ATTENZIONE: Nessun risultato trovato! I dati potrebbero non essere stati caricati correttamente.")
-    except:
-        pass
 
 print("\n" + "=" * 70)
 print("🔴 Premere un tasto per uscire...")
