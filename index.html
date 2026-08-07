@@ -773,6 +773,20 @@
   
   @media (max-width: 768px) { .match-tab, .match-tab-history { min-width: 100%; max-width: 100%; } .header { flex-direction: column; align-items: center; padding: 12px; } .header .header-left { position: static; } .clock { position: static; width: 100%; text-align: center; margin-top: 8px; } .stats-two-col { grid-template-columns: 1fr; } .home-widget .day-selector { flex-direction: row; flex-wrap: wrap; } .giocata-item { flex-direction: column; align-items: stretch; text-align: center; } .heatmap-detail-modal { padding: 16px; margin: 10px; max-height: 90vh; } .ai-analysis-box .pronostico-mini { grid-template-columns: 1fr 1fr; } .freq-table { min-width: 280px; font-size: 11px; } .freq-table th, .freq-table td { padding: 4px 3px; font-size: 10px; } .affidabilita-grid { grid-template-columns: 1fr 1fr; } .intervalli-grid { grid-template-columns: 1fr 1fr; } .weather-impact-grid { grid-template-columns: 1fr 1fr; } .ai-analysis-box .consigli-grid { grid-template-columns: 1fr; } .ai-result .consigli-grid { grid-template-columns: 1fr; } .standings-table { min-width: 400px; font-size: 11px; } }
   @media (max-width: 480px) { .affidabilita-grid { grid-template-columns: 1fr; } .intervalli-grid { grid-template-columns: 1fr; } .weather-impact-grid { grid-template-columns: 1fr; } .ai-analysis-box .pronostico-mini { grid-template-columns: 1fr; } .freq-table { min-width: 220px; font-size: 10px; } .standings-table { min-width: 300px; font-size: 10px; } .standings-table th, .standings-table td { padding: 3px 2px; } .match-tab .score-badge { font-size: 14px; padding: 1px 8px; } .team-name { font-size: 16px; } .detail-stat-box .value { font-size: 16px; } }
+
+  /* DISCLAIMER COMMERCIALE */
+  .disclaimer-footer {
+    margin-top: 30px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .disclaimer-footer strong { color: var(--text); }
+  .disclaimer-footer .highlight { color: var(--accent); font-weight: bold; }
 </style>
 </head>
 <body>
@@ -798,219 +812,31 @@ const MAIN_TABS = ['Home','Palinsesto','Statistiche','Storico','API KEY','Impost
 const SETTINGS_TABS = ['Temi','API KEY','Dati Locali','Importa Campionato','Giocate','Grandezza Caratteri','Città Meteo','Visuale'];
 
 const CHAMPIONSHIP_COLORS = {
-  'Allsvenskan': '#e74c3c', 'Premier League': '#3498db', 'Serie A': '#2ecc71',
+  'Premier League': '#3498db', 'Serie A': '#2ecc71',
   'Serie B': '#e67e22', 'Bundesliga': '#f39c12', 'Ligue 1': '#9b59b6',
-  'Brasileirão': '#1abc9c', 'Eredivisie': '#e67e22', 'Primeira Liga': '#34495e',
-  'Cina': '#c0392b', 'Irlanda': '#27ae60', 'Eliteserien': '#2980b9',
-  'FIFA World Cup 2026': '#f1c40f', 'Championship': '#6c3483', 'La Liga': '#e74c3c',
-  'Liga MX': '#16a085', 'Veikkausliiga': '#e67e22', 'Danish Superliga': '#27ae60',
-  'Pro League': '#2980b9', 'J1 League': '#e74c3c', 'K League 1': '#f39c12',
+  'La Liga': '#e74c3c', 'Eredivisie': '#e67e22', 'Primeira Liga': '#34495e',
+  'Allsvenskan': '#e74c3c', 'Eliteserien': '#2980b9', 'Danish Superliga': '#27ae60',
+  'Pro League': '#2980b9', 'Championship': '#6c3483', 'Liga MX': '#16a085',
+  'Brasileirão': '#1abc9c', 'J1 League': '#e74c3c', 'K League 1': '#f39c12',
   'Swiss Super League': '#8e44ad', 'Austrian Bundesliga': '#2c3e50',
   'Chinese Super League': '#1a8a3f', 'Premier Division': '#16a085',
-  'Besta deild': '#d35400', 'Liga Portugal Betclic': '#1abc9c'
+  'Besta deild': '#d35400', 'Liga Portugal Betclic': '#1abc9c',
+  'Veikkausliiga': '#e67e22', 'Russian Premier League': '#c0392b'
 };
 
 const CHAMPIONSHIP_COUNTRY = {
-  'Serie A': 'IT',
-  'Serie B': 'IT',
-  'Premier League': 'GB',
-  'Bundesliga': 'DE',
-  'Ligue 1': 'FR',
-  'La Liga': 'ES',
-  'Eredivisie': 'NL',
-  'Primeira Liga': 'PT',
-  'Allsvenskan': 'SE',
-  'Eliteserien': 'NO',
-  'Danish Superliga': 'DK',
-  'Pro League': 'BE',
-  'Championship': 'GB',
-  'Liga MX': 'MX',
-  'Brasileirão': 'BR',
-  'J1 League': 'JP',
-  'K League 1': 'KR',
-  'Swiss Super League': 'CH',
-  'Austrian Bundesliga': 'AT',
-  'Chinese Super League': 'CN',
-  'Premier Division': 'IE',
-  'Besta deild': 'IS',
-  'Liga Portugal Betclic': 'PT',
-  'FIFA World Cup 2026': 'US',
-  'Veikkausliiga': 'FI',
-  'Russian Premier League': 'RU',
+  'Serie A': 'IT', 'Serie B': 'IT', 'Premier League': 'GB',
+  'Bundesliga': 'DE', 'Ligue 1': 'FR', 'La Liga': 'ES',
+  'Eredivisie': 'NL', 'Primeira Liga': 'PT', 'Allsvenskan': 'SE',
+  'Eliteserien': 'NO', 'Danish Superliga': 'DK', 'Pro League': 'BE',
+  'Championship': 'GB', 'Liga MX': 'MX', 'Brasileirão': 'BR',
+  'J1 League': 'JP', 'K League 1': 'KR', 'Swiss Super League': 'CH',
+  'Austrian Bundesliga': 'AT', 'Chinese Super League': 'CN',
+  'Premier Division': 'IE', 'Besta deild': 'IS', 'Liga Portugal Betclic': 'PT',
+  'Veikkausliiga': 'FI', 'Russian Premier League': 'RU'
 };
 
-const SOFASCORE_LEAGUE_IDS = {
-  'Allsvenskan': 40, 'Eliteserien': 20, 'Veikkausliiga': 41,
-  'Danish Superliga': 39, 'Premier Division': 192, 'Chinese Super League': 649,
-  'Pro League': 38, 'Austrian Bundesliga': 45, 'K League 1': 410,
-  'J1 League': 196, 'Besta deild': 188, 'Liga Portugal Betclic': 238,
-  'Russian Premier League': 203, 'Swiss Super League': 215,
-  'Serie A': 23, 'Serie B': 46, 'Premier League': 17,
-  'La Liga': 8, 'Bundesliga': 35, 'Ligue 1': 34
-};
-
-const TEAM_CITY_MAP = {
-  // Serie A
-  'Juventus': 'Torino', 'Milan': 'Milano', 'Inter': 'Milano', 'Roma': 'Roma',
-  'Lazio': 'Roma', 'Napoli': 'Napoli', 'Fiorentina': 'Firenze', 'Atalanta': 'Bergamo',
-  'Bologna': 'Bologna', 'Torino': 'Torino', 'Udinese': 'Udine', 'Sassuolo': 'Reggio Emilia',
-  'Empoli': 'Empoli', 'Salernitana': 'Salerno', 'Lecce': 'Lecce', 'Verona': 'Verona',
-  'Genoa': 'Genova', 'Sampdoria': 'Genova', 'Cagliari': 'Cagliari', 'Monza': 'Monza',
-  'Parma': 'Parma', 'Como': 'Como', 'Venezia': 'Venezia', 'Frosinone': 'Frosinone',
-  'Cremonese': 'Cremona', 'Spezia': 'La Spezia',
-  
-  // Serie B
-  'Bari': 'Bari', 'Brescia': 'Brescia', 'Carrarese': 'Carrara',
-  'Catanzaro': 'Catanzaro', 'Cesena': 'Cesena', 'Cittadella': 'Cittadella',
-  'Cosenza': 'Cosenza', 'Juve Stabia': 'Castellammare di Stabia',
-  'Mantova': 'Mantova', 'Modena': 'Modena', 'Palermo': 'Palermo',
-  'Pisa': 'Pisa', 'Reggiana': 'Reggio Emilia', 'Südtirol': 'Bolzano',
-  'Città di Palermo': 'Palermo',
-  
-  // Premier League
-  'Arsenal': 'Londra', 'Chelsea': 'Londra', 'Tottenham': 'Londra', 'West Ham': 'Londra',
-  'Crystal Palace': 'Londra', 'Fulham': 'Londra', 'Brentford': 'Londra',
-  'Manchester City': 'Manchester', 'Manchester United': 'Manchester',
-  'Liverpool': 'Liverpool', 'Everton': 'Liverpool', 'Newcastle': 'Newcastle upon Tyne',
-  'Aston Villa': 'Birmingham', 'Wolverhampton': 'Wolverhampton',
-  'Leeds': 'Leeds', 'Leicester': 'Leicester', 'Southampton': 'Southampton',
-  'Brighton': 'Brighton', 'Bournemouth': 'Bournemouth', 'Nottingham Forest': 'Nottingham',
-  'Sheffield United': 'Sheffield', 'Burnley': 'Burnley', 'Luton': 'Luton',
-  
-  // Bundesliga
-  'Bayern Munich': 'Monaco', 'Borussia Dortmund': 'Dortmund', 'RB Leipzig': 'Lipsia',
-  'Bayer Leverkusen': 'Leverkusen', 'Eintracht Frankfurt': 'Francoforte',
-  'Wolfsburg': 'Wolfsburg', 'Mainz': 'Magonza', 'Borussia Mönchengladbach': 'Mönchengladbach',
-  'Freiburg': 'Friburgo', 'Stuttgart': 'Stoccarda', 'Werder Bremen': 'Brema',
-  'Hoffenheim': 'Sinsheim', 'Augsburg': 'Augusta', 'Köln': 'Colonia',
-  'Union Berlin': 'Berlino', 'Hertha Berlin': 'Berlino', 'Schalke': 'Gelsenkirchen',
-  'Bochum': 'Bochum',
-  
-  // La Liga
-  'Real Madrid': 'Madrid', 'Barcelona': 'Barcellona', 'Atletico Madrid': 'Madrid',
-  'Sevilla': 'Siviglia', 'Real Betis': 'Siviglia', 'Athletic Bilbao': 'Bilbao',
-  'Real Sociedad': 'San Sebastián', 'Valencia': 'Valencia', 'Villarreal': 'Villarreal',
-  'Osasuna': 'Pamplona', 'Celta Vigo': 'Vigo', 'Rayo Vallecano': 'Madrid',
-  'Getafe': 'Getafe', 'Mallorca': 'Palma di Maiorca',
-  
-  // Ligue 1
-  'PSG': 'Parigi', 'Marseille': 'Marsiglia', 'Lyon': 'Lione', 'Lille': 'Lilla',
-  'Monaco': 'Monaco', 'Nice': 'Nizza', 'Rennes': 'Rennes', 'Strasbourg': 'Strasburgo',
-  'Nantes': 'Nantes', 'Montpellier': 'Montpellier', 'Reims': 'Reims',
-  'Toulouse': 'Tolosa', 'Bordeaux': 'Bordeaux',
-  
-  // Altri campionati
-  'AIK': 'Stoccolma', 'Djurgården': 'Stoccolma', 'Hammarby': 'Stoccolma',
-  'Malmö FF': 'Malmö', 'IFK Göteborg': 'Göteborg', 'Helsingborg': 'Helsingborg',
-  'Elfsborg': 'Borås', 'Norrköping': 'Norrköping', 'Kalmar FF': 'Kalmar',
-  'HJK': 'Helsinki', 'KuPS': 'Kuopio', 'SJK': 'Seinäjoki', 'FC Inter': 'Turku',
-  'TPS': 'Turku', 'Lahti': 'Lahti', 'Ilves': 'Tampere', 'Haka': 'Valkeakoski',
-  'Mariehamn': 'Mariehamn',
-  'Rosenborg': 'Trondheim', 'Molde': 'Molde', 'Bodø/Glimt': 'Bodø',
-  'Vålerenga': 'Oslo', 'Lillestrøm': 'Lillestrøm', 'Brann': 'Bergen',
-  'Viking': 'Stavanger', 'Tromsø': 'Tromsø',
-  'FC Copenhagen': 'Copenaghen', 'Brøndby': 'Brøndby', 'FC Midtjylland': 'Herning',
-  'AGF': 'Aarhus', 'OB': 'Odense', 'AaB': 'Aalborg', 'Randers': 'Randers',
-  'Anderlecht': 'Bruxelles', 'Club Brugge': 'Bruges', 'Genk': 'Genk',
-  'Standard Liège': 'Liegi', 'Gent': 'Gand', 'Charleroi': 'Charleroi',
-  'Antwerp': 'Anversa', 'Cercle Brugge': 'Bruges',
-  'Ajax': 'Amsterdam', 'PSV': 'Eindhoven', 'Feyenoord': 'Rotterdam',
-  'AZ Alkmaar': 'Alkmaar', 'Utrecht': 'Utrecht', 'Twente': 'Enschede',
-  'Heerenveen': 'Heerenveen', 'Vitesse': 'Arnhem', 'Groningen': 'Groningen',
-  'Sparta Rotterdam': 'Rotterdam',
-  'Benfica': 'Lisbona', 'Sporting': 'Lisbona', 'Porto': 'Porto',
-  'Braga': 'Braga', 'Vitoria Guimaraes': 'Guimarães', 'Boavista': 'Porto',
-  'Rio Ave': 'Vila do Conde',
-  'Red Bull Salzburg': 'Salisburgo', 'Sturm Graz': 'Graz',
-  'Rapid Vienna': 'Vienna', 'Austria Vienna': 'Vienna', 'LASK': 'Linz',
-  'Wolfsberger': 'Wolfsberg',
-  'Young Boys': 'Berna', 'Basel': 'Basilea', 'Zürich': 'Zurigo',
-  'Lugano': 'Lugano', 'Servette': 'Ginevra', 'St. Gallen': 'San Gallo',
-  'Luzern': 'Lucerna',
-  'Kawasaki Frontale': 'Kawasaki', 'Yokohama F. Marinos': 'Yokohama',
-  'Urawa Red Diamonds': 'Saitama', 'Kashima Antlers': 'Kashima',
-  'Nagoya Grampus': 'Nagoya', 'Cerezo Osaka': 'Osaka', 'Gamba Osaka': 'Osaka',
-  'Vissel Kobe': 'Kobe', 'Sanfrecce Hiroshima': 'Hiroshima', 'Tokyo FC': 'Tokyo',
-  'Ulsan Hyundai': 'Ulsan', 'Jeonbuk Hyundai': 'Jeonju', 'FC Seoul': 'Seul',
-  'Suwon Samsung': 'Suwon', 'Pohang Steelers': 'Pohang', 'Daegu FC': 'Daegu',
-  'Incheon United': 'Incheon','Henan': 'Zhengzhou',
-  'Henan Songshan Longmen': 'Zhengzhou',
-  'Dalian Yingbo': 'Dalian',
-  'Dalian Pro': 'Dalian',
-  'Beijing Guoan': 'Pechino',
-  'Shanghai Shenhua': 'Shanghai',
-  'Cangzhou Mighty Lions': 'Cangzhou',
-  'Meizhou Hakka': 'Meizhou',
-  'Nantong Zhiyun': 'Nantong',
-  'Qingdao Hainiu': 'Qingdao',
-  'Qingdao West Coast': 'Qingdao',
-  'Changchun Yatai': 'Changchun',
-  'Chengdu Rongcheng': 'Chengdu',
-  'Henan FC': 'Zhengzhou',
-  'Wuhan Three Towns': 'Wuhan',
-  'Zhejiang FC': 'Hangzhou',
-  'Guangzhou': 'Canton', 'Shanghai Port': 'Shanghai', 'Beijing Guoan': 'Pechino',
-  'Shandong Taishan': 'Jinan', 'Tianjin TEDA': 'Tianjin', 'Dalian Yifang': 'Dalian',
-  'Shenzhen FC': 'Shenzhen', 'Changchun Yatai': 'Changchun',
-  'Zhejiang Professional': 'Hangzhou',
-  'Breiðablik': 'Kópavogur', 'Víkingur Reykjavík': 'Reykjavik',
-  'FH Hafnarfjörður': 'Hafnarfjörður', 'KA Akureyri': 'Akureyri',
-  'Valur Reykjavík': 'Reykjavik', 'KR Reykjavík': 'Reykjavik',
-  'Flamengo': 'Rio de Janeiro', 'Palmeiras': 'San Paolo',
-  'Atlético Mineiro': 'Belo Horizonte', 'Fluminense': 'Rio de Janeiro',
-  'Corinthians': 'San Paolo', 'São Paulo': 'San Paolo',
-  'Internacional': 'Porto Alegre', 'Grêmio': 'Porto Alegre',
-  'Santos': 'Santos', 'Cruzeiro': 'Belo Horizonte',
-  'Vasco da Gama': 'Rio de Janeiro', 'Botafogo': 'Rio de Janeiro',
-  'Athletico Paranaense': 'Curitiba', 'Bahia': 'Salvador', 'Fortaleza': 'Fortaleza',
-  'Club América': 'Città del Messico', 'Guadalajara': 'Guadalajara',
-  'Monterrey': 'Monterrey', 'Tigres UANL': 'San Nicolás de los Garza',
-  'Pumas UNAM': 'Città del Messico', 'Cruz Azul': 'Città del Messico',
-  'Atlas': 'Guadalajara', 'Pachuca': 'Pachuca', 'Toluca': 'Toluca',
-  'Santos Laguna': 'Torreón', 'Tijuana': 'Tijuana',
-  'Shamrock Rovers': 'Dublino', 'St Patrick\'s Athletic': 'Dublino',
-  'Bohemians': 'Dublino', 'Shelbourne': 'Dublino', 'Derry City': 'Derry',
-  'Dundalk': 'Dundalk', 'Sligo Rovers': 'Sligo', 'Waterford': 'Waterford',
-  'Cork City': 'Cork', 'Galway United': 'Galway',
-  'Sporting CP': 'Lisbona', 'Benfica': 'Lisbona', 'Porto': 'Porto',
-  'Braga': 'Braga', 'Vitoria SC': 'Guimarães', 'Boavista': 'Porto',
-  'Rio Ave': 'Vila do Conde', 'Gil Vicente': 'Barcelos',
-  'Moreirense': 'Moreira de Cónegos', 'Estoril': 'Estoril',
-  'Farense': 'Faro', 'Portimonense': 'Portimão',
-  'Maritimo': 'Funchal', 'Nacional': 'Funchal',
-};
-
-const CITTÀ_PER_CAMPIONATO = {
-  'Serie A': 'Roma',
-  'Serie B': 'Roma',
-  'Premier League': 'Londra',
-  'Bundesliga': 'Berlino',
-  'Ligue 1': 'Parigi',
-  'La Liga': 'Madrid',
-  'Eredivisie': 'Amsterdam',
-  'Primeira Liga': 'Lisbona',
-  'Allsvenskan': 'Stoccolma',
-  'Eliteserien': 'Oslo',
-  'Danish Superliga': 'Copenaghen',
-  'Pro League': 'Bruxelles',
-  'Championship': 'Londra',
-  'Liga MX': 'Città del Messico',
-  'Brasileirão': 'Brasilia',
-  'J1 League': 'Tokyo',
-  'K League 1': 'Seul',
-  'Swiss Super League': 'Berna',
-  'Austrian Bundesliga': 'Vienna',
-  'Chinese Super League': 'Pechino',
-  'Premier Division': 'Dublino',
-  'Besta deild': 'Reykjavik',
-  'Liga Portugal Betclic': 'Lisbona',
-  'FIFA World Cup 2026': 'New York'
-};
-
-// ============================================================
 // MAPPA COMPLETA COORDINATE PER OPEN-METEO
-// ============================================================
-
 const CITY_COORDINATES = {
   // ITALIA
   'Torino': { lat: 45.0703, lon: 7.6869 },
@@ -1035,8 +861,6 @@ const CITY_COORDINATES = {
   'Cremona': { lat: 45.1363, lon: 10.0191 },
   'La Spezia': { lat: 44.1025, lon: 9.8241 },
   'Udine': { lat: 46.0642, lon: 13.2341 },
-  
-  // Serie B
   'Bari': { lat: 41.1171, lon: 16.8719 },
   'Brescia': { lat: 45.5415, lon: 10.2117 },
   'Carrara': { lat: 44.0794, lon: 10.0986 },
@@ -1051,7 +875,6 @@ const CITY_COORDINATES = {
   'Pisa': { lat: 43.7228, lon: 10.4017 },
   'Sassuolo': { lat: 44.5500, lon: 10.7833 },
   'Bolzano': { lat: 46.4983, lon: 11.3548 },
-  
   // INGHILTERRA
   'Londra': { lat: 51.5074, lon: -0.1278 },
   'Manchester': { lat: 53.4808, lon: -2.2426 },
@@ -1069,7 +892,6 @@ const CITY_COORDINATES = {
   'Burnley': { lat: 53.7893, lon: -2.2408 },
   'Luton': { lat: 51.8787, lon: -0.4200 },
   'Brentford': { lat: 51.4862, lon: -0.3245 },
-  
   // SPAGNA
   'Madrid': { lat: 40.4168, lon: -3.7038 },
   'Barcellona': { lat: 41.3851, lon: 2.1734 },
@@ -1082,7 +904,6 @@ const CITY_COORDINATES = {
   'Vigo': { lat: 42.2406, lon: -8.7207 },
   'Getafe': { lat: 40.3100, lon: -3.7300 },
   'Palma di Maiorca': { lat: 39.5696, lon: 2.6502 },
-  
   // GERMANIA
   'Monaco': { lat: 48.1351, lon: 11.5820 },
   'Berlino': { lat: 52.5200, lon: 13.4050 },
@@ -1101,7 +922,6 @@ const CITY_COORDINATES = {
   'Colonia': { lat: 50.9375, lon: 6.9603 },
   'Gelsenkirchen': { lat: 51.5177, lon: 7.0840 },
   'Bochum': { lat: 51.4818, lon: 7.2192 },
-  
   // FRANCIA
   'Parigi': { lat: 48.8566, lon: 2.3522 },
   'Marsiglia': { lat: 43.2965, lon: 5.3698 },
@@ -1115,8 +935,6 @@ const CITY_COORDINATES = {
   'Reims': { lat: 49.2583, lon: 4.0317 },
   'Tolosa': { lat: 43.6047, lon: 1.4442 },
   'Bordeaux': { lat: 44.8378, lon: -0.5792 },
-  'Monaco': { lat: 43.7384, lon: 7.4246 },
-  
   // PAESI BASSI
   'Amsterdam': { lat: 52.3676, lon: 4.9041 },
   'Rotterdam': { lat: 51.9244, lon: 4.4777 },
@@ -1127,7 +945,6 @@ const CITY_COORDINATES = {
   'Heerenveen': { lat: 52.9597, lon: 5.9403 },
   'Arnhem': { lat: 51.9851, lon: 5.8987 },
   'Groningen': { lat: 53.2194, lon: 6.5665 },
-  
   // PORTOGALLO
   'Lisbona': { lat: 38.7223, lon: -9.1393 },
   'Porto': { lat: 41.1579, lon: -8.6291 },
@@ -1140,7 +957,6 @@ const CITY_COORDINATES = {
   'Barcelos': { lat: 41.5307, lon: -8.6187 },
   'Moreira de Cónegos': { lat: 41.3700, lon: -8.3300 },
   'Estoril': { lat: 38.7057, lon: -9.3970 },
-  
   // SVEZIA
   'Stoccolma': { lat: 59.3293, lon: 18.0686 },
   'Göteborg': { lat: 57.7089, lon: 11.9746 },
@@ -1149,7 +965,6 @@ const CITY_COORDINATES = {
   'Norrköping': { lat: 58.5877, lon: 16.1924 },
   'Kalmar': { lat: 56.6616, lon: 16.3616 },
   'Helsingborg': { lat: 56.0465, lon: 12.6945 },
-  
   // NORVEGIA
   'Oslo': { lat: 59.9139, lon: 10.7522 },
   'Bergen': { lat: 60.3913, lon: 5.3221 },
@@ -1158,7 +973,6 @@ const CITY_COORDINATES = {
   'Tromsø': { lat: 69.6492, lon: 18.9553 },
   'Bodø': { lat: 67.2831, lon: 14.3834 },
   'Molde': { lat: 62.7337, lon: 7.1591 },
-  
   // DANIMARCA
   'Copenaghen': { lat: 55.6761, lon: 12.5683 },
   'Brøndby': { lat: 55.6546, lon: 12.4210 },
@@ -1167,7 +981,6 @@ const CITY_COORDINATES = {
   'Odense': { lat: 55.4038, lon: 10.4024 },
   'Aalborg': { lat: 57.0488, lon: 9.9217 },
   'Randers': { lat: 56.4610, lon: 10.0362 },
-  
   // BELGIO
   'Bruxelles': { lat: 50.8503, lon: 4.3517 },
   'Bruges': { lat: 51.2093, lon: 3.2247 },
@@ -1176,14 +989,12 @@ const CITY_COORDINATES = {
   'Gand': { lat: 51.0543, lon: 3.7174 },
   'Charleroi': { lat: 50.4108, lon: 4.4446 },
   'Anversa': { lat: 51.2194, lon: 4.4025 },
-  
   // AUSTRIA
   'Vienna': { lat: 48.2082, lon: 16.3738 },
   'Salisburgo': { lat: 47.8095, lon: 13.0550 },
   'Graz': { lat: 47.0707, lon: 15.4395 },
   'Linz': { lat: 48.3069, lon: 14.2858 },
   'Wolfsberg': { lat: 46.8407, lon: 14.8449 },
-  
   // SVIZZERA
   'Berna': { lat: 46.9480, lon: 7.4474 },
   'Basilea': { lat: 47.5596, lon: 7.5886 },
@@ -1192,7 +1003,6 @@ const CITY_COORDINATES = {
   'Ginevra': { lat: 46.2044, lon: 6.1432 },
   'San Gallo': { lat: 47.4245, lon: 9.3767 },
   'Lucerna': { lat: 47.0500, lon: 8.3064 },
-  
   // FINLANDIA
   'Helsinki': { lat: 60.1699, lon: 24.9384 },
   'Turku': { lat: 60.4518, lon: 22.2666 },
@@ -1202,13 +1012,11 @@ const CITY_COORDINATES = {
   'Valkeakoski': { lat: 61.2642, lon: 24.0310 },
   'Mariehamn': { lat: 60.0971, lon: 19.9348 },
   'Lahti': { lat: 60.9827, lon: 25.6612 },
-  
   // ISLANDA
   'Reykjavik': { lat: 64.1466, lon: -21.9426 },
   'Kópavogur': { lat: 64.1032, lon: -21.9059 },
   'Hafnarfjörður': { lat: 64.0699, lon: -21.9621 },
   'Akureyri': { lat: 65.6885, lon: -18.1266 },
-  
   // IRLANDA
   'Dublino': { lat: 53.3498, lon: -6.2603 },
   'Derry': { lat: 54.9966, lon: -7.3086 },
@@ -1217,7 +1025,6 @@ const CITY_COORDINATES = {
   'Waterford': { lat: 52.2583, lon: -7.1191 },
   'Cork': { lat: 51.8985, lon: -8.4756 },
   'Galway': { lat: 53.2707, lon: -9.0568 },
-  
   // GIAPPONE
   'Tokyo': { lat: 35.6762, lon: 139.6503 },
   'Osaka': { lat: 34.6937, lon: 135.5023 },
@@ -1228,7 +1035,6 @@ const CITY_COORDINATES = {
   'Nagoya': { lat: 35.1815, lon: 136.9066 },
   'Kobe': { lat: 34.6901, lon: 135.1955 },
   'Hiroshima': { lat: 34.3853, lon: 132.4553 },
-  
   // COREA DEL SUD
   'Seul': { lat: 37.5665, lon: 126.9780 },
   'Ulsan': { lat: 35.5384, lon: 129.3114 },
@@ -1237,7 +1043,6 @@ const CITY_COORDINATES = {
   'Pohang': { lat: 36.0190, lon: 129.3435 },
   'Daegu': { lat: 35.8714, lon: 128.6014 },
   'Incheon': { lat: 37.4563, lon: 126.7052 },
-  
   // CINA
   'Pechino': { lat: 39.9042, lon: 116.4074 },
   'Shanghai': { lat: 31.2304, lon: 121.4737 },
@@ -1255,7 +1060,6 @@ const CITY_COORDINATES = {
   'Jinan': { lat: 36.6512, lon: 117.1200 },
   'Tianjin': { lat: 39.0841, lon: 117.2009 },
   'Shenzhen': { lat: 22.5431, lon: 114.0579 },
-  
   // BRASILE
   'Rio de Janeiro': { lat: -22.9068, lon: -43.1729 },
   'San Paolo': { lat: -23.5505, lon: -46.6333 },
@@ -1266,7 +1070,6 @@ const CITY_COORDINATES = {
   'Salvador': { lat: -12.9777, lon: -38.5016 },
   'Fortaleza': { lat: -3.7172, lon: -38.5433 },
   'Brasilia': { lat: -15.7975, lon: -47.8919 },
-  
   // MESSICO
   'Città del Messico': { lat: 19.4326, lon: -99.1332 },
   'Guadalajara': { lat: 20.6597, lon: -103.3496 },
@@ -1276,8 +1079,7 @@ const CITY_COORDINATES = {
   'Tijuana': { lat: 32.5149, lon: -117.0382 },
   'Pachuca': { lat: 20.1224, lon: -98.7358 },
   'Toluca': { lat: 19.2826, lon: -99.6557 },
-  
-  // USA (per FIFA World Cup 2026)
+  // USA
   'New York': { lat: 40.7128, lon: -74.0060 },
   'Los Angeles': { lat: 34.0522, lon: -118.2437 },
   'Chicago': { lat: 41.8781, lon: -87.6298 },
@@ -1318,19 +1120,141 @@ const CITY_COORDINATES = {
   'Miami': { lat: 25.7617, lon: -80.1918 }
 };
 
+// MAPPA SQUADRE → CITTÀ
+const TEAM_CITY_MAP = {
+  // Serie A
+  'Juventus': 'Torino', 'Milan': 'Milano', 'Inter': 'Milano', 'Roma': 'Roma',
+  'Lazio': 'Roma', 'Napoli': 'Napoli', 'Fiorentina': 'Firenze', 'Atalanta': 'Bergamo',
+  'Bologna': 'Bologna', 'Torino': 'Torino', 'Udinese': 'Udine', 'Sassuolo': 'Reggio Emilia',
+  'Empoli': 'Empoli', 'Salernitana': 'Salerno', 'Lecce': 'Lecce', 'Verona': 'Verona',
+  'Genoa': 'Genova', 'Sampdoria': 'Genova', 'Cagliari': 'Cagliari', 'Monza': 'Monza',
+  'Parma': 'Parma', 'Como': 'Como', 'Venezia': 'Venezia', 'Frosinone': 'Frosinone',
+  'Cremonese': 'Cremona', 'Spezia': 'La Spezia',
+  // Serie B
+  'Bari': 'Bari', 'Brescia': 'Brescia', 'Carrarese': 'Carrara',
+  'Catanzaro': 'Catanzaro', 'Cesena': 'Cesena', 'Cittadella': 'Cittadella',
+  'Cosenza': 'Cosenza', 'Juve Stabia': 'Castellammare di Stabia',
+  'Mantova': 'Mantova', 'Modena': 'Modena', 'Palermo': 'Palermo',
+  'Pisa': 'Pisa', 'Reggiana': 'Reggio Emilia', 'Südtirol': 'Bolzano',
+  'Città di Palermo': 'Palermo',
+  // Premier League
+  'Arsenal': 'Londra', 'Chelsea': 'Londra', 'Tottenham': 'Londra', 'West Ham': 'Londra',
+  'Crystal Palace': 'Londra', 'Fulham': 'Londra', 'Brentford': 'Londra',
+  'Manchester City': 'Manchester', 'Manchester United': 'Manchester',
+  'Liverpool': 'Liverpool', 'Everton': 'Liverpool', 'Newcastle': 'Newcastle upon Tyne',
+  'Aston Villa': 'Birmingham', 'Wolverhampton': 'Wolverhampton',
+  'Leeds': 'Leeds', 'Leicester': 'Leicester', 'Southampton': 'Southampton',
+  'Brighton': 'Brighton', 'Bournemouth': 'Bournemouth', 'Nottingham Forest': 'Nottingham',
+  'Sheffield United': 'Sheffield', 'Burnley': 'Burnley', 'Luton': 'Luton',
+  // Bundesliga
+  'Bayern Munich': 'Monaco', 'Borussia Dortmund': 'Dortmund', 'RB Leipzig': 'Lipsia',
+  'Bayer Leverkusen': 'Leverkusen', 'Eintracht Frankfurt': 'Francoforte',
+  'Wolfsburg': 'Wolfsburg', 'Mainz': 'Magonza', 'Borussia Mönchengladbach': 'Mönchengladbach',
+  'Freiburg': 'Friburgo', 'Stuttgart': 'Stoccarda', 'Werder Bremen': 'Brema',
+  'Hoffenheim': 'Sinsheim', 'Augsburg': 'Augusta', 'Köln': 'Colonia',
+  'Union Berlin': 'Berlino', 'Hertha Berlin': 'Berlino', 'Schalke': 'Gelsenkirchen',
+  'Bochum': 'Bochum',
+  // La Liga
+  'Real Madrid': 'Madrid', 'Barcelona': 'Barcellona', 'Atletico Madrid': 'Madrid',
+  'Sevilla': 'Siviglia', 'Real Betis': 'Siviglia', 'Athletic Bilbao': 'Bilbao',
+  'Real Sociedad': 'San Sebastián', 'Valencia': 'Valencia', 'Villarreal': 'Villarreal',
+  'Osasuna': 'Pamplona', 'Celta Vigo': 'Vigo', 'Rayo Vallecano': 'Madrid',
+  'Getafe': 'Getafe', 'Mallorca': 'Palma di Maiorca',
+  // Ligue 1
+  'PSG': 'Parigi', 'Marseille': 'Marsiglia', 'Lyon': 'Lione', 'Lille': 'Lilla',
+  'Monaco': 'Monaco', 'Nice': 'Nizza', 'Rennes': 'Rennes', 'Strasbourg': 'Strasburgo',
+  'Nantes': 'Nantes', 'Montpellier': 'Montpellier', 'Reims': 'Reims',
+  'Toulouse': 'Tolosa', 'Bordeaux': 'Bordeaux',
+  // Altri campionati
+  'AIK': 'Stoccolma', 'Djurgården': 'Stoccolma', 'Hammarby': 'Stoccolma',
+  'Malmö FF': 'Malmö', 'IFK Göteborg': 'Göteborg', 'Helsingborg': 'Helsingborg',
+  'Elfsborg': 'Borås', 'Norrköping': 'Norrköping', 'Kalmar FF': 'Kalmar',
+  'HJK': 'Helsinki', 'KuPS': 'Kuopio', 'SJK': 'Seinäjoki', 'FC Inter': 'Turku',
+  'TPS': 'Turku', 'Lahti': 'Lahti', 'Ilves': 'Tampere', 'Haka': 'Valkeakoski',
+  'Mariehamn': 'Mariehamn',
+  'Rosenborg': 'Trondheim', 'Molde': 'Molde', 'Bodø/Glimt': 'Bodø',
+  'Vålerenga': 'Oslo', 'Lillestrøm': 'Lillestrøm', 'Brann': 'Bergen',
+  'Viking': 'Stavanger', 'Tromsø': 'Tromsø',
+  'FC Copenhagen': 'Copenaghen', 'Brøndby': 'Brøndby', 'FC Midtjylland': 'Herning',
+  'AGF': 'Aarhus', 'OB': 'Odense', 'AaB': 'Aalborg', 'Randers': 'Randers',
+  'Anderlecht': 'Bruxelles', 'Club Brugge': 'Bruges', 'Genk': 'Genk',
+  'Standard Liège': 'Liegi', 'Gent': 'Gand', 'Charleroi': 'Charleroi',
+  'Antwerp': 'Anversa', 'Cercle Brugge': 'Bruges',
+  'Ajax': 'Amsterdam', 'PSV': 'Eindhoven', 'Feyenoord': 'Rotterdam',
+  'AZ Alkmaar': 'Alkmaar', 'Utrecht': 'Utrecht', 'Twente': 'Enschede',
+  'Heerenveen': 'Heerenveen', 'Vitesse': 'Arnhem', 'Groningen': 'Groningen',
+  'Sparta Rotterdam': 'Rotterdam',
+  'Benfica': 'Lisbona', 'Sporting': 'Lisbona', 'Porto': 'Porto',
+  'Braga': 'Braga', 'Vitoria Guimaraes': 'Guimarães', 'Boavista': 'Porto',
+  'Rio Ave': 'Vila do Conde',
+  'Red Bull Salzburg': 'Salisburgo', 'Sturm Graz': 'Graz',
+  'Rapid Vienna': 'Vienna', 'Austria Vienna': 'Vienna', 'LASK': 'Linz',
+  'Wolfsberger': 'Wolfsberg',
+  'Young Boys': 'Berna', 'Basel': 'Basilea', 'Zürich': 'Zurigo',
+  'Lugano': 'Lugano', 'Servette': 'Ginevra', 'St. Gallen': 'San Gallo',
+  'Luzern': 'Lucerna',
+  'Kawasaki Frontale': 'Kawasaki', 'Yokohama F. Marinos': 'Yokohama',
+  'Urawa Red Diamonds': 'Saitama', 'Kashima Antlers': 'Kashima',
+  'Nagoya Grampus': 'Nagoya', 'Cerezo Osaka': 'Osaka', 'Gamba Osaka': 'Osaka',
+  'Vissel Kobe': 'Kobe', 'Sanfrecce Hiroshima': 'Hiroshima', 'Tokyo FC': 'Tokyo',
+  'Ulsan Hyundai': 'Ulsan', 'Jeonbuk Hyundai': 'Jeonju', 'FC Seoul': 'Seul',
+  'Suwon Samsung': 'Suwon', 'Pohang Steelers': 'Pohang', 'Daegu FC': 'Daegu',
+  'Incheon United': 'Incheon',
+  'Henan Songshan Longmen': 'Zhengzhou', 'Dalian Yingbo': 'Dalian',
+  'Dalian Pro': 'Dalian', 'Beijing Guoan': 'Pechino', 'Shanghai Shenhua': 'Shanghai',
+  'Cangzhou Mighty Lions': 'Cangzhou', 'Meizhou Hakka': 'Meizhou',
+  'Nantong Zhiyun': 'Nantong', 'Qingdao Hainiu': 'Qingdao', 'Qingdao West Coast': 'Qingdao',
+  'Changchun Yatai': 'Changchun', 'Chengdu Rongcheng': 'Chengdu',
+  'Henan FC': 'Zhengzhou', 'Wuhan Three Towns': 'Wuhan', 'Zhejiang FC': 'Hangzhou',
+  'Guangzhou': 'Canton', 'Shanghai Port': 'Shanghai', 'Shandong Taishan': 'Jinan',
+  'Tianjin TEDA': 'Tianjin', 'Shenzhen FC': 'Shenzhen',
+  'Zhejiang Professional': 'Hangzhou',
+  'Breiðablik': 'Kópavogur', 'Víkingur Reykjavík': 'Reykjavik',
+  'FH Hafnarfjörður': 'Hafnarfjörður', 'KA Akureyri': 'Akureyri',
+  'Valur Reykjavík': 'Reykjavik', 'KR Reykjavík': 'Reykjavik',
+  'Flamengo': 'Rio de Janeiro', 'Palmeiras': 'San Paolo',
+  'Atlético Mineiro': 'Belo Horizonte', 'Fluminense': 'Rio de Janeiro',
+  'Corinthians': 'San Paolo', 'São Paulo': 'San Paolo',
+  'Internacional': 'Porto Alegre', 'Grêmio': 'Porto Alegre',
+  'Santos': 'Santos', 'Cruzeiro': 'Belo Horizonte',
+  'Vasco da Gama': 'Rio de Janeiro', 'Botafogo': 'Rio de Janeiro',
+  'Athletico Paranaense': 'Curitiba', 'Bahia': 'Salvador', 'Fortaleza': 'Fortaleza',
+  'Club América': 'Città del Messico', 'Guadalajara': 'Guadalajara',
+  'Monterrey': 'Monterrey', 'Tigres UANL': 'San Nicolás de los Garza',
+  'Pumas UNAM': 'Città del Messico', 'Cruz Azul': 'Città del Messico',
+  'Atlas': 'Guadalajara', 'Pachuca': 'Pachuca', 'Toluca': 'Toluca',
+  'Santos Laguna': 'Torreón', 'Tijuana': 'Tijuana',
+  'Shamrock Rovers': 'Dublino', 'St Patrick\'s Athletic': 'Dublino',
+  'Bohemians': 'Dublino', 'Shelbourne': 'Dublino', 'Derry City': 'Derry',
+  'Dundalk': 'Dundalk', 'Sligo Rovers': 'Sligo', 'Waterford': 'Waterford',
+  'Cork City': 'Cork', 'Galway United': 'Galway',
+  'Sporting CP': 'Lisbona', 'Vitoria SC': 'Guimarães',
+  'Gil Vicente': 'Barcelos', 'Moreirense': 'Moreira de Cónegos',
+  'Estoril': 'Estoril', 'Farense': 'Faro', 'Portimonense': 'Portimão',
+  'Maritimo': 'Funchal', 'Nacional': 'Funchal'
+};
+
+const CITTÀ_PER_CAMPIONATO = {
+  'Serie A': 'Roma', 'Serie B': 'Roma', 'Premier League': 'Londra',
+  'Bundesliga': 'Berlino', 'Ligue 1': 'Parigi', 'La Liga': 'Madrid',
+  'Eredivisie': 'Amsterdam', 'Primeira Liga': 'Lisbona', 'Allsvenskan': 'Stoccolma',
+  'Eliteserien': 'Oslo', 'Danish Superliga': 'Copenaghen', 'Pro League': 'Bruxelles',
+  'Championship': 'Londra', 'Liga MX': 'Città del Messico', 'Brasileirão': 'Brasilia',
+  'J1 League': 'Tokyo', 'K League 1': 'Seul', 'Swiss Super League': 'Berna',
+  'Austrian Bundesliga': 'Vienna', 'Chinese Super League': 'Pechino',
+  'Premier Division': 'Dublino', 'Besta deild': 'Reykjavik',
+  'Liga Portugal Betclic': 'Lisbona'
+};
+
 // ============================================================
-// FUNZIONI PER LOGHI SQUADRE - VERSIONE FINALE
+// FUNZIONI PER LOGHI SQUADRE
 // ============================================================
 
-// Converte il nome del campionato in nome cartella (con underscore)
 const getChampFolderName = (champName) => {
   if (!champName) return '';
-  // Sostituisce spazi con underscore per i nomi dei campionati
   let folderName = champName
     .replace(/ /g, '_')
     .replace(/[^a-zA-Z0-9_]/g, '');
-  
-  // Gestione casi speciali per i nomi dei campionati
   const specialCases = {
     'Ireland_Premier': 'Ireland_Premier',
     'Russian_PL': 'Russian_PL',
@@ -1350,44 +1274,28 @@ const getChampFolderName = (champName) => {
     'Bundesliga': 'Bundesliga',
     'Ligue_1': 'Ligue_1'
   };
-  
   if (specialCases[folderName]) return specialCases[folderName];
   return folderName;
 };
 
-// Converte il nome della squadra in nome file (mantiene gli spazi)
 const getTeamFileName = (teamName) => {
   if (!teamName) return '';
-  let name = teamName;
-  
-  // Gestione caso speciale: Bodo/Glimt → Bodo-Glimt.png
-  name = name.replace(/\//g, '-');
-  
-  // Rimuove solo caratteri problematici per i file system
+  let name = teamName.replace(/\//g, '-');
   name = name.replace(/[<>:"|?*]/g, '');
-  
   return name + '.png';
 };
 
-// Costruisce il percorso completo del logo
 const getLogoPath = (teamName, championship) => {
-  if (!teamName || !championship) return null;
-  
-  // Se il campionato è "Tutti", non abbiamo una cartella specifica
-  if (championship === 'Tutti') return null;
-  
+  if (!teamName || !championship || championship === 'Tutti') return null;
   const champFolder = getChampFolderName(championship);
   const teamFile = getTeamFileName(teamName);
-  
   return `${champFolder}/${teamFile}`;
 };
 
-// Componente Logo Squadra
 const TeamLogo = ({ teamName, championship, size = 40, className = '' }) => {
   const [hasError, setHasError] = useState(false);
   const path = getLogoPath(teamName, championship);
   
-  // Fallback: iniziali della squadra
   const getInitials = (name) => {
     if (!name) return '??';
     const words = name.split(' ');
@@ -1396,7 +1304,6 @@ const TeamLogo = ({ teamName, championship, size = 40, className = '' }) => {
     return words.map(w => w[0]).join('').substring(0, 3).toUpperCase();
   };
 
-  // Se non c'è un campionato valido o c'è errore, mostra il fallback
   if (!championship || championship === 'Tutti' || hasError || !path) {
     const initials = getInitials(teamName);
     return (
@@ -1522,25 +1429,21 @@ const FAMIGLIE_GIOCATE = {
   }
 };
 
-// Default: 3 famiglie
 const DEFAULT_FAMIGLIE = ['dc_under', 'mg_casa_ospite', 'over'];
 
 // ============================================================
 // FUNZIONI DI UTILITÀ
 // ============================================================
 
-// Funzione per deduplicare le partite
 const deduplicateMatches = (matches) => {
   const seen = new Map();
   const result = [];
-  
   matches.forEach(m => {
     const campionato = (m.campionato || '').trim();
     const data = m.data || '';
     const casa = (m.casa || '').trim();
     const ospiti = (m.ospiti || '').trim();
     const key = `${campionato}|${data}|${casa}|${ospiti}`;
-    
     if (!seen.has(key)) {
       seen.set(key, m);
       result.push(m);
@@ -1548,7 +1451,6 @@ const deduplicateMatches = (matches) => {
       const existing = seen.get(key);
       const existingScore = (existing.golCasa !== undefined && existing.golOspite !== undefined) ? 1 : 0;
       const newScore = (m.golCasa !== undefined && m.golOspite !== undefined) ? 1 : 0;
-      
       if (newScore > existingScore) {
         seen.set(key, m);
         const idx = result.indexOf(existing);
@@ -1562,101 +1464,43 @@ const deduplicateMatches = (matches) => {
       }
     }
   });
-  
   return result;
 };
 
 const getCountryFlagHtml = (champName) => {
   if (!champName) return '<span class="flag-emoji">🌍</span>';
-  
-  // 1. MAPPA CORRISPONDENZE ESATTE (priorità massima)
   const exactMatchMap = {
-    'Premier League': 'GB',
-    'Russian Premier League': 'RU',
-    'Serie A': 'IT',
-    'Serie B': 'IT',
-    'Bundesliga': 'DE',
-    'Ligue 1': 'FR',
-    'La Liga': 'ES',
-    'Eredivisie': 'NL',
-    'Primeira Liga': 'PT',
-    'Allsvenskan': 'SE',
-    'Eliteserien': 'NO',
-    'Danish Superliga': 'DK',
-    'Pro League': 'BE',
-    'Championship': 'GB',
-    'Liga MX': 'MX',
-    'Brasileirão': 'BR',
-    'J1 League': 'JP',
-    'K League 1': 'KR',
-    'Swiss Super League': 'CH',
-    'Austrian Bundesliga': 'AT',
-    'Chinese Super League': 'CN',
-    'Premier Division': 'IE',
-    'Besta deild': 'IS',
-    'Liga Portugal Betclic': 'PT',
-    'FIFA World Cup 2026': 'US',
-    'Veikkausliiga': 'FI'
+    'Premier League': 'GB', 'Russian Premier League': 'RU',
+    'Serie A': 'IT', 'Serie B': 'IT', 'Bundesliga': 'DE',
+    'Ligue 1': 'FR', 'La Liga': 'ES', 'Eredivisie': 'NL',
+    'Primeira Liga': 'PT', 'Allsvenskan': 'SE', 'Eliteserien': 'NO',
+    'Danish Superliga': 'DK', 'Pro League': 'BE', 'Championship': 'GB',
+    'Liga MX': 'MX', 'Brasileirão': 'BR', 'J1 League': 'JP',
+    'K League 1': 'KR', 'Swiss Super League': 'CH', 'Austrian Bundesliga': 'AT',
+    'Chinese Super League': 'CN', 'Premier Division': 'IE',
+    'Besta deild': 'IS', 'Liga Portugal Betclic': 'PT', 'Veikkausliiga': 'FI'
   };
-  
-  // CONTROLLO ESATTO (PRIMA)
   if (exactMatchMap[champName]) {
     const codeLower = exactMatchMap[champName].toLowerCase();
-    return `<img src="https://flagcdn.com/${codeLower}.svg" 
-               alt="${exactMatchMap[champName]}" 
-               class="flag-icon" 
-               width="20" 
-               height="15" 
-               loading="lazy" 
-               style="display:inline-block; vertical-align:middle; margin-right:6px; width:20px; height:15px; border-radius:2px; object-fit:cover; box-shadow: 0 1px 2px rgba(0,0,0,0.3);" />`;
+    return `<img src="https://flagcdn.com/${codeLower}.svg" alt="${exactMatchMap[champName]}" class="flag-icon" width="20" height="15" loading="lazy" style="display:inline-block; vertical-align:middle; margin-right:6px; width:20px; height:15px; border-radius:2px; object-fit:cover; box-shadow: 0 1px 2px rgba(0,0,0,0.3);" />`;
   }
-  
-  // 2. MAPPA CORRISPONDENZE PARZIALI (SOLO PER QUELLI NON GIA' COLPITI)
   const partialMatchMap = {
-    'Russian': 'RU',
-    'Premier': 'GB',
-    'Serie': 'IT',
-    'Bundesliga': 'DE',
-    'Ligue': 'FR',
-    'La Liga': 'ES',
-    'Eredivisie': 'NL',
-    'Primeira': 'PT',
-    'Allsvenskan': 'SE',
-    'Eliteserien': 'NO',
-    'Superliga': 'DK',
-    'Pro League': 'BE',
-    'Championship': 'GB',
-    'Liga MX': 'MX',
-    'Brasileirão': 'BR',
-    'J1 League': 'JP',
-    'K League': 'KR',
-    'Swiss': 'CH',
-    'Austrian': 'AT',
-    'Chinese': 'CN',
-    'Premier Division': 'IE',
-    'Besta deild': 'IS',
-    'Portugal': 'PT',
-    'FIFA': 'US',
+    'Russian': 'RU', 'Premier': 'GB', 'Serie': 'IT', 'Bundesliga': 'DE',
+    'Ligue': 'FR', 'La Liga': 'ES', 'Eredivisie': 'NL', 'Primeira': 'PT',
+    'Allsvenskan': 'SE', 'Eliteserien': 'NO', 'Superliga': 'DK',
+    'Pro League': 'BE', 'Championship': 'GB', 'Liga MX': 'MX',
+    'Brasileirão': 'BR', 'J1 League': 'JP', 'K League': 'KR',
+    'Swiss': 'CH', 'Austrian': 'AT', 'Chinese': 'CN',
+    'Premier Division': 'IE', 'Besta deild': 'IS', 'Portugal': 'PT',
     'Veikkausliiga': 'FI'
   };
-  
-  // Ordina dalla chiave più lunga alla più corta
   const sortedKeys = Object.keys(partialMatchMap).sort((a, b) => b.length - a.length);
-  
-  // CONTROLLO PARZIALE (SECONDO)
   for (const key of sortedKeys) {
     if (champName.includes(key)) {
       const codeLower = partialMatchMap[key].toLowerCase();
-      return `<img src="https://flagcdn.com/${codeLower}.svg" 
-               alt="${partialMatchMap[key]}" 
-               class="flag-icon" 
-               width="20" 
-               height="15" 
-               loading="lazy" 
-               style="display:inline-block; vertical-align:middle; margin-right:6px; width:20px; height:15px; border-radius:2px; object-fit:cover; box-shadow: 0 1px 2px rgba(0,0,0,0.3);" />`;
+      return `<img src="https://flagcdn.com/${codeLower}.svg" alt="${partialMatchMap[key]}" class="flag-icon" width="20" height="15" loading="lazy" style="display:inline-block; vertical-align:middle; margin-right:6px; width:20px; height:15px; border-radius:2px; object-fit:cover; box-shadow: 0 1px 2px rgba(0,0,0,0.3);" />`;
     }
   }
-  
   return '<span class="flag-emoji">🌍</span>';
 };
 
@@ -1692,34 +1536,26 @@ const getChampColor = (champName) => {
 
 const normalizeDate = (dateStr) => {
   if (!dateStr) return null;
-  
   if (typeof dateStr === 'number' || /^\d+$/.test(dateStr.toString().trim())) {
     const serial = parseInt(dateStr.toString().trim());
     const excelEpoch = new Date(1899, 11, 30);
     const date = new Date(excelEpoch.getTime() + serial * 86400000);
     return date.toISOString().slice(0, 10);
   }
-  
   if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) return dateStr;
-  
   if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}/)) {
     const parts = dateStr.split('/');
     return `${parts[2]}-${parts[1]}-${parts[0]}`;
   }
-  
   try {
     const date = new Date(dateStr);
     if (!isNaN(date.getTime())) {
       return date.toISOString().slice(0, 10);
     }
   } catch(e) {}
-  
   return dateStr;
 };
 
-// ============================================================
-// NUOVA FUNZIONE: verifica se una data è già passata
-// ============================================================
 const isDatePassed = (dateStr) => {
   if (!dateStr) return false;
   const normalized = normalizeDate(dateStr);
@@ -1775,65 +1611,24 @@ const parseDate = (dateStr, timeStr = '00:00') => {
 };
 
 // ============================================================
-// FUNZIONI PER LA GESTIONE DEI CAMPIONATI SOFASCORE
+// FUNZIONI PER IL METEO
 // ============================================================
 
-const getBlacklist = () => { 
-  try { 
-    return JSON.parse(localStorage.getItem('ft_sofablacklist') || '[]'); 
-  } catch(e) { 
-    return []; 
-  } 
-};
-
-const saveBlacklist = (blacklist) => {
-  localStorage.setItem('ft_sofablacklist', JSON.stringify(blacklist));
-};
-
-const getCustomSofaLeagues = () => { 
-  try { 
-    return JSON.parse(localStorage.getItem('ft_sofaleagues') || '[]'); 
-  } catch(e) { 
-    return []; 
-  } 
-};
-
-const saveCustomSofaLeagues = (leagues) => {
-  localStorage.setItem('ft_sofaleagues', JSON.stringify(leagues));
-};
-
-const resetBlacklist = () => {
-  saveBlacklist([]);
-};
-
-const resetAllLeagues = () => {
-  saveBlacklist([]);
-  saveCustomSofaLeagues([]);
-};
-
-const getVisibleLeagues = (customLeagues) => {
-  const blacklist = getBlacklist();
-  
-  const defaultLeagues = Object.entries(SOFASCORE_LEAGUE_IDS)
-    .filter(([name, id]) => !blacklist.includes(id))
-    .map(([name, id]) => ({ name, id, isDefault: true }));
-  
-  const custom = customLeagues
-    .filter(l => !blacklist.includes(l.id))
-    .map(l => ({ ...l, isDefault: false }));
-  
-  const allLeagues = [...defaultLeagues];
-  
-  custom.forEach(customLeague => {
-    const existingIndex = allLeagues.findIndex(l => l.name === customLeague.name);
-    if (existingIndex !== -1) {
-      allLeagues[existingIndex] = customLeague;
-    } else {
-      allLeagues.push(customLeague);
-    }
-  });
-  
-  return allLeagues;
+const getWeatherDescription = (code) => {
+  const weatherCodes = {
+    0: 'Sereno', 1: 'Poco nuvoloso', 2: 'Parzialmente nuvoloso', 3: 'Coperto',
+    45: 'Nebbia', 48: 'Nebbia ghiacciata',
+    51: 'Pioviggine leggera', 53: 'Pioviggine moderata', 55: 'Pioviggine fitta',
+    56: 'Pioviggine gelata leggera', 57: 'Pioviggine gelata fitta',
+    61: 'Pioggia leggera', 63: 'Pioggia moderata', 65: 'Pioggia fitta',
+    66: 'Pioggia gelata leggera', 67: 'Pioggia gelata fitta',
+    71: 'Neve leggera', 73: 'Neve moderata', 75: 'Neve fitta',
+    77: 'Granuli di neve',
+    80: 'Rovesci di pioggia leggeri', 81: 'Rovesci di pioggia moderati', 82: 'Rovesci di pioggia forti',
+    85: 'Rovesci di neve leggeri', 86: 'Rovesci di neve forti',
+    95: 'Temporale leggero', 96: 'Temporale con grandine leggera', 99: 'Temporale con grandine forte'
+  };
+  return weatherCodes[code] || 'Condizioni variabili';
 };
 
 const getCityForTeam = (teamName) => {
@@ -1864,189 +1659,93 @@ const getCityForMatch = (homeTeam, championship) => {
   return city;
 };
 
-// ============================================================
-// FUNZIONI METEO OPEN-METEO
-// ============================================================
-
-const getWeatherDescription = (code) => {
-  const weatherCodes = {
-    0: 'Sereno',
-    1: 'Poco nuvoloso',
-    2: 'Parzialmente nuvoloso',
-    3: 'Coperto',
-    45: 'Nebbia',
-    48: 'Nebbia ghiacciata',
-    51: 'Pioviggine leggera',
-    53: 'Pioviggine moderata',
-    55: 'Pioviggine fitta',
-    56: 'Pioviggine gelata leggera',
-    57: 'Pioviggine gelata fitta',
-    61: 'Pioggia leggera',
-    63: 'Pioggia moderata',
-    65: 'Pioggia fitta',
-    66: 'Pioggia gelata leggera',
-    67: 'Pioggia gelata fitta',
-    71: 'Neve leggera',
-    73: 'Neve moderata',
-    75: 'Neve fitta',
-    77: 'Granuli di neve',
-    80: 'Rovesci di pioggia leggeri',
-    81: 'Rovesci di pioggia moderati',
-    82: 'Rovesci di pioggia forti',
-    85: 'Rovesci di neve leggeri',
-    86: 'Rovesci di neve forti',
-    95: 'Temporale leggero',
-    96: 'Temporale con grandine leggera',
-    99: 'Temporale con grandine forte'
-  };
-  return weatherCodes[code] || 'Condizioni variabili';
-};
-
 const fetchWeatherForMatch = async (match) => {
   if (!match) return null;
-  
   const city = getCityForMatch(match.casa, match.campionato);
   if (!city) return null;
   
-  // Mappa di fallback per nomi di città in diverse lingue
   const cityNameVariants = {
-    'Stoccolma': ['Stockholm', 'Stoccolma'],
-    'Stockholm': ['Stockholm', 'Stoccolma'],
-    'Göteborg': ['Gothenburg', 'Göteborg'],
-    'Gothenburg': ['Gothenburg', 'Göteborg'],
-    'Malmö': ['Malmo', 'Malmö'],
-    'Malmo': ['Malmo', 'Malmö'],
-    'Copenaghen': ['Copenhagen', 'Copenaghen'],
-    'Copenhagen': ['Copenhagen', 'Copenaghen'],
-    'Londra': ['London', 'Londra'],
-    'London': ['London', 'Londra'],
-    'Monaco': ['Munich', 'Monaco'],
-    'Munich': ['Munich', 'Monaco'],
-    'Vienna': ['Vienna', 'Vienna'],
-    'Berlino': ['Berlin', 'Berlino'],
-    'Berlin': ['Berlin', 'Berlino'],
-    'Parigi': ['Paris', 'Parigi'],
-    'Paris': ['Paris', 'Parigi'],
-    'Roma': ['Rome', 'Roma'],
-    'Rome': ['Rome', 'Roma'],
-    'Milano': ['Milan', 'Milano'],
-    'Milan': ['Milan', 'Milano'],
-    'Torino': ['Turin', 'Torino'],
-    'Turin': ['Turin', 'Torino'],
-    'Napoli': ['Naples', 'Napoli'],
-    'Naples': ['Naples', 'Napoli'],
-    'Firenze': ['Florence', 'Firenze'],
-    'Florence': ['Florence', 'Firenze'],
-    'Genova': ['Genoa', 'Genova'],
-    'Genoa': ['Genoa', 'Genova'],
-    'Barcellona': ['Barcelona', 'Barcellona'],
-    'Barcelona': ['Barcelona', 'Barcellona'],
-    'Siviglia': ['Seville', 'Siviglia'],
-    'Seville': ['Seville', 'Siviglia'],
-    'Amsterdam': ['Amsterdam', 'Amsterdam'],
-    'Rotterdam': ['Rotterdam', 'Rotterdam'],
-    'Bruxelles': ['Brussels', 'Bruxelles'],
-    'Brussels': ['Brussels', 'Bruxelles'],
-    'Lisbona': ['Lisbon', 'Lisbona'],
-    'Lisbon': ['Lisbon', 'Lisbona'],
-    'Porto': ['Porto', 'Porto'],
-    'Oslo': ['Oslo', 'Oslo'],
-    'Helsinki': ['Helsinki', 'Helsinki'],
-    'Dublino': ['Dublin', 'Dublino'],
-    'Dublin': ['Dublin', 'Dublino'],
-    'Reykjavik': ['Reykjavik', 'Reykjavik'],
-    'Tokyo': ['Tokyo', 'Tokyo'],
-    'Seul': ['Seoul', 'Seul'],
-    'Seoul': ['Seoul', 'Seul'],
-    'Pechino': ['Beijing', 'Pechino'],
-    'Beijing': ['Beijing', 'Pechino'],
-    'Shanghai': ['Shanghai', 'Shanghai'],
-    'New York': ['New York', 'New York'],
+    'Stoccolma': ['Stockholm', 'Stoccolma'], 'Stockholm': ['Stockholm', 'Stoccolma'],
+    'Göteborg': ['Gothenburg', 'Göteborg'], 'Gothenburg': ['Gothenburg', 'Göteborg'],
+    'Malmö': ['Malmo', 'Malmö'], 'Malmo': ['Malmo', 'Malmö'],
+    'Copenaghen': ['Copenhagen', 'Copenaghen'], 'Copenhagen': ['Copenhagen', 'Copenaghen'],
+    'Londra': ['London', 'Londra'], 'London': ['London', 'Londra'],
+    'Monaco': ['Munich', 'Monaco'], 'Munich': ['Munich', 'Monaco'],
+    'Vienna': ['Vienna', 'Vienna'], 'Berlino': ['Berlin', 'Berlino'],
+    'Berlin': ['Berlin', 'Berlino'], 'Parigi': ['Paris', 'Parigi'],
+    'Paris': ['Paris', 'Parigi'], 'Roma': ['Rome', 'Roma'],
+    'Rome': ['Rome', 'Roma'], 'Milano': ['Milan', 'Milano'],
+    'Milan': ['Milan', 'Milano'], 'Torino': ['Turin', 'Torino'],
+    'Turin': ['Turin', 'Torino'], 'Napoli': ['Naples', 'Napoli'],
+    'Naples': ['Naples', 'Napoli'], 'Firenze': ['Florence', 'Firenze'],
+    'Florence': ['Florence', 'Firenze'], 'Genova': ['Genoa', 'Genova'],
+    'Genoa': ['Genoa', 'Genova'], 'Barcellona': ['Barcelona', 'Barcellona'],
+    'Barcelona': ['Barcelona', 'Barcellona'], 'Siviglia': ['Seville', 'Siviglia'],
+    'Seville': ['Seville', 'Siviglia'], 'Amsterdam': ['Amsterdam', 'Amsterdam'],
+    'Rotterdam': ['Rotterdam', 'Rotterdam'], 'Bruxelles': ['Brussels', 'Bruxelles'],
+    'Brussels': ['Brussels', 'Bruxelles'], 'Lisbona': ['Lisbon', 'Lisbona'],
+    'Lisbon': ['Lisbon', 'Lisbona'], 'Porto': ['Porto', 'Porto'],
+    'Oslo': ['Oslo', 'Oslo'], 'Helsinki': ['Helsinki', 'Helsinki'],
+    'Dublino': ['Dublin', 'Dublino'], 'Dublin': ['Dublin', 'Dublino'],
+    'Reykjavik': ['Reykjavik', 'Reykjavik'], 'Tokyo': ['Tokyo', 'Tokyo'],
+    'Seul': ['Seoul', 'Seul'], 'Seoul': ['Seoul', 'Seul'],
+    'Pechino': ['Beijing', 'Pechino'], 'Beijing': ['Beijing', 'Pechino'],
+    'Shanghai': ['Shanghai', 'Shanghai'], 'New York': ['New York', 'New York'],
     'Città del Messico': ['Mexico City', 'Città del Messico'],
     'Mexico City': ['Mexico City', 'Mexico City']
   };
   
   try {
     let lat, lon;
-    
-    // 1. PRIMA: controlla se la città è direttamente nella mappa delle coordinate
     if (CITY_COORDINATES[city]) {
       lat = CITY_COORDINATES[city].lat;
       lon = CITY_COORDINATES[city].lon;
-      console.log(`✅ Coordinate trovate per ${city}: ${lat}, ${lon}`);
     } else {
-      // 2. SECONDO: prova le varianti del nome
       const variants = cityNameVariants[city] || [city];
       let found = false;
-      
       for (const variant of variants) {
         if (CITY_COORDINATES[variant]) {
           lat = CITY_COORDINATES[variant].lat;
           lon = CITY_COORDINATES[variant].lon;
           found = true;
-          console.log(`✅ Coordinate trovate per variante "${variant}" di ${city}: ${lat}, ${lon}`);
           break;
         }
       }
-      
-      // 3. TERZO: prova il geocoding come fallback
       if (!found) {
         try {
-          console.log(`🔍 Tentativo geocoding per ${city}...`);
           const geoRes = await fetch(
             `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=it&format=json`
           );
-          
           if (geoRes.ok) {
             const geoData = await geoRes.json();
             if (geoData.results && geoData.results.length > 0) {
               lat = geoData.results[0].latitude;
               lon = geoData.results[0].longitude;
               found = true;
-              console.log(`✅ Geocoding trovato per ${city}: ${lat}, ${lon}`);
             }
           }
-        } catch (e) {
-          console.warn(`Geocoding fallito per ${city}:`, e);
-        }
-      }
-      
-      // 4. QUARTO: coordinate di default per la Svezia (se la città è svedese)
-      if (!found) {
-        const swedishCities = ['Stoccolma', 'Stockholm', 'Göteborg', 'Gothenburg', 'Malmö', 'Malmo', 'Borås', 'Norrköping', 'Kalmar', 'Helsingborg'];
-        if (swedishCities.includes(city) || swedishCities.some(s => city.includes(s))) {
-          lat = 59.3293; // Stoccolma come default per la Svezia
-          lon = 18.0686;
-          console.log(`📍 Default Svezia usato per ${city}: ${lat}, ${lon}`);
-        } else {
-          // Default assoluto: Parigi
-          lat = 48.8566;
-          lon = 2.3522;
-          console.log(`📍 Default assoluto usato per ${city}: ${lat}, ${lon}`);
+        } catch (e) {}
+        if (!found) {
+          const swedishCities = ['Stoccolma', 'Stockholm', 'Göteborg', 'Gothenburg', 'Malmö', 'Malmo', 'Borås', 'Norrköping', 'Kalmar', 'Helsingborg'];
+          if (swedishCities.includes(city) || swedishCities.some(s => city.includes(s))) {
+            lat = 59.3293; lon = 18.0686;
+          } else {
+            lat = 48.8566; lon = 2.3522;
+          }
         }
       }
     }
     
-    // ============================================================
-    // FIX: Formatta la data correttamente per Open-Meteo
-    // ============================================================
     let dateToUse;
-    
-    // Se la data è nel formato DD/MM/YYYY, convertila in YYYY-MM-DD
     if (match.data && match.data.match(/^\d{2}\/\d{2}\/\d{4}/)) {
       const parts = match.data.split('/');
       dateToUse = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-      console.log(`📅 Data convertita da ${match.data} a ${dateToUse}`);
     } else if (match.data && match.data.match(/^\d{4}-\d{2}-\d{2}/)) {
       dateToUse = match.data;
-      console.log(`📅 Data già in formato corretto: ${dateToUse}`);
     } else {
       const today = new Date();
       dateToUse = today.toISOString().slice(0, 10);
-      console.log(`📅 Data non valida, uso oggi: ${dateToUse}`);
     }
-    
-    console.log(`🌤️ Richiesta meteo per ${city} (${lat}, ${lon}) data: ${dateToUse}`);
     
     const url = `https://api.open-meteo.com/v1/forecast?` +
       `latitude=${lat}&longitude=${lon}` +
@@ -2055,27 +1754,13 @@ const fetchWeatherForMatch = async (match) => {
       `&timezone=auto` +
       `&start_date=${dateToUse}&end_date=${dateToUse}`;
     
-    console.log(`🔗 URL: ${url}`);
-    
     const weatherRes = await fetch(url);
-    
-    if (!weatherRes.ok) {
-      const errorText = await weatherRes.text();
-      console.error(`❌ Errore meteo per ${city}: ${weatherRes.status} - ${errorText}`);
-      throw new Error(`Errore meteo: ${weatherRes.status} - ${errorText}`);
-    }
-    
+    if (!weatherRes.ok) throw new Error(`Errore meteo: ${weatherRes.status}`);
     const weatherData = await weatherRes.json();
-    
-    if (!weatherData.daily) {
-      console.warn(`⚠️ Nessun dato daily per ${city}`);
-      return null;
-    }
+    if (!weatherData.daily) return null;
     
     const weatherCode = weatherData.daily.weathercode[0] || 0;
     const weatherDesc = getWeatherDescription(weatherCode);
-    
-    console.log(`✅ Meteo ottenuto per ${city}: ${weatherDesc}, ${weatherData.current_weather?.temperature || 0}°C`);
     
     return {
       temp: weatherData.current_weather?.temperature || 0,
@@ -2091,59 +1776,9 @@ const fetchWeatherForMatch = async (match) => {
       latitude: lat,
       longitude: lon
     };
-    
   } catch (e) {
     console.error('❌ Errore fetch meteo per', city, ':', e);
     return null;
-  }
-};
-
-const fetchSofaScoreMatches = async (leagueId, seasonYear) => {
-  try {
-    const seasonsRes = await fetch(`https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/seasons`);
-    if (!seasonsRes.ok) throw new Error('Errore nel recupero stagioni');
-    const seasonsData = await seasonsRes.json();
-    let targetSeasonId = null;
-    
-    if (seasonsData.seasons) {
-      for (const season of seasonsData.seasons) {
-        const seasonName = season.name || '';
-        if (seasonYear === '26/27' && seasonName.includes('2026/2027')) { targetSeasonId = season.id; break; }
-        if (seasonYear === '25/26' && seasonName.includes('2025/2026')) { targetSeasonId = season.id; break; }
-        if (seasonYear === '24/25' && seasonName.includes('2024/2025')) { targetSeasonId = season.id; break; }
-        if (seasonYear === '23/24' && seasonName.includes('2023/2024')) { targetSeasonId = season.id; break; }
-        if (seasonYear === '2027' && seasonName.includes('2027')) { targetSeasonId = season.id; break; }
-        if (seasonYear === '2026' && seasonName.includes('2026')) { targetSeasonId = season.id; break; }
-      }
-    }
-    
-    if (!targetSeasonId && seasonsData.seasons && seasonsData.seasons.length > 0) {
-      targetSeasonId = seasonsData.seasons[0].id;
-    }
-    
-    if (!targetSeasonId) throw new Error('Nessuna stagione disponibile');
-    
-    let allEvents = [];
-    let round = 1;
-    let hasMore = true;
-    while (hasMore && round <= 40) {
-      try {
-        const url = `https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/season/${targetSeasonId}/events/round/${round}`;
-        const res = await fetch(url);
-        if (!res.ok) { 
-          if (res.status === 404) { hasMore = false; break; } 
-          throw new Error(`HTTP ${res.status}`); 
-        }
-        const data = await res.json();
-        if (data.events && data.events.length > 0) allEvents = [...allEvents, ...data.events];
-        round++;
-        await new Promise(r => setTimeout(r, 100));
-      } catch (e) { hasMore = false; }
-    }
-    return allEvents;
-  } catch (e) { 
-    console.error('Errore fetch SofaScore:', e); 
-    return []; 
   }
 };
 
@@ -2181,10 +1816,6 @@ const calcFormAndStats = (matches, teamName) => {
     partite: played.length
   };
 };
-
-// ============================================================
-// FUNZIONE COMPUTE MATCH STATS
-// ============================================================
 
 const computeMatchStats = (match, allMatches) => {
   const homeTeam = match.casa;
@@ -2239,7 +1870,6 @@ const computeMatchStats = (match, allMatches) => {
     return { threshold: t, under, over };
   });
   
-  // CORRETTO: 0-1, 0-2, 1-3, 2-5
   const getMultigolV2 = (team, games) => {
     const goals = games.map(g => (g.casa === team) ? g.golCasa : g.golOspite);
     const total = goals.length;
@@ -4229,7 +3859,6 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
         over15Pct = Math.round(stats.underOver[0].over);
       }
 
-      // --- NUOVO: calcola il miglior DC e il migliore tra Over 1.5 e Under 4.5 ---
       const dcOptions = ['1X', '12', 'X2'];
       let bestDC = '';
       let bestDCPct = 0;
@@ -4246,7 +3875,6 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
         }
       }
 
-      // Calcola Over 1.5 e Under 4.5
       let over15PctLocal = 0;
       let under45PctLocal = 0;
       if (!stats.error && stats.underOver && stats.underOver[0]) {
@@ -4254,7 +3882,6 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
       }
       under45PctLocal = pct12Under45 || 0;
 
-      // Scegli la migliore tra Over 1.5 e Under 4.5
       let bestOverUnder = '';
       let bestOverUnderPct = 0;
       if (over15PctLocal >= under45PctLocal) {
@@ -4265,10 +3892,8 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
         bestOverUnderPct = under45PctLocal;
       }
 
-      // Costruisci il pronostico combinato
       const combinedPronostico = `${bestDC}+${bestOverUnder}`;
       const combinedPct = Math.round((bestDCPct + bestOverUnderPct) / 2);
-      // --- FINE NUOVO ---
 
       const prompt = `Sei un analista tattico professionista. Analizza la partita:
 
@@ -4317,7 +3942,6 @@ Genera un'analisi in formato JSON:
       if (jsonMatch) jsonStr = jsonMatch[1];
       const parsed = JSON.parse(jsonStr.trim());
 
-      // Sostituisci il pronostico con il nostro combinato
       if (parsed.pronostico) {
         parsed.pronostico.esito_1X2 = combinedPronostico;
         parsed.pronostico.percentuale_sicurezza = combinedPct;
@@ -4608,7 +4232,6 @@ function App() {
   const [message, setMessage] = useState(null);
   const [weatherCache, setWeatherCache] = useState({});
   const [heatmapDetailChamp, setHeatmapDetailChamp] = useState(null);
-  const [refreshSofaTrigger, setRefreshSofaTrigger] = useState(0);
   const [fontSize, setFontSize] = useState(() => { const saved = localStorage.getItem('ft_font_size'); return saved ? parseInt(saved) : 100; });
   const [daysRange, setDaysRange] = useState(1);
   const [tempKeys, setTempKeys] = useState(apiKeys);
@@ -4620,397 +4243,28 @@ function App() {
     return saved || 'pc';
   });
   const [selectedFamiglie, setSelectedFamiglie] = useState(initial.selectedFamiglie || ['dc_under','mg_casa_ospite','over']);
-  const [autoImportDone, setAutoImportDone] = useState(false);
-  const [updateRunning, setUpdateRunning] = useState(false);
 
   // ============================================================
-  // FUNZIONE PER AGGIORNARE LE PARTITE TERMINATE
+  // EFFETTO PER CARICARE IL METEO CON OPEN-METEO
   // ============================================================
-  const updateFinishedMatches = async () => {
-    if (updateRunning) return;
-    setUpdateRunning(true);
-    setLoading(true);
-    showAlert('info', '🔄 Controllo partite terminate in corso...');
-    
-    let updatedCount = 0;
-    let errorCount = 0;
-    let totalChecked = 0;
-    
-    const futureMatches = matches.filter(m => m.stato === 'Futura');
-    
-    if (futureMatches.length === 0) {
-      showAlert('info', '✅ Nessuna partita futura da controllare.');
-      setLoading(false);
-      setUpdateRunning(false);
-      return;
-    }
-    
-    const matchesByChampionship = {};
-    futureMatches.forEach(m => {
-      if (!matchesByChampionship[m.campionato]) {
-        matchesByChampionship[m.campionato] = [];
-      }
-      matchesByChampionship[m.campionato].push(m);
-    });
-    
-    const champNames = Object.keys(matchesByChampionship);
-    let processed = 0;
-    
-    for (const champName of champNames) {
-      try {
-        let leagueId = SOFASCORE_LEAGUE_IDS[champName];
-        if (!leagueId) {
-          const customLeagues = getCustomSofaLeagues();
-          const found = customLeagues.find(l => l.name === champName);
-          if (found) leagueId = found.id;
-        }
-        if (!leagueId) {
-          errorCount += matchesByChampionship[champName].length;
-          processed++;
-          continue;
-        }
-        
-        const seasonsRes = await fetch(`https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/seasons`);
-        if (!seasonsRes.ok) throw new Error('Errore nel recupero stagioni');
-        const seasonsData = await seasonsRes.json();
-        
-        let targetSeasonId = null;
-        if (seasonsData.seasons) {
-          const sortedSeasons = seasonsData.seasons.sort((a, b) => {
-            const yearA = parseInt(a.name?.match(/\d{4}/)?.[0] || '0');
-            const yearB = parseInt(b.name?.match(/\d{4}/)?.[0] || '0');
-            return yearB - yearA;
-          });
-          if (sortedSeasons.length > 0) {
-            targetSeasonId = sortedSeasons[0].id;
-          }
-        }
-        if (!targetSeasonId) {
-          errorCount += matchesByChampionship[champName].length;
-          processed++;
-          continue;
-        }
-        
-        let allEvents = [];
-        let round = 1;
-        let hasMore = true;
-        while (hasMore && round <= 40) {
-          try {
-            const url = `https://api.sofascore.com/api/v1/unique-tournament/${leagueId}/season/${targetSeasonId}/events/round/${round}`;
-            const res = await fetch(url);
-            if (!res.ok) {
-              if (res.status === 404) { hasMore = false; break; }
-              throw new Error(`HTTP ${res.status}`);
-            }
-            const data = await res.json();
-            if (data.events && data.events.length > 0) {
-              allEvents = [...allEvents, ...data.events];
-            }
-            round++;
-            await new Promise(r => setTimeout(r, 100));
-          } catch (e) {
-            hasMore = false;
-          }
-        }
-        
-        const eventMap = {};
-        allEvents.forEach(event => {
-          const dt = new Date(event.startTimestamp * 1000);
-          const dataStr = dt.toISOString().slice(0, 10);
-          const homeTeam = event.homeTeam?.name || '';
-          const awayTeam = event.awayTeam?.name || '';
-          const key = `${dataStr}|${homeTeam}|${awayTeam}`;
-          if (!eventMap[key]) {
-            eventMap[key] = event;
-          }
+  useEffect(() => {
+    if (selectedMatch) {
+      const weatherKey = `${selectedMatch.campionato}_${selectedMatch.data}`;
+      if (!weatherCache[weatherKey]) {
+        fetchWeatherForMatch(selectedMatch).then(w => {
+          if (w) setWeatherCache(prev => ({ ...prev, [weatherKey]: w }));
         });
-        
-        const matchesList = matchesByChampionship[champName];
-        const updatedMatches = [];
-        
-        matchesList.forEach(m => {
-          const key = `${m.data}|${m.casa}|${m.ospiti}`;
-          const event = eventMap[key];
-          totalChecked++;
-          
-          if (event) {
-            const isFinished = event.status?.type === 'finished' || 
-                             event.status?.code === 100 || 
-                             event.status?.code === 90 ||
-                             event.status?.code === 80 ||
-                             event.status?.code === 60 ||
-                             event.status?.code === 70 ||
-                             event.status?.code === 50 ||
-                             event.status?.code === 0 ||
-                             event.status?.code === 10 ||
-                             event.status?.code === 30 ||
-                             event.status?.code === 40;
-            
-            if (isFinished) {
-              const homeScore = event.homeScore?.current || event.homeScore?.normaltime || 0;
-              const awayScore = event.awayScore?.current || event.awayScore?.normaltime || 0;
-              
-              updatedMatches.push({
-                ...m,
-                stato: 'Giocata',
-                golCasa: homeScore,
-                golOspite: awayScore
-              });
-            }
-          }
-        });
-        
-        if (updatedMatches.length > 0) {
-          const matchIds = new Set(updatedMatches.map(m => m.id));
-          setMatches(prev => prev.map(m => {
-            if (matchIds.has(m.id)) {
-              const updated = updatedMatches.find(um => um.id === m.id);
-              return updated || m;
-            }
-            return m;
-          }));
-          updatedCount += updatedMatches.length;
-          showAlert('info', `📊 ${champName}: aggiornate ${updatedMatches.length} partite`);
-        }
-        
-        processed++;
-        
-      } catch (e) {
-        console.error(`Errore aggiornando ${champName}:`, e);
-        errorCount += matchesByChampionship[champName]?.length || 0;
-        processed++;
       }
     }
-    
-    setLoading(false);
-    setUpdateRunning(false);
-    
-    if (updatedCount > 0) {
-      showAlert('success', `✅ ${updatedCount} partite sono state aggiornate come "Giocata"! 🎉`);
-    } else if (errorCount > 0 && totalChecked > 0) {
-      showAlert('warning', `⚠️ ${totalChecked} partite controllate, nessuna aggiornata. Alcuni campionati potrebbero non essere disponibili.`);
-    } else if (totalChecked > 0) {
-      showAlert('info', `ℹ️ ${totalChecked} partite controllate, nessuna da aggiornare.`);
-    } else {
-      showAlert('info', 'ℹ️ Nessuna partita da aggiornare.');
-    }
-  };
+  }, [selectedMatch]);
 
-  // ============================================================
-  // AUTO-IMPORT + AGGIORNAMENTO PARTITE ALL'AVVIO
-  // ============================================================
-  useEffect(() => {
-    const autoImportKey = 'ft_auto_import_done_v5';
-    const autoImportDoneCheck = localStorage.getItem(autoImportKey);
-    const today = getTodayStr();
-    
-    if (autoImportDoneCheck !== today && !autoImportDone && !updateRunning) {
-      const runAutoUpdate = async () => {
-        try {
-          const allLeagues = getVisibleLeagues(getCustomSofaLeagues());
-          const importedNames = new Set(championships.map(c => c.name));
-          const leaguesToImport = allLeagues
-            .filter(l => !importedNames.has(l.name))
-            .map(l => l.name);
-          
-          if (leaguesToImport.length > 0) {
-            let leaguesWithMatches = [];
-            
-            for (const champName of leaguesToImport) {
-              try {
-                const leagueId = SOFASCORE_LEAGUE_IDS[champName] || getCustomSofaLeagues().find(l => l.name === champName)?.id;
-                if (!leagueId) continue;
-                
-                const events = await fetchSofaScoreMatches(leagueId, '26/27');
-                if (events && events.length > 0) {
-                  leaguesWithMatches.push(champName);
-                }
-              } catch(e) {}
-            }
-            
-            const toImport = leaguesWithMatches.slice(0, 3);
-            
-            if (toImport.length > 0) {
-              showAlert('info', `🔄 Importazione automatica di ${toImport.length} campionati...`);
-              let imported = 0;
-              for (const champName of toImport) {
-                try {
-                  await importFromSofaScore(champName, '26/27');
-                  imported++;
-                } catch(e) {
-                  console.error(`Errore importando ${champName}:`, e);
-                }
-              }
-              if (imported > 0) {
-                showAlert('success', `✅ Importati automaticamente ${imported} campionati!`);
-              }
-            }
-          }
-          
-          const futureMatches = matches.filter(m => m.stato === 'Futura');
-          if (futureMatches.length > 0) {
-            showAlert('info', `🔄 Controllo ${futureMatches.length} partite future...`);
-            await updateFinishedMatches();
-          }
-          
-          localStorage.setItem(autoImportKey, today);
-          setAutoImportDone(true);
-          
-        } catch (e) {
-          console.error('Errore auto-aggiornamento:', e);
-          localStorage.setItem(autoImportKey, today);
-          setAutoImportDone(true);
-        }
-      };
-      
-      const timer = setTimeout(() => {
-        runAutoUpdate();
-      }, 3000);
-      
-      return () => clearTimeout(timer);
-    } else if (autoImportDoneCheck === today) {
-      setAutoImportDone(true);
-    }
-  }, [championships, matches]);
+  useEffect(() => { saveState({ championships, matches, apiKeys, theme, customTheme, selectedFamiglie }); }, [championships, matches, apiKeys, theme, customTheme, selectedFamiglie]);
 
   useEffect(() => {
-    localStorage.setItem('ft_view_mode', viewMode);
-    if (viewMode === 'mobile') {
-      document.querySelector('meta[name="viewport"]').content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
-    } else {
-      document.querySelector('meta[name="viewport"]').content = 'width=device-width, initial-scale=1.0';
-    }
-  }, [viewMode]);
-
-  useEffect(() => {
-    localStorage.setItem('ft_font_size', String(fontSize));
-    document.documentElement.style.fontSize = fontSize + '%';
-  }, [fontSize]);
-
-  // ============================================================
-  // FUNZIONE IMPORT CON DEDUPLICAZIONE
-  // ============================================================
-  const importFromSofaScore = async (champName, seasonYear = '26/27') => {
-    let leagueId = SOFASCORE_LEAGUE_IDS[champName];
-    if (!leagueId) { const customLeagues = getCustomSofaLeagues(); const found = customLeagues.find(l => l.name === champName); if (found) leagueId = found.id; }
-    if (!leagueId) { showAlert('error', `❌ ID non trovato per ${champName}`); return; }
-    setLoading(true);
-    showAlert('info', `📥 Scaricando ${champName} (stagione ${seasonYear}) da SofaScore...`);
-    try {
-      const events = await fetchSofaScoreMatches(leagueId, seasonYear);
-      if (!events || events.length === 0) { showAlert('error', `❌ Nessuna partita trovata per ${champName} nella stagione ${seasonYear}.`); setLoading(false); return; }
-      const champExists = championships.some(c => c.name === champName);
-      if (!champExists) setChampionships(prev => [...prev, { name: champName, importedAt: new Date().toISOString() }]);
-      const existingKeys = new Set(matches.map(m => `${m.campionato}|${m.data}|${m.ora}|${m.casa}|${m.ospiti}`));
-      const newMatches = [];
-      events.forEach(event => {
-        const dt = new Date(event.startTimestamp * 1000);
-        const dataStr = dt.toISOString().slice(0, 10);
-        const oraStr = dt.toTimeString().slice(0, 5);
-        const homeTeam = event.homeTeam?.name || 'Home';
-        const awayTeam = event.awayTeam?.name || 'Away';
-        const key = `${champName}|${dataStr}|${oraStr}|${homeTeam}|${awayTeam}`;
-        if (existingKeys.has(key)) return;
-        existingKeys.add(key);
-        const isFinished = event.status?.type === 'finished' || event.status?.code === 100 || event.status?.code === 90 || event.status?.code === 80 || event.status?.code === 60 || event.status?.code === 70 || event.status?.code === 50 || event.status?.code === 0 || event.status?.code === 10 || event.status?.code === 30 || event.status?.code === 40;
-        const homeScore = event.homeScore?.current || event.homeScore?.normaltime || 0;
-        const awayScore = event.awayScore?.current || event.awayScore?.normaltime || 0;
-        newMatches.push({
-          id: Math.random().toString(36).slice(2),
-          campionato: champName,
-          round: event.roundInfo?.round || 'N/A',
-          data: dataStr,
-          ora: oraStr,
-          casa: homeTeam,
-          ospiti: awayTeam,
-          stato: isFinished ? 'Giocata' : 'Futura',
-          golCasa: isFinished ? homeScore : 0,
-          golOspite: isFinished ? awayScore : 0,
-          citta: 'N/D'
-        });
-      });
-      if (newMatches.length === 0) { showAlert('info', 'ℹ️ Nessuna nuova partita da aggiungere.'); setLoading(false); return; }
-      
-      const allMatches = [...matches, ...newMatches];
-      const uniqueMatches = deduplicateMatches(allMatches);
-      const duplicatesRemoved = (matches.length + newMatches.length) - uniqueMatches.length;
-      
-      setMatches(uniqueMatches);
-      setSelectedChamp(champName);
-      showAlert('success', `✅ Importate ${newMatches.length} partite da ${champName} (stagione ${seasonYear})!${duplicatesRemoved > 0 ? ` (${duplicatesRemoved} duplicati rimossi)` : ''}`);
-    } catch (e) { console.error('Errore importazione:', e); showAlert('error', '❌ Errore durante l\'importazione: ' + e.message); }
-    setLoading(false);
-  };
-
-  const importAllFromSofaScore = async () => {
-    const allLeagues = getVisibleLeagues(getCustomSofaLeagues());
-    const importedNames = new Set(championships.map(c => c.name));
-    const leaguesToImport = allLeagues.filter(l => !importedNames.has(l.name)).map(l => l.name);
-    if (leaguesToImport.length === 0) { showAlert('info', 'ℹ️ Tutti i campionati disponibili sono già stati importati.'); return; }
-    if (!confirm(`📥 Importare tutti i ${leaguesToImport.length} campionati non ancora importati?\n\n${leaguesToImport.join(', ')}`)) return;
-    setLoading(true);
-    showAlert('info', `📥 Importazione di ${leaguesToImport.length} campionati (stagione 26/27)...`);
-    let successCount = 0, failCount = 0, totalMatches = 0;
-    for (const champName of leaguesToImport) {
-      try {
-        const leagueId = SOFASCORE_LEAGUE_IDS[champName] || getCustomSofaLeagues().find(l => l.name === champName)?.id;
-        if (!leagueId) { failCount++; continue; }
-        const events = await fetchSofaScoreMatches(leagueId, '26/27');
-        if (!events || events.length === 0) { failCount++; continue; }
-        setChampionships(prev => [...prev, { name: champName, importedAt: new Date().toISOString() }]);
-        const existingKeys = new Set(matches.map(m => `${m.campionato}|${m.data}|${m.ora}|${m.casa}|${m.ospiti}`));
-        const newMatches = [];
-        events.forEach(event => {
-          const dt = new Date(event.startTimestamp * 1000);
-          const dataStr = dt.toISOString().slice(0, 10);
-          const oraStr = dt.toTimeString().slice(0, 5);
-          const homeTeam = event.homeTeam?.name || 'Home';
-          const awayTeam = event.awayTeam?.name || 'Away';
-          const key = `${champName}|${dataStr}|${oraStr}|${homeTeam}|${awayTeam}`;
-          if (existingKeys.has(key)) return;
-          existingKeys.add(key);
-          const isFinished = event.status?.type === 'finished' || event.status?.code === 100 || event.status?.code === 90 || event.status?.code === 80 || event.status?.code === 60 || event.status?.code === 70 || event.status?.code === 50 || event.status?.code === 0 || event.status?.code === 10 || event.status?.code === 30 || event.status?.code === 40;
-          const homeScore = event.homeScore?.current || event.homeScore?.normaltime || 0;
-          const awayScore = event.awayScore?.current || event.awayScore?.normaltime || 0;
-          newMatches.push({
-            id: Math.random().toString(36).slice(2),
-            campionato: champName,
-            round: event.roundInfo?.round || 'N/A',
-            data: dataStr,
-            ora: oraStr,
-            casa: homeTeam,
-            ospiti: awayTeam,
-            stato: isFinished ? 'Giocata' : 'Futura',
-            golCasa: isFinished ? homeScore : 0,
-            golOspite: isFinished ? awayScore : 0,
-            citta: 'N/D'
-          });
-        });
-        if (newMatches.length > 0) { 
-          const allMatches = [...matches, ...newMatches];
-          const uniqueMatches = deduplicateMatches(allMatches);
-          setMatches(uniqueMatches);
-          totalMatches += newMatches.length; 
-          successCount++; 
-        }
-        else { setChampionships(prev => prev.filter(c => c.name !== champName)); failCount++; }
-        await new Promise(r => setTimeout(r, 300));
-      } catch (e) { console.error(`Errore importando ${champName}:`, e); failCount++; }
-    }
-    setLoading(false);
-    if (successCount > 0) {
-      showAlert('success', `✅ Importati ${successCount} campionati! 📊 ${totalMatches} partite totali.${failCount > 0 ? ` ⚠️ ${failCount} campionati falliti.` : ''}`);
-      setSelectedChamp('Tutti');
-    } else if (failCount > 0) showAlert('error', `❌ Nessun campionato importato. ${failCount} falliti.`);
-  };
-
-  const clearAllChampionships = () => {
-    if (championships.length === 0) { showAlert('info', 'ℹ️ Non ci sono campionati da eliminare.'); return; }
-    if (confirm(`⚠️ Sei sicuro di voler eliminare TUTTI i ${championships.length} campionati e tutte le ${matches.length} partite associate?`)) {
-      setChampionships([]); setMatches([]);
-      showAlert('success', '🗑️ Tutti i campionati e le partite sono stati resettati.');
-    }
-  };
+    const t = theme === 'Custom' ? customTheme : THEMES[theme] || THEMES['Scuro Blu Notte'];
+    const root = document.documentElement;
+    Object.entries(t).forEach(([k, v]) => { root.style.setProperty(`--${k.replace(/([A-Z])/g, '-$1').toLowerCase()}`, v); });
+  }, [theme, customTheme]);
 
   const showAlert = (type, text) => { setMessage({ type, text }); setTimeout(() => setMessage(null), 5000); };
   const selectMatch = (matchId) => { setSelectedMatchId(matchId); setTab('Statistiche'); };
@@ -5066,27 +4320,13 @@ function App() {
 
   const selectedMatch = matches.find(m => m.id === selectedMatchId);
 
-  // ============================================================
-  // EFFETTO PER CARICARE IL METEO CON OPEN-METEO
-  // ============================================================
-  useEffect(() => {
-    if (selectedMatch) {
-      const weatherKey = `${selectedMatch.campionato}_${selectedMatch.data}`;
-      if (!weatherCache[weatherKey]) {
-        fetchWeatherForMatch(selectedMatch).then(w => {
-          if (w) setWeatherCache(prev => ({ ...prev, [weatherKey]: w }));
-        });
-      }
+  const clearAllChampionships = () => {
+    if (championships.length === 0) { showAlert('info', 'ℹ️ Non ci sono campionati da eliminare.'); return; }
+    if (confirm(`⚠️ Sei sicuro di voler eliminare TUTTI i ${championships.length} campionati e tutte le ${matches.length} partite associate?`)) {
+      setChampionships([]); setMatches([]);
+      showAlert('success', '🗑️ Tutti i campionati e le partite sono stati resettati.');
     }
-  }, [selectedMatch]);
-
-  useEffect(() => { saveState({ championships, matches, apiKeys, theme, customTheme, selectedFamiglie }); }, [championships, matches, apiKeys, theme, customTheme, selectedFamiglie]);
-
-  useEffect(() => {
-    const t = theme === 'Custom' ? customTheme : THEMES[theme] || THEMES['Scuro Blu Notte'];
-    const root = document.documentElement;
-    Object.entries(t).forEach(([k, v]) => { root.style.setProperty(`--${k.replace(/([A-Z])/g, '-$1').toLowerCase()}`, v); });
-  }, [theme, customTheme]);
+  };
 
   // ============================================================
   // RENDER DELL'APP CON SIMULAZIONE TELEFONO
@@ -5126,20 +4366,6 @@ function App() {
 
           {tab === 'Home' && (
             <div>
-              <div style={{display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center'}}>
-                <button 
-                  className="btn" 
-                  onClick={updateFinishedMatches} 
-                  disabled={loading || updateRunning}
-                  style={{background: 'var(--accent)', color: '#000'}}
-                >
-                  {updateRunning ? '⏳ Aggiornamento...' : '🔄 Aggiorna Dati Partite'}
-                </button>
-                <span style={{fontSize: '12px', color: 'var(--text-muted)'}}>
-                  {updateRunning ? 'Controllo partite terminate in corso...' : 'Controlla e aggiorna le partite future diventate giocate'}
-                </span>
-              </div>
-
               <HomeWidget matches={matches} onSelectMatch={selectMatch} setTab={setTab} selectedFamiglie={selectedFamiglie} />
               <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px'}}>
                 <div><h3 style={{marginBottom: '12px'}}>📊 Statistiche Rapide</h3><div className="perf-grid" style={{gridTemplateColumns: '1fr 1fr'}}>
@@ -5197,19 +4423,15 @@ function App() {
                   if (selectedChamp !== 'Tutti') { 
                     futureMatches = futureMatches.filter(m => m.campionato === selectedChamp);
                     
-                    // --- NUOVA LOGICA PER IL FILTRO GIORNATA ---
-                    // Ottieni le partite di oggi per questo campionato
                     const todayStr = getTodayStr();
                     const matchesToday = futureMatches.filter(m => m.data === todayStr);
                     
-                    // Se ci sono partite oggi, filtra per la giornata di oggi
                     if (matchesToday.length > 0) {
                       const todayRound = matchesToday[0]?.round || 'N/A';
                       if (todayRound !== 'N/A') {
                         futureMatches = futureMatches.filter(m => m.round === todayRound);
                       }
                     } else {
-                      // Se non ci sono partite oggi, trova la giornata più vicina (dal futuro)
                       const today = new Date();
                       let closestDate = null;
                       let closestRound = null;
@@ -5218,7 +4440,6 @@ function App() {
                       futureMatches.forEach(m => {
                         if (!m.data) return;
                         const matchDate = new Date(m.data + 'T00:00:00');
-                        // Considera solo partite future o di oggi
                         if (matchDate >= today) {
                           const diff = matchDate - today;
                           if (diff < minDiff) {
@@ -5233,10 +4454,7 @@ function App() {
                         futureMatches = futureMatches.filter(m => m.round === closestRound);
                       }
                     }
-                    // --- FINE NUOVA LOGICA ---
-                    
                   } else {
-                    // Se "Tutti", usa il range di giorni (comportamento originale)
                     const todayStr = getTodayStr();
                     const maxDateStr = addDaysToDateStr(todayStr, daysRange);
                     futureMatches = futureMatches.filter(m => {
@@ -5247,7 +4465,6 @@ function App() {
                     });
                   }
                   
-                  // Ordina per data
                   futureMatches.sort((a, b) => {
                     const dateA = normalizeDate(a.data);
                     const dateB = normalizeDate(b.data);
@@ -5367,8 +4584,7 @@ function App() {
                   <div>
                     {senzaRisultato.length > 0 && (
                       <div className="alert alert-info" style={{marginBottom:'12px'}}>
-                        ⚠️ {senzaRisultato.length} partita/e hanno data passata ma non hanno risultato. 
-                        Clicca su <b>"Aggiorna Dati Partite"</b> nella Home per recuperare i risultati.
+                        ⚠️ {senzaRisultato.length} partita/e hanno data passata ma non hanno risultato.
                       </div>
                     )}
                     <div className="matches-grid">
@@ -5467,9 +4683,6 @@ function App() {
                   <h3 style={{marginBottom:'12px'}}>💾 Salvataggio / Caricamento</h3>
                   <div className="card">
                     <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px'}}>
-                      <button className="btn" onClick={updateFinishedMatches} disabled={loading || updateRunning} style={{background: 'var(--accent)', color: '#000'}}>
-                        {updateRunning ? '⏳ Aggiornamento...' : '🔄 Aggiorna Tutte le Partite'}
-                      </button>
                       <button className="btn" onClick={saveLocal}>💾 Scarica Backup JSON</button>
                     </div>
                     <p style={{marginBottom:'12px'}}>I dati vengono salvati automaticamente in localStorage.</p>
@@ -5477,7 +4690,7 @@ function App() {
                     <label style={{display:'block', marginBottom:'6px'}}>📂 Carica Backup JSON</label>
                     <input type="file" accept=".json" onChange={e => e.target.files[0] && loadLocal(e.target.files[0])} />
                     <hr style={{margin:'14px 0', borderColor:'var(--border)'}}/>
-                    <button className="btn btn-danger" onClick={() => { if (confirm('Vuoi davvero resettare TUTTI i dati?')) { localStorage.clear(); saveBlacklist([]); saveCustomSofaLeagues([]); localStorage.removeItem('ft_football_data_imported'); localStorage.removeItem('ft_sportsapipro_imported'); setChampionships([]); setMatches([]); setApiKeys({}); setTempKeys({}); setRefreshSofaTrigger(prev => prev + 1); showAlert('success', '🗑️ Dati resettati completamente.'); } }}>🗑️ Reset Completo</button>
+                    <button className="btn btn-danger" onClick={() => { if (confirm('Vuoi davvero resettare TUTTI i dati?')) { localStorage.clear(); setChampionships([]); setMatches([]); setApiKeys({}); setTempKeys({}); showAlert('success', '🗑️ Dati resettati completamente.'); } }}>🗑️ Reset Completo</button>
                   </div>
                 </div>
               )}
@@ -5587,6 +4800,30 @@ function App() {
               )}
             </div>
           )}
+        </div>
+
+        {/* DISCLAIMER COMMERCIALE */}
+        <div className="disclaimer-footer">
+          <div style={{display: 'flex', gap: '12px', alignItems: 'flex-start', flexWrap: 'wrap'}}>
+            <span style={{fontSize: '24px'}}>⚠️</span>
+            <div style={{flex: 1}}>
+              <p style={{margin: '0 0 6px 0'}}>
+                <strong>⚠️ Disclaimer - Utilizzo in Centro Scommesse</strong>
+              </p>
+              <p style={{margin: '0 0 4px 0'}}>
+                Questa applicazione fornisce analisi statistiche a <strong>solo scopo informativo</strong>. 
+                I dati provengono da <strong>file caricati dall'utente</strong> (XLSX/CSV). 
+                Le percentuali e i pronostici sono <strong>elaborazioni matematiche non vincolanti</strong>.
+              </p>
+              <p style={{margin: '0 0 4px 0'}}>
+                <span className="highlight">⚠️ Le scommesse comportano rischi finanziari. Gioca responsabilmente.</span>
+              </p>
+              <p style={{margin: '0', fontSize: '10px', color: 'var(--text-muted)'}}>
+                I loghi e i nomi delle squadre sono di proprietà dei rispettivi titolari. 
+                L'uso commerciale dei dati richiede licenza specifica.
+              </p>
+            </div>
+          </div>
         </div>
 
         <button 
