@@ -1,3 +1,5 @@
+[file name]: index.html
+[file content begin]
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -1829,7 +1831,7 @@ const fetchWeatherForMatch = async (match) => {
     'Reykjavik': ['Reykjavik', 'Reykjavik'],
     'Tokyo': ['Tokyo', 'Tokyo'],
     'Seul': ['Seoul', 'Seul'],
-    'Seoul': ['Seoul', 'Seoul'],
+    'Seoul': ['Seoul', 'Seul'],
     'Pechino': ['Beijing', 'Pechino'],
     'Beijing': ['Beijing', 'Pechino'],
     'Shanghai': ['Shanghai', 'Shanghai'],
@@ -4097,6 +4099,47 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
         over15Pct = Math.round(stats.underOver[0].over);
       }
 
+      // --- NUOVO: calcola il miglior DC e il migliore tra Over 1.5 e Under 4.5 ---
+      const dcOptions = ['1X', '12', 'X2'];
+      let bestDC = '';
+      let bestDCPct = 0;
+      const dcPcts = {
+        '1X': stats.p1X || 0,
+        '12': stats.p12 || 0,
+        'X2': stats.pX2 || 0
+      };
+      for (const dc of dcOptions) {
+        const pct = dcPcts[dc] || 0;
+        if (pct > bestDCPct) {
+          bestDCPct = pct;
+          bestDC = dc;
+        }
+      }
+
+      // Calcola Over 1.5 e Under 4.5
+      let over15PctLocal = 0;
+      let under45PctLocal = 0;
+      if (!stats.error && stats.underOver && stats.underOver[0]) {
+        over15PctLocal = stats.underOver[0].over || 0;
+      }
+      under45PctLocal = pct12Under45 || 0;
+
+      // Scegli la migliore tra Over 1.5 e Under 4.5
+      let bestOverUnder = '';
+      let bestOverUnderPct = 0;
+      if (over15PctLocal >= under45PctLocal) {
+        bestOverUnder = 'Over 1.5';
+        bestOverUnderPct = over15PctLocal;
+      } else {
+        bestOverUnder = 'Under 4.5';
+        bestOverUnderPct = under45PctLocal;
+      }
+
+      // Costruisci il pronostico combinato
+      const combinedPronostico = `${bestDC}+${bestOverUnder}`;
+      const combinedPct = Math.round((bestDCPct + bestOverUnderPct) / 2);
+      // --- FINE NUOVO ---
+
       const prompt = `Sei un analista tattico professionista. Analizza la partita:
 
 ${match.casa} vs ${match.ospiti} - ${match.campionato}
@@ -4143,6 +4186,13 @@ Genera un'analisi in formato JSON:
       const jsonMatch = res.match(/```(?:json)?\s*([\s\S]*?)```/);
       if (jsonMatch) jsonStr = jsonMatch[1];
       const parsed = JSON.parse(jsonStr.trim());
+
+      // Sostituisci il pronostico con il nostro combinato
+      if (parsed.pronostico) {
+        parsed.pronostico.esito_1X2 = combinedPronostico;
+        parsed.pronostico.percentuale_sicurezza = combinedPct;
+        parsed.pronostico.motivazione = `Basato sul miglior DC (${bestDC} al ${Math.round(bestDCPct)}%) e la migliore tra Over 1.5 (${Math.round(over15PctLocal)}%) e Under 4.5 (${Math.round(under45PctLocal)}%)`;
+      }
 
       if (parsed.consigli_giocate && parsed.consigli_giocate.length >= 3) {
         parsed.consigli_giocate[0] = { tipo: "singola", giocata: `12+U4.5`, percentuale: Math.round(pct12Under45) };
@@ -4210,10 +4260,22 @@ Genera un'analisi in formato JSON:
       <p style={{fontSize:'14px', lineHeight:'1.6', color:'var(--text)'}}>{analisi_generale || 'N/A'}</p>
 
       <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px', background:'var(--card)', padding:'12px', borderRadius:'8px', marginTop:'12px', border:'2px solid var(--accent)'}}>
-        <div style={{textAlign:'center'}}><div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>Pronostico 1X2</div><div style={{fontSize:'24px', fontWeight:'bold', color:'var(--accent)'}}>{pronostico?.esito_1X2 || 'N/D'}</div></div>
-        <div style={{textAlign:'center'}}><div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>Sicurezza</div><div style={{fontSize:'24px', fontWeight:'bold', color: (pronostico?.percentuale_sicurezza || 0) >= 80 ? 'var(--win)' : 'var(--accent)'}}>{pronostico?.percentuale_sicurezza || 0}%</div></div>
-        <div style={{textAlign:'center'}}><div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>12+Under 4.5</div><div style={{fontSize:'18px', fontWeight:'bold', color:'var(--accent)'}}>{pronostico?.['12+under_4_5'] || 'No'}{pronostico?.['12+under_4_5_pct'] !== undefined && <span style={{fontSize:'12px', color:'var(--text-muted)', marginLeft:'4px'}}>({pronostico['12+under_4_5_pct']}%)</span>}</div></div>
-        <div style={{gridColumn: '1 / -1', borderTop:'1px solid var(--border)', paddingTop:'8px'}}><div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>Motivazione</div><div style={{fontSize:'13px', color:'var(--text)'}}>{pronostico?.motivazione || ''}</div></div>
+        <div style={{textAlign:'center'}}>
+          <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>Pronostico</div>
+          <div style={{fontSize:'24px', fontWeight:'bold', color:'var(--accent)'}}>{pronostico?.esito_1X2 || 'N/D'}</div>
+        </div>
+        <div style={{textAlign:'center'}}>
+          <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>Sicurezza</div>
+          <div style={{fontSize:'24px', fontWeight:'bold', color: (pronostico?.percentuale_sicurezza || 0) >= 80 ? 'var(--win)' : 'var(--accent)'}}>{pronostico?.percentuale_sicurezza || 0}%</div>
+        </div>
+        <div style={{textAlign:'center'}}>
+          <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>12+Under 4.5</div>
+          <div style={{fontSize:'18px', fontWeight:'bold', color:'var(--accent)'}}>{pronostico?.['12+under_4_5'] || 'No'}{pronostico?.['12+under_4_5_pct'] !== undefined && <span style={{fontSize:'12px', color:'var(--text-muted)', marginLeft:'4px'}}>({pronostico['12+under_4_5_pct']}%)</span>}</div>
+        </div>
+        <div style={{gridColumn: '1 / -1', borderTop:'1px solid var(--border)', paddingTop:'8px'}}>
+          <div style={{fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase'}}>Motivazione</div>
+          <div style={{fontSize:'13px', color:'var(--text)'}}>{pronostico?.motivazione || ''}</div>
+        </div>
       </div>
 
       {consigli_giocate && consigli_giocate.length > 0 && (
@@ -5380,3 +5442,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>
+[file content end]
