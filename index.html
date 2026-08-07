@@ -3126,11 +3126,12 @@ const HomeWidget = ({ matches, onSelectMatch, setTab, selectedFamiglie }) => {
 };
 
 // ============================================================
-// COMPONENTE HEATMAP GIOCATE
+// COMPONENTE HEATMAP GIOCATE - VERSIONE COMPATTA
 // ============================================================
 
 const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
   const [filterChamp, setFilterChamp] = useState('Tutti');
+  
   const analyzeChampionships = () => {
     const champs = {};
     matches.filter(m => m.stato === 'Giocata').forEach(m => {
@@ -3155,32 +3156,67 @@ const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
     });
     return champs;
   };
+  
   const data = analyzeChampionships();
   let entries = Object.entries(data);
-  if (filterChamp !== 'Tutti') { entries = entries.filter(([champ]) => champ === filterChamp); }
+  
+  // Ordina per numero di partite (dalla più giocata alla meno)
+  entries.sort((a, b) => {
+    const totalA = a[1].over15.total || 0;
+    const totalB = b[1].over15.total || 0;
+    return totalB - totalA;
+  });
+  
+  if (filterChamp !== 'Tutti') { 
+    entries = entries.filter(([champ]) => champ === filterChamp); 
+  }
+  
   const allChamps = Object.keys(data).sort();
+  
   if (entries.length === 0) {
     return <div className="card"><h4>🔥 Heatmap Giocate per Campionato</h4><div className="empty-state" style={{padding: '20px'}}><p>Nessun dato disponibile. Importa partite giocate per vedere le statistiche.</p></div></div>;
   }
+  
   const getPct = (stat) => stat.total ? Math.round((stat.successi / stat.total) * 100) : 0;
   const getColor = (pct) => { if (pct >= 70) return 'var(--win)'; if (pct >= 50) return 'var(--draw)'; return 'var(--lose)'; };
   const getEmoji = (pct) => { if (pct >= 70) return '🟢'; if (pct >= 50) return '🟡'; return '🔴'; };
+  
+  // Dimensioni compatte per tutti i campionati
+  const rowHeight = entries.length > 15 ? '32px' : '38px';
+  const fontSize = entries.length > 15 ? '11px' : '12px';
+  const pctFontSize = entries.length > 15 ? '12px' : '13px';
+  
   return (
-    <div className="card">
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px'}}>
-        <h4 style={{margin: 0}}>🔥 Heatmap Giocate per Campionato</h4>
-        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-          <span style={{fontSize: '12px', color: 'var(--text-muted)'}}>Filtra:</span>
-          <select value={filterChamp} onChange={e => setFilterChamp(e.target.value)} style={{padding: '4px 8px', fontSize: '12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', minWidth: '120px'}}>
-            <option value="Tutti">Tutti i campionati</option>
+    <div className="card" style={{padding: '12px 14px'}}>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px', marginBottom: '6px'}}>
+        <h4 style={{margin: 0, fontSize: '15px'}}>🔥 Heatmap Giocate per Campionato</h4>
+        <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+          <span style={{fontSize: '10px', color: 'var(--text-muted)'}}>Filtra:</span>
+          <select value={filterChamp} onChange={e => setFilterChamp(e.target.value)} style={{padding: '2px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', minWidth: '100px', maxWidth: '150px'}}>
+            <option value="Tutti">📊 Tutti ({entries.length})</option>
             {allChamps.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
       </div>
-      <div style={{fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px'}}>📊 Percentuali di successo per le 6 giocate selezionate</div>
-      <div className="standings-table-wrap">
-        <table className="heatmap-table">
-          <thead><tr><th>Campionato</th><th>Over 1.5</th><th>12+Under 4.5</th><th>MG Casa 1-3</th><th>MG Ospite 1-3</th><th>MG Casa 0-2</th><th>MG Ospite 0-2</th><th style={{fontSize: '10px'}}>Partite</th></tr></thead>
+      
+      <div style={{fontSize: '10px', color: 'var(--text-muted)', marginBottom: '4px'}}>
+        📊 Percentuali di successo - {entries.length} campionati analizzati
+      </div>
+      
+      <div className="standings-table-wrap" style={{maxHeight: 'none', overflow: 'visible'}}>
+        <table className="heatmap-table" style={{fontSize: fontSize, width: '100%', borderCollapse: 'collapse'}}>
+          <thead>
+            <tr>
+              <th style={{padding: '4px 6px', fontSize: '10px', textAlign: 'left', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>Campionato</th>
+              <th style={{padding: '4px 6px', fontSize: '10px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>Over 1.5</th>
+              <th style={{padding: '4px 6px', fontSize: '10px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>12+U4.5</th>
+              <th style={{padding: '4px 6px', fontSize: '10px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Casa 1-3</th>
+              <th style={{padding: '4px 6px', fontSize: '10px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Ospite 1-3</th>
+              <th style={{padding: '4px 6px', fontSize: '10px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Casa 0-2</th>
+              <th style={{padding: '4px 6px', fontSize: '10px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Ospite 0-2</th>
+              <th style={{padding: '4px 6px', fontSize: '9px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>📊</th>
+            </tr>
+          </thead>
           <tbody>
             {entries.map(([champ, stats]) => {
               const pctOver15 = getPct(stats.over15);
@@ -3190,32 +3226,59 @@ const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
               const pctMGHome02 = getPct(stats.multigolCasa02);
               const pctMGAway02 = getPct(stats.multigolOspite02);
               const totalGames = stats.over15.total;
+              
+              const color = getChampColor(champ);
+              const champShort = champ.length > 18 ? champ.substring(0, 16) + '…' : champ;
+              
               return (
-                <tr key={champ} className="clickable" onClick={() => onSelectChampionship && onSelectChampionship(champ)} style={{cursor: 'pointer'}}>
-                  <td style={{color: getChampColor(champ), fontWeight: 'bold'}}>{champ}</td>
-                  <td style={{color: getColor(pctOver15), fontWeight: 'bold'}}>{getEmoji(pctOver15)} {pctOver15}%</td>
-                  <td style={{color: getColor(pct12under45), fontWeight: 'bold'}}>{getEmoji(pct12under45)} {pct12under45}%</td>
-                  <td style={{color: getColor(pctMGHome), fontWeight: 'bold'}}>{getEmoji(pctMGHome)} {pctMGHome}%</td>
-                  <td style={{color: getColor(pctMGAway), fontWeight: 'bold'}}>{getEmoji(pctMGAway)} {pctMGAway}%</td>
-                  <td style={{color: getColor(pctMGHome02), fontWeight: 'bold'}}>{getEmoji(pctMGHome02)} {pctMGHome02}%</td>
-                  <td style={{color: getColor(pctMGAway02), fontWeight: 'bold'}}>{getEmoji(pctMGAway02)} {pctMGAway02}%</td>
-                  <td style={{fontSize: '11px', color: 'var(--text-muted)'}}>{totalGames}</td>
+                <tr key={champ} className="clickable" onClick={() => onSelectChampionship && onSelectChampionship(champ)} style={{cursor: 'pointer', height: rowHeight}}>
+                  <td style={{color: color, fontWeight: 'bold', fontSize: fontSize, padding: '3px 6px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis'}} title={champ}>
+                    {champShort}
+                  </td>
+                  <td style={{color: getColor(pctOver15), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '3px 4px', borderBottom: '1px solid var(--border)'}}>
+                    {getEmoji(pctOver15)} {pctOver15}%
+                  </td>
+                  <td style={{color: getColor(pct12under45), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '3px 4px', borderBottom: '1px solid var(--border)'}}>
+                    {getEmoji(pct12under45)} {pct12under45}%
+                  </td>
+                  <td style={{color: getColor(pctMGHome), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '3px 4px', borderBottom: '1px solid var(--border)'}}>
+                    {getEmoji(pctMGHome)} {pctMGHome}%
+                  </td>
+                  <td style={{color: getColor(pctMGAway), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '3px 4px', borderBottom: '1px solid var(--border)'}}>
+                    {getEmoji(pctMGAway)} {pctMGAway}%
+                  </td>
+                  <td style={{color: getColor(pctMGHome02), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '3px 4px', borderBottom: '1px solid var(--border)'}}>
+                    {getEmoji(pctMGHome02)} {pctMGHome02}%
+                  </td>
+                  <td style={{color: getColor(pctMGAway02), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '3px 4px', borderBottom: '1px solid var(--border)'}}>
+                    {getEmoji(pctMGAway02)} {pctMGAway02}%
+                  </td>
+                  <td style={{fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center', padding: '3px 4px', borderBottom: '1px solid var(--border)'}}>
+                    {totalGames}
+                  </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
-      <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center'}}><span>🟢 ≥ 70%</span><span>🟡 50-69%</span><span>🔴 &lt; 50%</span><span style={{marginLeft: 'auto'}}>📊 {entries.length} campionati analizzati</span></div>
-      <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px', display: 'flex', gap: '12px', flexWrap: 'wrap', borderTop: '1px solid var(--border)', paddingTop: '6px'}}>
-        <span>🎯 <b>Over 1.5</b>: Almeno 2 gol totali</span>
-        <span>🎯 <b>12+Under 4.5</b>: Vittoria di una squadra + meno di 5 gol</span>
-        <span>🎯 <b>MG Casa 1-3</b>: Squadra di casa segna 1-3 gol</span>
-        <span>🎯 <b>MG Ospite 1-3</b>: Squadra ospite segna 1-3 gol</span>
-        <span>🎯 <b>MG Casa 0-2</b>: Squadra di casa segna 0-2 gol</span>
-        <span>🎯 <b>MG Ospite 0-2</b>: Squadra ospite segna 0-2 gol</span>
+      
+      <div style={{fontSize: '9px', color: 'var(--text-muted)', marginTop: '6px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '6px'}}>
+        <span>🟢 ≥ 70%</span>
+        <span>🟡 50-69%</span>
+        <span>🔴 &lt; 50%</span>
+        <span style={{marginLeft: 'auto'}}>📊 {entries.length} campionati</span>
+        <span style={{fontSize: '8px', color: 'var(--text-muted)'}}>💡 Clicca su un campionato per i dettagli</span>
       </div>
-      <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px'}}>💡 Clicca su un campionato per vedere i dettagli</div>
+      
+      <div style={{fontSize: '8px', color: 'var(--text-muted)', marginTop: '3px', display: 'flex', gap: '6px', flexWrap: 'wrap'}}>
+        <span>🎯 <b>Over 1.5</b>: ≥2 gol</span>
+        <span>🎯 <b>12+U4.5</b>: Vittoria + &lt;5 gol</span>
+        <span>🎯 <b>MG Casa 1-3</b>: Casa 1-3 gol</span>
+        <span>🎯 <b>MG Ospite 1-3</b>: Ospite 1-3 gol</span>
+        <span>🎯 <b>MG Casa 0-2</b>: Casa 0-2 gol</span>
+        <span>🎯 <b>MG Ospite 0-2</b>: Ospite 0-2 gol</span>
+      </div>
     </div>
   );
 };
