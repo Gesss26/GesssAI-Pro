@@ -3163,7 +3163,11 @@ const askGroq = async (prompt, key) => {
 
 const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
   const teamMatches = allMatches.filter(m => m.campionato === championship && m.stato === 'Giocata' && (m.casa === teamName || m.ospiti === teamName))
-    .sort((a, b) => { const dateA = parseDate(a.data, a.ora); const dateB = parseDate(b.data, b.ora); return dateB - dateA; });
+    .sort((a, b) => { 
+      const dateA = parseDate(a.data, a.ora); 
+      const dateB = parseDate(b.data, b.ora); 
+      return dateB - dateA; 
+    });
   if (teamMatches.length === 0) return <div className="card" style={{padding: '12px', textAlign:'center'}}><p style={{color:'var(--text-muted)'}}>Nessuna partita giocata per {teamName} in questo campionato.</p></div>;
   const getResult = (match, team) => {
     const isHome = match.casa === team;
@@ -5062,23 +5066,81 @@ function App() {
               {(() => {
                 try {
                   let futureMatches = matches.filter(m => m.stato === 'Futura');
-                  if (selectedChamp !== 'Tutti') { futureMatches = futureMatches.filter(m => m.campionato === selectedChamp); }
-                  const todayStr = getTodayStr();
-                  const maxDateStr = addDaysToDateStr(todayStr, daysRange);
-                  const filteredByDays = futureMatches.filter(m => {
-                    if (!m.data) return false;
-                    const normalized = normalizeDate(m.data);
-                    if (!normalized) return false;
-                    return normalized >= todayStr && normalized <= maxDateStr;
-                  }).sort((a, b) => {
+                  if (selectedChamp !== 'Tutti') { 
+                    futureMatches = futureMatches.filter(m => m.campionato === selectedChamp);
+                    
+                    // --- NUOVA LOGICA PER IL FILTRO GIORNATA ---
+                    // Ottieni le partite di oggi per questo campionato
+                    const todayStr = getTodayStr();
+                    const matchesToday = futureMatches.filter(m => m.data === todayStr);
+                    
+                    // Se ci sono partite oggi, filtra per la giornata di oggi
+                    if (matchesToday.length > 0) {
+                      const todayRound = matchesToday[0]?.round || 'N/A';
+                      if (todayRound !== 'N/A') {
+                        futureMatches = futureMatches.filter(m => m.round === todayRound);
+                      }
+                    } else {
+                      // Se non ci sono partite oggi, trova la giornata più vicina (dal futuro)
+                      const today = new Date();
+                      let closestDate = null;
+                      let closestRound = null;
+                      let minDiff = Infinity;
+                      
+                      futureMatches.forEach(m => {
+                        if (!m.data) return;
+                        const matchDate = new Date(m.data + 'T00:00:00');
+                        // Considera solo partite future o di oggi
+                        if (matchDate >= today) {
+                          const diff = matchDate - today;
+                          if (diff < minDiff) {
+                            minDiff = diff;
+                            closestDate = m.data;
+                            closestRound = m.round;
+                          }
+                        }
+                      });
+                      
+                      if (closestRound && closestRound !== 'N/A') {
+                        futureMatches = futureMatches.filter(m => m.round === closestRound);
+                      }
+                    }
+                    // --- FINE NUOVA LOGICA ---
+                    
+                  } else {
+                    // Se "Tutti", usa il range di giorni (comportamento originale)
+                    const todayStr = getTodayStr();
+                    const maxDateStr = addDaysToDateStr(todayStr, daysRange);
+                    futureMatches = futureMatches.filter(m => {
+                      if (!m.data) return false;
+                      const normalized = normalizeDate(m.data);
+                      if (!normalized) return false;
+                      return normalized >= todayStr && normalized <= maxDateStr;
+                    });
+                  }
+                  
+                  // Ordina per data
+                  futureMatches.sort((a, b) => {
                     const dateA = normalizeDate(a.data);
                     const dateB = normalizeDate(b.data);
                     if (!dateA || !dateB) return 0;
                     return dateA.localeCompare(dateB);
                   });
-                  if (!filteredByDays || filteredByDays.length === 0) { return <div className="empty-state">Nessuna partita nei prossimi {daysRange + 1} giorni.</div>; }
-                  return <div className="matches-grid">{filteredByDays.map(m => { const weatherKey = `${m.campionato}_${m.data}`; const weather = weatherCache[weatherKey] || null; return <MatchTab key={m.id} match={m} allMatches={matches} onSelect={selectMatch} selectedFamiglie={selectedFamiglie} weatherData={weather} />; })}</div>;
-                } catch (e) { console.error('Errore rendering Palinsesto:', e); return <div className="empty-state">Errore nel caricamento delle partite: {e.message}</div>; }
+                  
+                  if (futureMatches.length === 0) {
+                    return <div className="empty-state">Nessuna partita disponibile per questo campionato nella giornata più vicina.</div>;
+                  }
+                  
+                  return <div className="matches-grid">{futureMatches.map(m => { 
+                    const weatherKey = `${m.campionato}_${m.data}`; 
+                    const weather = weatherCache[weatherKey] || null; 
+                    return <MatchTab key={m.id} match={m} allMatches={matches} onSelect={selectMatch} selectedFamiglie={selectedFamiglie} weatherData={weather} />; 
+                  })}</div>;
+                  
+                } catch (e) { 
+                  console.error('Errore rendering Palinsesto:', e); 
+                  return <div className="empty-state">Errore nel caricamento delle partite: {e.message}</div>; 
+                }
               })()}
             </div>
           )}
@@ -5440,4 +5502,3 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>
-[file content end]
