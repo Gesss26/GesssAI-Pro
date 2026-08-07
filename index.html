@@ -1568,24 +1568,96 @@ const deduplicateMatches = (matches) => {
 
 const getCountryFlagHtml = (champName) => {
   if (!champName) return '<span class="flag-emoji">🌍</span>';
-  let countryCode = null;
-  const entries = Object.entries(CHAMPIONSHIP_COUNTRY).sort((a, b) => b[0].length - a[0].length);
-  const lowerChamp = champName.toLowerCase();
-  for (const [key, code] of entries) {
-    if (lowerChamp.includes(key.toLowerCase()) || key.toLowerCase().includes(lowerChamp)) {
-      countryCode = code;
-      break;
-    }
-  }
-  if (!countryCode) return '<span class="flag-emoji">🌍</span>';
-  const codeLower = countryCode.toLowerCase();
-  return `<img src="https://flagcdn.com/${codeLower}.svg" 
-               alt="${countryCode}" 
+  
+  // 1. MAPPA CORRISPONDENZE ESATTE (priorità massima)
+  const exactMatchMap = {
+    'Premier League': 'GB',
+    'Russian Premier League': 'RU',
+    'Serie A': 'IT',
+    'Serie B': 'IT',
+    'Bundesliga': 'DE',
+    'Ligue 1': 'FR',
+    'La Liga': 'ES',
+    'Eredivisie': 'NL',
+    'Primeira Liga': 'PT',
+    'Allsvenskan': 'SE',
+    'Eliteserien': 'NO',
+    'Danish Superliga': 'DK',
+    'Pro League': 'BE',
+    'Championship': 'GB',
+    'Liga MX': 'MX',
+    'Brasileirão': 'BR',
+    'J1 League': 'JP',
+    'K League 1': 'KR',
+    'Swiss Super League': 'CH',
+    'Austrian Bundesliga': 'AT',
+    'Chinese Super League': 'CN',
+    'Premier Division': 'IE',
+    'Besta deild': 'IS',
+    'Liga Portugal Betclic': 'PT',
+    'FIFA World Cup 2026': 'US',
+    'Veikkausliiga': 'FI'
+  };
+  
+  // CONTROLLO ESATTO (PRIMA)
+  if (exactMatchMap[champName]) {
+    const codeLower = exactMatchMap[champName].toLowerCase();
+    return `<img src="https://flagcdn.com/${codeLower}.svg" 
+               alt="${exactMatchMap[champName]}" 
                class="flag-icon" 
                width="20" 
                height="15" 
                loading="lazy" 
                style="display:inline-block; vertical-align:middle; margin-right:6px; width:20px; height:15px; border-radius:2px; object-fit:cover; box-shadow: 0 1px 2px rgba(0,0,0,0.3);" />`;
+  }
+  
+  // 2. MAPPA CORRISPONDENZE PARZIALI (SOLO PER QUELLI NON GIA' COLPITI)
+  const partialMatchMap = {
+    'Russian': 'RU',
+    'Premier': 'GB',
+    'Serie': 'IT',
+    'Bundesliga': 'DE',
+    'Ligue': 'FR',
+    'La Liga': 'ES',
+    'Eredivisie': 'NL',
+    'Primeira': 'PT',
+    'Allsvenskan': 'SE',
+    'Eliteserien': 'NO',
+    'Superliga': 'DK',
+    'Pro League': 'BE',
+    'Championship': 'GB',
+    'Liga MX': 'MX',
+    'Brasileirão': 'BR',
+    'J1 League': 'JP',
+    'K League': 'KR',
+    'Swiss': 'CH',
+    'Austrian': 'AT',
+    'Chinese': 'CN',
+    'Premier Division': 'IE',
+    'Besta deild': 'IS',
+    'Portugal': 'PT',
+    'FIFA': 'US',
+    'Veikkausliiga': 'FI'
+  };
+  
+  // Ordina dalla chiave più lunga alla più corta
+  const sortedKeys = Object.keys(partialMatchMap).sort((a, b) => b.length - a.length);
+  
+  // CONTROLLO PARZIALE (SECONDO)
+  for (const key of sortedKeys) {
+    if (champName.includes(key)) {
+      const codeLower = partialMatchMap[key].toLowerCase();
+      return `<img src="https://flagcdn.com/${codeLower}.svg" 
+               alt="${partialMatchMap[key]}" 
+               class="flag-icon" 
+               width="20" 
+               height="15" 
+               loading="lazy" 
+               style="display:inline-block; vertical-align:middle; margin-right:6px; width:20px; height:15px; border-radius:2px; object-fit:cover; box-shadow: 0 1px 2px rgba(0,0,0,0.3);" />`;
+    }
+  }
+  
+  return '<span class="flag-emoji">🌍</span>';
 };
 
 const getPercentualeClasse = (valore) => {
