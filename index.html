@@ -3126,16 +3126,30 @@ const HomeWidget = ({ matches, onSelectMatch, setTab, selectedFamiglie }) => {
 };
 
 // ============================================================
-// COMPONENTE HEATMAP GIOCATE - VERSIONE COMPATTA
+// COMPONENTE HEATMAP GIOCATE - VERSIONE CON TUTTI I CAMPIONATI
 // ============================================================
 
-const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
+const HeatmapGiocate = ({ matches, onSelectChampionship, championships }) => {
   const [filterChamp, setFilterChamp] = useState('Tutti');
   
   const analyzeChampionships = () => {
     const champs = {};
+    
+    // PRIMA: inizializza TUTTI i campionati importati
+    championships.forEach(c => {
+      champs[c.name] = { 
+        over15: { total: 0, successi: 0 }, 
+        '12under45': { total: 0, successi: 0 }, 
+        multigolCasa13: { total: 0, successi: 0 }, 
+        multigolOspite13: { total: 0, successi: 0 },
+        multigolCasa02: { total: 0, successi: 0 },
+        multigolOspite02: { total: 0, successi: 0 }
+      };
+    });
+    
+    // POI: aggiungi i dati delle partite giocate
     matches.filter(m => m.stato === 'Giocata').forEach(m => {
-      if (!champs[m.campionato]) { 
+      if (!champs[m.campionato]) {
         champs[m.campionato] = { 
           over15: { total: 0, successi: 0 }, 
           '12under45': { total: 0, successi: 0 }, 
@@ -3143,7 +3157,7 @@ const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
           multigolOspite13: { total: 0, successi: 0 },
           multigolCasa02: { total: 0, successi: 0 },
           multigolOspite02: { total: 0, successi: 0 }
-        }; 
+        };
       }
       const total = m.golCasa + m.golOspite;
       const ch = champs[m.campionato];
@@ -3154,13 +3168,14 @@ const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
       ch.multigolCasa02.total++; if (m.golCasa <= 2) ch.multigolCasa02.successi++;
       ch.multigolOspite02.total++; if (m.golOspite <= 2) ch.multigolOspite02.successi++;
     });
+    
     return champs;
   };
   
   const data = analyzeChampionships();
   let entries = Object.entries(data);
   
-  // Ordina per numero di partite (dalla più giocata alla meno)
+  // Ordina: prima quelli con partite, poi quelli senza
   entries.sort((a, b) => {
     const totalA = a[1].over15.total || 0;
     const totalB = b[1].over15.total || 0;
@@ -3174,7 +3189,7 @@ const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
   const allChamps = Object.keys(data).sort();
   
   if (entries.length === 0) {
-    return <div className="card"><h4>🔥 Heatmap Giocate per Campionato</h4><div className="empty-state" style={{padding: '20px'}}><p>Nessun dato disponibile. Importa partite giocate per vedere le statistiche.</p></div></div>;
+    return <div className="card"><h4>🔥 Heatmap Giocate per Campionato</h4><div className="empty-state" style={{padding: '20px'}}><p>Nessun campionato importato. Vai su <b>Impostazioni → Importa Campionato</b></p></div></div>;
   }
   
   const getPct = (stat) => stat.total ? Math.round((stat.successi / stat.total) * 100) : 0;
@@ -3182,39 +3197,46 @@ const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
   const getEmoji = (pct) => { if (pct >= 70) return '🟢'; if (pct >= 50) return '🟡'; return '🔴'; };
   
   // Dimensioni compatte per tutti i campionati
-  const rowHeight = entries.length > 15 ? '32px' : '38px';
-  const fontSize = entries.length > 15 ? '11px' : '12px';
-  const pctFontSize = entries.length > 15 ? '12px' : '13px';
+  const totalEntries = entries.length;
+  const rowHeight = totalEntries > 15 ? '30px' : (totalEntries > 10 ? '34px' : '38px');
+  const fontSize = totalEntries > 15 ? '10px' : (totalEntries > 10 ? '11px' : '12px');
+  const pctFontSize = totalEntries > 15 ? '11px' : (totalEntries > 10 ? '12px' : '13px');
+  
+  // Conta quanti hanno partite
+  const withMatches = entries.filter(([_, stats]) => stats.over15.total > 0).length;
+  const withoutMatches = totalEntries - withMatches;
   
   return (
-    <div className="card" style={{padding: '12px 14px'}}>
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px', marginBottom: '6px'}}>
-        <h4 style={{margin: 0, fontSize: '15px'}}>🔥 Heatmap Giocate per Campionato</h4>
+    <div className="card" style={{padding: '10px 12px'}}>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px', marginBottom: '4px'}}>
+        <h4 style={{margin: 0, fontSize: '14px'}}>🔥 Heatmap Giocate per Campionato</h4>
         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
           <span style={{fontSize: '10px', color: 'var(--text-muted)'}}>Filtra:</span>
           <select value={filterChamp} onChange={e => setFilterChamp(e.target.value)} style={{padding: '2px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', minWidth: '100px', maxWidth: '150px'}}>
-            <option value="Tutti">📊 Tutti ({entries.length})</option>
+            <option value="Tutti">📊 Tutti ({totalEntries})</option>
             {allChamps.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
       </div>
       
-      <div style={{fontSize: '10px', color: 'var(--text-muted)', marginBottom: '4px'}}>
-        📊 Percentuali di successo - {entries.length} campionati analizzati
+      <div style={{fontSize: '10px', color: 'var(--text-muted)', marginBottom: '4px', display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
+        <span>📊 {totalEntries} campionati totali</span>
+        <span>🟢 {withMatches} con partite giocate</span>
+        {withoutMatches > 0 && <span>⚪ {withoutMatches} senza partite</span>}
       </div>
       
       <div className="standings-table-wrap" style={{maxHeight: 'none', overflow: 'visible'}}>
         <table className="heatmap-table" style={{fontSize: fontSize, width: '100%', borderCollapse: 'collapse'}}>
           <thead>
             <tr>
-              <th style={{padding: '4px 6px', fontSize: '10px', textAlign: 'left', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>Campionato</th>
-              <th style={{padding: '4px 6px', fontSize: '10px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>Over 1.5</th>
-              <th style={{padding: '4px 6px', fontSize: '10px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>12+U4.5</th>
-              <th style={{padding: '4px 6px', fontSize: '10px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Casa 1-3</th>
-              <th style={{padding: '4px 6px', fontSize: '10px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Ospite 1-3</th>
-              <th style={{padding: '4px 6px', fontSize: '10px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Casa 0-2</th>
-              <th style={{padding: '4px 6px', fontSize: '10px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Ospite 0-2</th>
-              <th style={{padding: '4px 6px', fontSize: '9px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>📊</th>
+              <th style={{padding: '3px 4px', fontSize: '9px', textAlign: 'left', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>Campionato</th>
+              <th style={{padding: '3px 4px', fontSize: '9px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>Over 1.5</th>
+              <th style={{padding: '3px 4px', fontSize: '9px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>12+U4.5</th>
+              <th style={{padding: '3px 4px', fontSize: '9px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Casa 1-3</th>
+              <th style={{padding: '3px 4px', fontSize: '9px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Ospite 1-3</th>
+              <th style={{padding: '3px 4px', fontSize: '9px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Casa 0-2</th>
+              <th style={{padding: '3px 4px', fontSize: '9px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Ospite 0-2</th>
+              <th style={{padding: '3px 4px', fontSize: '8px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>📊</th>
             </tr>
           </thead>
           <tbody>
@@ -3228,33 +3250,40 @@ const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
               const totalGames = stats.over15.total;
               
               const color = getChampColor(champ);
-              const champShort = champ.length > 18 ? champ.substring(0, 16) + '…' : champ;
+              const champShort = champ.length > 20 ? champ.substring(0, 18) + '…' : champ;
+              const hasMatches = totalGames > 0;
+              
+              // Se non ha partite, mostra tutto a 0%
+              const displayPct = (pct) => hasMatches ? pct : 0;
+              const displayEmoji = (pct) => hasMatches ? getEmoji(pct) : '⚪';
+              const displayColor = (pct) => hasMatches ? getColor(pct) : 'var(--text-muted)';
               
               return (
-                <tr key={champ} className="clickable" onClick={() => onSelectChampionship && onSelectChampionship(champ)} style={{cursor: 'pointer', height: rowHeight}}>
-                  <td style={{color: color, fontWeight: 'bold', fontSize: fontSize, padding: '3px 6px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis'}} title={champ}>
+                <tr key={champ} className="clickable" onClick={() => onSelectChampionship && onSelectChampionship(champ)} style={{cursor: hasMatches ? 'pointer' : 'default', height: rowHeight, opacity: hasMatches ? 1 : 0.6}}>
+                  <td style={{color: color, fontWeight: 'bold', fontSize: fontSize, padding: '2px 4px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap', maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis'}} title={champ}>
                     {champShort}
+                    {!hasMatches && <span style={{fontSize: '7px', color: 'var(--text-muted)', marginLeft: '4px'}}>⏳</span>}
                   </td>
-                  <td style={{color: getColor(pctOver15), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '3px 4px', borderBottom: '1px solid var(--border)'}}>
-                    {getEmoji(pctOver15)} {pctOver15}%
+                  <td style={{color: displayColor(pctOver15), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '2px 3px', borderBottom: '1px solid var(--border)'}}>
+                    {displayEmoji(pctOver15)} {displayPct(pctOver15)}%
                   </td>
-                  <td style={{color: getColor(pct12under45), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '3px 4px', borderBottom: '1px solid var(--border)'}}>
-                    {getEmoji(pct12under45)} {pct12under45}%
+                  <td style={{color: displayColor(pct12under45), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '2px 3px', borderBottom: '1px solid var(--border)'}}>
+                    {displayEmoji(pct12under45)} {displayPct(pct12under45)}%
                   </td>
-                  <td style={{color: getColor(pctMGHome), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '3px 4px', borderBottom: '1px solid var(--border)'}}>
-                    {getEmoji(pctMGHome)} {pctMGHome}%
+                  <td style={{color: displayColor(pctMGHome), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '2px 3px', borderBottom: '1px solid var(--border)'}}>
+                    {displayEmoji(pctMGHome)} {displayPct(pctMGHome)}%
                   </td>
-                  <td style={{color: getColor(pctMGAway), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '3px 4px', borderBottom: '1px solid var(--border)'}}>
-                    {getEmoji(pctMGAway)} {pctMGAway}%
+                  <td style={{color: displayColor(pctMGAway), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '2px 3px', borderBottom: '1px solid var(--border)'}}>
+                    {displayEmoji(pctMGAway)} {displayPct(pctMGAway)}%
                   </td>
-                  <td style={{color: getColor(pctMGHome02), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '3px 4px', borderBottom: '1px solid var(--border)'}}>
-                    {getEmoji(pctMGHome02)} {pctMGHome02}%
+                  <td style={{color: displayColor(pctMGHome02), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '2px 3px', borderBottom: '1px solid var(--border)'}}>
+                    {displayEmoji(pctMGHome02)} {displayPct(pctMGHome02)}%
                   </td>
-                  <td style={{color: getColor(pctMGAway02), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '3px 4px', borderBottom: '1px solid var(--border)'}}>
-                    {getEmoji(pctMGAway02)} {pctMGAway02}%
+                  <td style={{color: displayColor(pctMGAway02), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '2px 3px', borderBottom: '1px solid var(--border)'}}>
+                    {displayEmoji(pctMGAway02)} {displayPct(pctMGAway02)}%
                   </td>
-                  <td style={{fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center', padding: '3px 4px', borderBottom: '1px solid var(--border)'}}>
-                    {totalGames}
+                  <td style={{fontSize: '8px', color: 'var(--text-muted)', textAlign: 'center', padding: '2px 3px', borderBottom: '1px solid var(--border)'}}>
+                    {totalGames > 0 ? totalGames : '-'}
                   </td>
                 </tr>
               );
@@ -3263,21 +3292,21 @@ const HeatmapGiocate = ({ matches, onSelectChampionship }) => {
         </table>
       </div>
       
-      <div style={{fontSize: '9px', color: 'var(--text-muted)', marginTop: '6px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '6px'}}>
+      <div style={{fontSize: '8px', color: 'var(--text-muted)', marginTop: '4px', display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '4px'}}>
         <span>🟢 ≥ 70%</span>
         <span>🟡 50-69%</span>
         <span>🔴 &lt; 50%</span>
-        <span style={{marginLeft: 'auto'}}>📊 {entries.length} campionati</span>
-        <span style={{fontSize: '8px', color: 'var(--text-muted)'}}>💡 Clicca su un campionato per i dettagli</span>
+        <span style={{marginLeft: 'auto'}}>📊 {totalEntries} campionati</span>
+        <span style={{fontSize: '7px', color: 'var(--text-muted)'}}>💡 Clicca su un campionato con partite per i dettagli</span>
       </div>
       
-      <div style={{fontSize: '8px', color: 'var(--text-muted)', marginTop: '3px', display: 'flex', gap: '6px', flexWrap: 'wrap'}}>
-        <span>🎯 <b>Over 1.5</b>: ≥2 gol</span>
-        <span>🎯 <b>12+U4.5</b>: Vittoria + &lt;5 gol</span>
-        <span>🎯 <b>MG Casa 1-3</b>: Casa 1-3 gol</span>
-        <span>🎯 <b>MG Ospite 1-3</b>: Ospite 1-3 gol</span>
-        <span>🎯 <b>MG Casa 0-2</b>: Casa 0-2 gol</span>
-        <span>🎯 <b>MG Ospite 0-2</b>: Ospite 0-2 gol</span>
+      <div style={{fontSize: '7px', color: 'var(--text-muted)', marginTop: '2px', display: 'flex', gap: '4px', flexWrap: 'wrap'}}>
+        <span>🎯 Over 1.5</span>
+        <span>🎯 12+U4.5</span>
+        <span>🎯 MG Casa 1-3</span>
+        <span>🎯 MG Ospite 1-3</span>
+        <span>🎯 MG Casa 0-2</span>
+        <span>🎯 MG Ospite 0-2</span>
       </div>
     </div>
   );
