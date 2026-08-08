@@ -787,6 +787,21 @@
   }
   .disclaimer-footer strong { color: var(--text); }
   .disclaimer-footer .highlight { color: var(--accent); font-weight: bold; }
+
+  /* HEATMAP COLORI CORRETTI */
+  .heatmap-pct-bomb { 
+    color: #f39c12 !important; 
+    font-weight: bold;
+    text-shadow: 0 0 15px rgba(243, 156, 18, 0.5);
+  }
+  .heatmap-pct-green { color: #6fcf97 !important; font-weight: bold; }
+  .heatmap-pct-white { color: #8b949e !important; font-weight: bold; }
+  .heatmap-pct-red { color: #eb5757 !important; font-weight: bold; }
+  
+  .heatmap-bg-bomb { background: rgba(243, 156, 18, 0.3) !important; }
+  .heatmap-bg-green { background: rgba(111, 207, 151, 0.2) !important; }
+  .heatmap-bg-white { background: rgba(139, 148, 158, 0.15) !important; }
+  .heatmap-bg-red { background: rgba(235, 87, 87, 0.15) !important; }
 </style>
 </head>
 <body>
@@ -836,7 +851,7 @@ const CHAMPIONSHIP_COUNTRY = {
   'Veikkausliiga': 'FI', 'Russian Premier League': 'RU'
 };
 
-// MAPPA COMPLETA COORDINATE PER OPEN-METEO - AGGIORNATA CON TUTTE LE CITTÀ
+// MAPPA COMPLETA COORDINATE PER OPEN-METEO
 const CITY_COORDINATES = {
   // ITALIA
   'Torino': { lat: 45.0703, lon: 7.6869 },
@@ -896,7 +911,7 @@ const CITY_COORDINATES = {
   'Grosseto': { lat: 42.7620, lon: 11.1120 },
   'Viterbo': { lat: 42.4167, lon: 12.1000 },
   'Campobasso': { lat: 41.5597, lon: 14.6600 },
-  'L'Aquila': { lat: 42.3495, lon: 13.3995 },
+  'L\'Aquila': { lat: 42.3495, lon: 13.3995 },
   'Sassari': { lat: 40.7259, lon: 8.5555 },
   'Oristano': { lat: 39.9052, lon: 8.5923 },
   'Nuoro': { lat: 40.3200, lon: 9.3300 },
@@ -943,7 +958,9 @@ const CITY_COORDINATES = {
   'Codogno': { lat: 45.1500, lon: 9.7000 },
   'Crema': { lat: 45.3667, lon: 9.6833 },
   'Rho': { lat: 45.5333, lon: 9.0333 },
-  
+  'Pavia': { lat: 45.1900, lon: 9.1500 },
+  'Mantova': { lat: 45.1604, lon: 10.7975 },
+  'Cremona': { lat: 45.1363, lon: 10.0191 },
   // INGHILTERRA
   'Londra': { lat: 51.5074, lon: -0.1278 },
   'Manchester': { lat: 53.4808, lon: -2.2426 },
@@ -978,7 +995,6 @@ const CITY_COORDINATES = {
   'Millwall': { lat: 51.4984, lon: -0.0498 },
   'QPR': { lat: 51.5093, lon: -0.2321 },
   'Charlton': { lat: 51.4872, lon: 0.0365 },
-  
   // SPAGNA
   'Madrid': { lat: 40.4168, lon: -3.7038 },
   'Barcellona': { lat: 41.3851, lon: 2.1734 },
@@ -1015,7 +1031,6 @@ const CITY_COORDINATES = {
   'Racing Ferrol': { lat: 43.4833, lon: -8.2333 },
   'Rayo Vallecano': { lat: 40.3923, lon: -3.7153 },
   'Sporting Gijón': { lat: 43.5357, lon: -5.6615 },
-  
   // GERMANIA
   'Monaco': { lat: 48.1351, lon: 11.5820 },
   'Berlino': { lat: 52.5200, lon: 13.4050 },
@@ -1051,7 +1066,6 @@ const CITY_COORDINATES = {
   'Sandhausen': { lat: 49.3445, lon: 8.6578 },
   'Braunschweig': { lat: 52.2787, lon: 10.5185 },
   'Osnabrück': { lat: 52.2799, lon: 8.0472 },
-  
   // FRANCIA
   'Parigi': { lat: 48.8566, lon: 2.3522 },
   'Marsiglia': { lat: 43.2965, lon: 5.3698 },
@@ -1083,7 +1097,6 @@ const CITY_COORDINATES = {
   'Dijon': { lat: 47.3220, lon: 5.0415 },
   'Caen': { lat: 49.1829, lon: -0.3707 },
   'Nîmes': { lat: 43.8367, lon: 4.3601 },
-  
   // PAESI BASSI
   'Amsterdam': { lat: 52.3676, lon: 4.9041 },
   'Rotterdam': { lat: 51.9244, lon: 4.4777 },
@@ -1105,7 +1118,6 @@ const CITY_COORDINATES = {
   'Waalwijk': { lat: 51.6850, lon: 5.0667 },
   'Gouda': { lat: 52.0117, lon: 4.7106 },
   'Volendam': { lat: 52.5000, lon: 5.0667 },
-  
   // PORTOGALLO
   'Lisbona': { lat: 38.7223, lon: -9.1393 },
   'Porto': { lat: 41.1579, lon: -8.6291 },
@@ -1127,7 +1139,6 @@ const CITY_COORDINATES = {
   'Chaves': { lat: 41.7400, lon: -7.4700 },
   'Almada': { lat: 38.6800, lon: -9.1600 },
   'Amadora': { lat: 38.7600, lon: -9.2300 },
-  
   // SVEZIA
   'Stoccolma': { lat: 59.3293, lon: 18.0686 },
   'Göteborg': { lat: 57.7089, lon: 11.9746 },
@@ -1148,7 +1159,6 @@ const CITY_COORDINATES = {
   'Karlstad': { lat: 59.3793, lon: 13.5036 },
   'Umeå': { lat: 63.8258, lon: 20.2630 },
   'Luleå': { lat: 65.5848, lon: 22.1567 },
-  
   // NORVEGIA
   'Oslo': { lat: 59.9139, lon: 10.7522 },
   'Bergen': { lat: 60.3913, lon: 5.3221 },
@@ -1167,7 +1177,6 @@ const CITY_COORDINATES = {
   'Lillestrøm': { lat: 59.9568, lon: 11.0495 },
   'Strømsgodset': { lat: 59.7400, lon: 10.2050 },
   'Vålerenga': { lat: 59.9200, lon: 10.7800 },
-  
   // DANIMARCA
   'Copenaghen': { lat: 55.6761, lon: 12.5683 },
   'Brøndby': { lat: 55.6546, lon: 12.4210 },
@@ -1183,7 +1192,6 @@ const CITY_COORDINATES = {
   'Lyngby': { lat: 55.7700, lon: 12.5000 },
   'Nordsjælland': { lat: 55.9200, lon: 12.3700 },
   'Midtjylland': { lat: 56.1360, lon: 8.9766 },
-  
   // BELGIO
   'Bruxelles': { lat: 50.8503, lon: 4.3517 },
   'Bruges': { lat: 51.2093, lon: 3.2247 },
@@ -1198,7 +1206,6 @@ const CITY_COORDINATES = {
   'Oostende': { lat: 51.2305, lon: 2.9204 },
   'Seraing': { lat: 50.6000, lon: 5.5000 },
   'Eupen': { lat: 50.6333, lon: 6.0333 },
-  
   // AUSTRIA
   'Vienna': { lat: 48.2082, lon: 16.3738 },
   'Salisburgo': { lat: 47.8095, lon: 13.0550 },
@@ -1212,7 +1219,6 @@ const CITY_COORDINATES = {
   'Altach': { lat: 47.3500, lon: 9.6500 },
   'Ried': { lat: 48.2100, lon: 13.4900 },
   'Hartberg': { lat: 47.2800, lon: 15.9700 },
-  
   // SVIZZERA
   'Berna': { lat: 46.9480, lon: 7.4474 },
   'Basilea': { lat: 47.5596, lon: 7.5886 },
@@ -1227,7 +1233,6 @@ const CITY_COORDINATES = {
   'Winterthur': { lat: 47.5000, lon: 8.7300 },
   'Kriens': { lat: 47.0300, lon: 8.2800 },
   'Aarau': { lat: 47.3900, lon: 8.0400 },
-  
   // FINLANDIA
   'Helsinki': { lat: 60.1699, lon: 24.9384 },
   'Turku': { lat: 60.4518, lon: 22.2666 },
@@ -1244,7 +1249,6 @@ const CITY_COORDINATES = {
   'Kotka': { lat: 60.4666, lon: 26.9458 },
   'Pori': { lat: 61.4850, lon: 21.7975 },
   'Jyväskylä': { lat: 62.2426, lon: 25.7472 },
-  
   // ISLANDA
   'Reykjavik': { lat: 64.1466, lon: -21.9426 },
   'Kópavogur': { lat: 64.1032, lon: -21.9059 },
@@ -1252,7 +1256,6 @@ const CITY_COORDINATES = {
   'Akureyri': { lat: 65.6885, lon: -18.1266 },
   'Garðabær': { lat: 64.0881, lon: -21.9230 },
   'Mosfellsbær': { lat: 64.1667, lon: -21.7000 },
-  
   // IRLANDA
   'Dublino': { lat: 53.3498, lon: -6.2603 },
   'Derry': { lat: 54.9966, lon: -7.3086 },
@@ -1264,7 +1267,6 @@ const CITY_COORDINATES = {
   'Limerick': { lat: 52.6638, lon: -8.6267 },
   'Drogheda': { lat: 53.7159, lon: -6.3513 },
   'Bray': { lat: 53.2000, lon: -6.1000 },
-  
   // GIAPPONE
   'Tokyo': { lat: 35.6762, lon: 139.6503 },
   'Osaka': { lat: 34.6937, lon: 135.5023 },
@@ -1281,7 +1283,6 @@ const CITY_COORDINATES = {
   'Kyoto': { lat: 35.0116, lon: 135.7681 },
   'Shizuoka': { lat: 34.9769, lon: 138.3831 },
   'Iwata': { lat: 34.7000, lon: 137.8500 },
-  
   // COREA DEL SUD
   'Seul': { lat: 37.5665, lon: 126.9780 },
   'Ulsan': { lat: 35.5384, lon: 129.3114 },
@@ -1294,7 +1295,6 @@ const CITY_COORDINATES = {
   'Busan': { lat: 35.1796, lon: 129.0756 },
   'Jeju': { lat: 33.4996, lon: 126.5312 },
   'Seongnam': { lat: 37.4200, lon: 127.1267 },
-  
   // CINA
   'Pechino': { lat: 39.9042, lon: 116.4074 },
   'Shanghai': { lat: 31.2304, lon: 121.4737 },
@@ -1316,7 +1316,6 @@ const CITY_COORDINATES = {
   'Harbin': { lat: 45.8038, lon: 126.5350 },
   'Urumqi': { lat: 43.8256, lon: 87.6168 },
   'Lanzhou': { lat: 36.0611, lon: 103.8343 },
-  
   // BRASILE
   'Rio de Janeiro': { lat: -22.9068, lon: -43.1729 },
   'San Paolo': { lat: -23.5505, lon: -46.6333 },
@@ -1338,7 +1337,6 @@ const CITY_COORDINATES = {
   'Joinville': { lat: -26.3045, lon: -48.8487 },
   'Florianópolis': { lat: -27.5953, lon: -48.5480 },
   'Caxias do Sul': { lat: -29.1680, lon: -51.1794 },
-  
   // MESSICO
   'Città del Messico': { lat: 19.4326, lon: -99.1332 },
   'Guadalajara': { lat: 20.6597, lon: -103.3496 },
@@ -1354,7 +1352,6 @@ const CITY_COORDINATES = {
   'San Luis Potosí': { lat: 22.1499, lon: -100.9792 },
   'Mérida': { lat: 20.9674, lon: -89.5926 },
   'Cancún': { lat: 21.1743, lon: -86.8466 },
-  
   // USA
   'New York': { lat: 40.7128, lon: -74.0060 },
   'Los Angeles': { lat: 34.0522, lon: -118.2437 },
@@ -1538,6 +1535,16 @@ const CITTÀ_PER_CAMPIONATO = {
   'Premier Division': 'Dublino', 'Besta deild': 'Reykjavik',
   'Liga Portugal Betclic': 'Lisbona', 'Veikkausliiga': 'Helsinki',
   'Russian Premier League': 'Mosca'
+};
+
+// ============================================================
+// FUNZIONE PER I COLORI DELLA HEATMAP
+// ============================================================
+const getHeatmapColorClass = (pct) => {
+  if (pct > 90) return 'heatmap-pct-bomb heatmap-bg-bomb';
+  if (pct >= 61) return 'heatmap-pct-green heatmap-bg-green';
+  if (pct >= 31) return 'heatmap-pct-white heatmap-bg-white';
+  return 'heatmap-pct-red heatmap-bg-red';
 };
 
 // ============================================================
@@ -3225,7 +3232,6 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
     .sort((a, b) => { 
       const dateA = parseDate(a.data, a.ora); 
       const dateB = parseDate(b.data, b.ora); 
-      // Ordine: dalla più recente alla meno recente (b - a)
       return dateB - dateA; 
     });
   if (teamMatches.length === 0) return <div className="card" style={{padding: '12px', textAlign:'center'}}><p style={{color:'var(--text-muted)'}}>Nessuna partita giocata per {teamName} in questo campionato.</p></div>;
@@ -3428,7 +3434,7 @@ const HomeWidget = ({ matches, onSelectMatch, setTab, selectedFamiglie }) => {
 };
 
 // ============================================================
-// COMPONENTE HEATMAP GIOCATE - VERSIONE CON CARATTERI GRANDI
+// COMPONENTE HEATMAP GIOCATE CON COLORI CORRETTI
 // ============================================================
 
 const HeatmapGiocate = ({ matches, onSelectChampionship, championships = [] }) => {
@@ -3516,25 +3522,15 @@ const HeatmapGiocate = ({ matches, onSelectChampionship, championships = [] }) =
   }
   
   const getPct = (stat) => stat && stat.total ? Math.round((stat.successi / stat.total) * 100) : 0;
-  const getColor = (pct) => { if (pct >= 70) return 'var(--win)'; if (pct >= 50) return 'var(--draw)'; return 'var(--lose)'; };
-  const getEmoji = (pct) => { if (pct >= 70) return '🟢'; if (pct >= 50) return '🟡'; return '🔴'; };
   
   const totalEntries = entries.length;
-  
-  // CARATTERI PIÙ GRANDI - 2x la dimensione precedente
-  const rowHeight = totalEntries > 20 ? '38px' : (totalEntries > 15 ? '42px' : '46px');
-  const fontSize = '14px';  // prima era 9-10px
-  const pctFontSize = '16px';  // prima era 10-11px
-  const headerFontSize = '12px';  // prima era 8px
-  const titleFontSize = '18px';
-  
   const withMatches = entries.filter(([_, stats]) => stats && stats.over15 && stats.over15.total > 0).length;
   const withoutMatches = totalEntries - withMatches;
   
   return (
     <div className="card" style={{padding: '14px 16px'}}>
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '8px'}}>
-        <h4 style={{margin: 0, fontSize: titleFontSize}}>🔥 Heatmap Giocate per Campionato</h4>
+        <h4 style={{margin: 0, fontSize: '18px'}}>🔥 Heatmap Giocate per Campionato</h4>
         <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
           <span style={{fontSize: '13px', color: 'var(--text-muted)'}}>Filtra:</span>
           <select value={filterChamp} onChange={e => setFilterChamp(e.target.value)} style={{padding: '4px 10px', fontSize: '14px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', minWidth: '140px', maxWidth: '200px'}}>
@@ -3550,18 +3546,26 @@ const HeatmapGiocate = ({ matches, onSelectChampionship, championships = [] }) =
         {withoutMatches > 0 && <span>⚪ {withoutMatches} senza partite</span>}
       </div>
       
+      {/* LEGENDA COLORI HEATMAP */}
+      <div style={{display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '10px', padding: '8px 12px', background: 'var(--surface)', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '12px'}}>
+        <span><span style={{display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', background: '#f39c12', marginRight: '4px'}}></span> 🟡 &gt;90%</span>
+        <span><span style={{display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', background: '#6fcf97', marginRight: '4px'}}></span> 🟢 61-90%</span>
+        <span><span style={{display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', background: '#8b949e', marginRight: '4px'}}></span> ⚪ 31-60%</span>
+        <span><span style={{display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', background: '#eb5757', marginRight: '4px'}}></span> 🔴 0-30%</span>
+      </div>
+      
       <div className="standings-table-wrap" style={{maxHeight: 'none', overflow: 'visible'}}>
-        <table className="heatmap-table" style={{fontSize: fontSize, width: '100%', borderCollapse: 'collapse'}}>
+        <table className="heatmap-table" style={{fontSize: '14px', width: '100%', borderCollapse: 'collapse'}}>
           <thead>
             <tr>
-              <th style={{padding: '6px 8px', fontSize: headerFontSize, textAlign: 'left', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>Campionato</th>
-              <th style={{padding: '6px 8px', fontSize: headerFontSize, textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>Over 1.5</th>
-              <th style={{padding: '6px 8px', fontSize: headerFontSize, textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>12+U4.5</th>
-              <th style={{padding: '6px 8px', fontSize: headerFontSize, textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Casa 1-3</th>
-              <th style={{padding: '6px 8px', fontSize: headerFontSize, textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Ospite 1-3</th>
-              <th style={{padding: '6px 8px', fontSize: headerFontSize, textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Casa 0-2</th>
-              <th style={{padding: '6px 8px', fontSize: headerFontSize, textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Ospite 0-2</th>
-              <th style={{padding: '6px 8px', fontSize: headerFontSize, textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>📊</th>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'left', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>Campionato</th>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>Over 1.5</th>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>12+U4.5</th>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Casa 1-3</th>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Ospite 1-3</th>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Casa 0-2</th>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Ospite 0-2</th>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>📊</th>
             </tr>
           </thead>
           <tbody>
@@ -3578,33 +3582,36 @@ const HeatmapGiocate = ({ matches, onSelectChampionship, championships = [] }) =
               const champShort = champ && champ.length > 22 ? champ.substring(0, 20) + '…' : champ || 'Sconosciuto';
               const hasMatches = totalGames > 0;
               
-              const displayPct = (pct) => hasMatches ? pct : 0;
-              const displayEmoji = (pct) => hasMatches ? getEmoji(pct) : '⚪';
-              const displayColor = (pct) => hasMatches ? getColor(pct) : 'var(--text-muted)';
+              const getDisplayClass = (pct) => {
+                if (!hasMatches) return 'heatmap-pct-white';
+                return getHeatmapColorClass(pct);
+              };
+              
+              const formatPct = (pct) => hasMatches ? `${pct}%` : '-';
               
               return (
-                <tr key={champ} className="clickable" onClick={() => hasMatches && onSelectChampionship && onSelectChampionship(champ)} style={{cursor: hasMatches ? 'pointer' : 'default', height: rowHeight, opacity: hasMatches ? 1 : 0.5}}>
-                  <td style={{color: color, fontWeight: 'bold', fontSize: fontSize, padding: '4px 8px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis'}} title={champ}>
+                <tr key={champ} className="clickable" onClick={() => hasMatches && onSelectChampionship && onSelectChampionship(champ)} style={{cursor: hasMatches ? 'pointer' : 'default', opacity: hasMatches ? 1 : 0.5}}>
+                  <td style={{color: color, fontWeight: 'bold', fontSize: '14px', padding: '4px 8px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis'}} title={champ}>
                     {champShort}
                     {!hasMatches && <span style={{fontSize: '11px', color: 'var(--text-muted)', marginLeft: '6px'}}>⏳</span>}
                   </td>
-                  <td style={{color: displayColor(pctOver15), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)'}}>
-                    {displayEmoji(pctOver15)} {displayPct(pctOver15)}%
+                  <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
+                    <span className={getDisplayClass(pctOver15)}>{formatPct(pctOver15)}</span>
                   </td>
-                  <td style={{color: displayColor(pct12under45), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)'}}>
-                    {displayEmoji(pct12under45)} {displayPct(pct12under45)}%
+                  <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
+                    <span className={getDisplayClass(pct12under45)}>{formatPct(pct12under45)}</span>
                   </td>
-                  <td style={{color: displayColor(pctMGHome), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)'}}>
-                    {displayEmoji(pctMGHome)} {displayPct(pctMGHome)}%
+                  <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
+                    <span className={getDisplayClass(pctMGHome)}>{formatPct(pctMGHome)}</span>
                   </td>
-                  <td style={{color: displayColor(pctMGAway), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)'}}>
-                    {displayEmoji(pctMGAway)} {displayPct(pctMGAway)}%
+                  <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
+                    <span className={getDisplayClass(pctMGAway)}>{formatPct(pctMGAway)}</span>
                   </td>
-                  <td style={{color: displayColor(pctMGHome02), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)'}}>
-                    {displayEmoji(pctMGHome02)} {displayPct(pctMGHome02)}%
+                  <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
+                    <span className={getDisplayClass(pctMGHome02)}>{formatPct(pctMGHome02)}</span>
                   </td>
-                  <td style={{color: displayColor(pctMGAway02), fontWeight: 'bold', fontSize: pctFontSize, textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)'}}>
-                    {displayEmoji(pctMGAway02)} {displayPct(pctMGAway02)}%
+                  <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
+                    <span className={getDisplayClass(pctMGAway02)}>{formatPct(pctMGAway02)}</span>
                   </td>
                   <td style={{fontSize: '13px', color: 'var(--text-muted)', textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)'}}>
                     {totalGames > 0 ? totalGames : '-'}
@@ -3617,11 +3624,8 @@ const HeatmapGiocate = ({ matches, onSelectChampionship, championships = [] }) =
       </div>
       
       <div style={{fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '8px'}}>
-        <span>🟢 ≥ 70%</span>
-        <span>🟡 50-69%</span>
-        <span>🔴 &lt; 50%</span>
+        <span>💡 Clicca su un campionato con partite per i dettagli</span>
         <span style={{marginLeft: 'auto'}}>📊 {totalEntries} campionati</span>
-        <span style={{fontSize: '11px', color: 'var(--text-muted)'}}>💡 Clicca su un campionato con partite per i dettagli</span>
       </div>
     </div>
   );
@@ -4736,7 +4740,7 @@ function App() {
   };
 
   // ============================================================
-  // RENDER DELL'APP CON SIMULAZIONE TELEFONO
+  // RENDER DELL'APP
   // ============================================================
 
   const renderAppContent = () => {
@@ -4829,38 +4833,6 @@ function App() {
                   let futureMatches = matches.filter(m => m.stato === 'Futura');
                   if (selectedChamp !== 'Tutti') { 
                     futureMatches = futureMatches.filter(m => m.campionato === selectedChamp);
-                    
-                    const todayStr = getTodayStr();
-                    const matchesToday = futureMatches.filter(m => m.data === todayStr);
-                    
-                    if (matchesToday.length > 0) {
-                      const todayRound = matchesToday[0]?.round || 'N/A';
-                      if (todayRound !== 'N/A') {
-                        futureMatches = futureMatches.filter(m => m.round === todayRound);
-                      }
-                    } else {
-                      const today = new Date();
-                      let closestDate = null;
-                      let closestRound = null;
-                      let minDiff = Infinity;
-                      
-                      futureMatches.forEach(m => {
-                        if (!m.data) return;
-                        const matchDate = new Date(m.data + 'T00:00:00');
-                        if (matchDate >= today) {
-                          const diff = matchDate - today;
-                          if (diff < minDiff) {
-                            minDiff = diff;
-                            closestDate = m.data;
-                            closestRound = m.round;
-                          }
-                        }
-                      });
-                      
-                      if (closestRound && closestRound !== 'N/A') {
-                        futureMatches = futureMatches.filter(m => m.round === closestRound);
-                      }
-                    }
                   } else {
                     const todayStr = getTodayStr();
                     const maxDateStr = addDaysToDateStr(todayStr, daysRange);
