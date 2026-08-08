@@ -1404,6 +1404,7 @@ const CITY_COORDINATES = {
 };
 
 // MAPPA SQUADRE → CITTÀ
+// MAPPA SQUADRE → CITTÀ (VERSIONE COMPLETA)
 const TEAM_CITY_MAP = {
   // Serie A
   'Juventus': 'Torino', 'Milan': 'Milano', 'Inter': 'Milano', 'Roma': 'Roma',
@@ -1413,7 +1414,7 @@ const TEAM_CITY_MAP = {
   'Genoa': 'Genova', 'Sampdoria': 'Genova', 'Cagliari': 'Cagliari', 'Monza': 'Monza',
   'Parma': 'Parma', 'Como': 'Como', 'Venezia': 'Venezia', 'Frosinone': 'Frosinone',
   'Cremonese': 'Cremona', 'Spezia': 'La Spezia',
-  // Serie B
+  // Serie B (aggiunte)
   'Bari': 'Bari', 'Brescia': 'Brescia', 'Carrarese': 'Carrara',
   'Catanzaro': 'Catanzaro', 'Cesena': 'Cesena', 'Cittadella': 'Cittadella',
   'Cosenza': 'Cosenza', 'Juve Stabia': 'Castellammare di Stabia',
@@ -1963,10 +1964,14 @@ const getCittaFromChampionship = (champName) => {
 const fetchWeatherForMatch = async (match) => {
   if (!match) return null;
   
+  // Ottieni la città dalla squadra o dal campionato
   const city = getCityForMatch(match.casa, match.campionato);
-  if (!city) return null;
+  if (!city) {
+    console.warn('⚠️ Città non trovata per:', match.casa, match.campionato);
+    return null;
+  }
   
-  // COORDINATE DELLE CITTÀ
+  // COORDINATE DELLE CITTÀ (solo le più comuni per non appesantire)
   const coords = {
     // ITALIA
     'Torino': { lat: 45.0703, lon: 7.6869 },
@@ -2003,7 +2008,6 @@ const fetchWeatherForMatch = async (match) => {
     'Modena': { lat: 44.6471, lon: 10.9252 },
     'Palermo': { lat: 38.1157, lon: 13.3615 },
     'Pisa': { lat: 43.7228, lon: 10.4017 },
-    'Sassuolo': { lat: 44.5500, lon: 10.7833 },
     'Bolzano': { lat: 46.4983, lon: 11.3548 },
     // INGHILTERRA
     'Londra': { lat: 51.5074, lon: -0.1278 },
@@ -2240,13 +2244,13 @@ const fetchWeatherForMatch = async (match) => {
     'Salt Lake City': { lat: 40.7608, lon: -111.8910 },
     'Raleigh': { lat: 35.7796, lon: -78.6382 },
     'Buffalo': { lat: 42.8864, lon: -78.8784 },
-    'Oakland': { lat: 37.8044, lon: -122.2711 }
+    'Oakland': { lat: 37.8044, lon: -122.2711 },
   };
   
   // Prendi le coordinate
   let coord = coords[city];
   
-  // Se non trovato, prova la geocodifica
+  // Se non trovato, prova la geocodifica con Open-Meteo
   if (!coord) {
     try {
       const geoRes = await fetch(
@@ -2259,6 +2263,7 @@ const fetchWeatherForMatch = async (match) => {
             lat: geoData.results[0].latitude,
             lon: geoData.results[0].longitude
           };
+          console.log(`🌍 Geocodificata ${city} -> ${coord.lat}, ${coord.lon}`);
         }
       }
     } catch (e) {
@@ -2266,9 +2271,10 @@ const fetchWeatherForMatch = async (match) => {
     }
   }
   
-  // Se ancora non trovato, usa Parigi come default
+  // Se ancora non trovato, usa una città europea di default
   if (!coord) {
-    coord = { lat: 48.8566, lon: 2.3522 };
+    coord = { lat: 48.8566, lon: 2.3522 }; // Parigi
+    console.warn(`⚠️ Coordinate non trovate per ${city}, usando Parigi come default`);
   }
   
   // Data per il meteo
@@ -2291,28 +2297,36 @@ const fetchWeatherForMatch = async (match) => {
       `&timezone=auto` +
       `&start_date=${dateToUse}&end_date=${dateToUse}`;
     
+    console.log(`🌤️ Richiesta meteo per ${city} (${dateToUse}): ${url}`);
+    
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     
     const data = await response.json();
-    if (!data.daily) return null;
+    if (!data.daily) {
+      console.warn('⚠️ Nessun dato daily per', city);
+      return null;
+    }
     
-    const weatherCode = data.daily.weathercode[0] || 0;
+    const weatherCode = data.daily.weathercode?.[0] || 0;
     const weatherDesc = getWeatherDescription(weatherCode);
     
-    return {
+    const result = {
       temp: data.current_weather?.temperature || 0,
-      temp_min: data.daily.temperature_2m_min[0] || 0,
-      temp_max: data.daily.temperature_2m_max[0] || 0,
+      temp_min: data.daily.temperature_2m_min?.[0] || 0,
+      temp_max: data.daily.temperature_2m_max?.[0] || 0,
       weather: weatherDesc,
       wind_speed: data.current_weather?.windspeed || 0,
-      rain: data.daily.precipitation_sum[0] || 0,
+      rain: data.daily.precipitation_sum?.[0] || 0,
       forecast_date: dateToUse,
       city: city
     };
     
+    console.log(`✅ Meteo per ${city}: ${result.temp}°C, ${result.weather}`);
+    return result;
+    
   } catch (error) {
-    console.warn('❌ Meteo fallito per', city, error);
+    console.warn('❌ Errore meteo per', city, error.message);
     return null;
   }
 };
@@ -2663,6 +2677,10 @@ const Clock = () => {
 
 const WeatherBadge = ({ weatherData, city }) => {
   if (!weatherData) return <span style={{color:'var(--text-muted)'}}>⏳ Caricamento meteo...</span>;
+  
+  // Se weatherData è null (meteo non disponibile)
+  if (weatherData === null) return <span style={{color:'var(--text-muted)'}}>🌤️ Meteo non disponibile</span>;
+  
   const iconMap = {
     'Sereno': '☀️', 'Poco nuvoloso': '🌤️', 'Parzialmente nuvoloso': '⛅',
     'Coperto': '☁️', 'Nebbia': '🌫️', 'Pioviggine leggera': '🌦️',
@@ -4468,13 +4486,28 @@ const AIAnalysis = ({ match, allMatches, apiKeys, setTab }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!match) return;
-    const storageKey = `ft_ai_${match.id}`;
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      try { const parsed = JSON.parse(saved); setAnalysis(parsed.analysis || null); setError(null); return; } catch (e) {}
+  if (!selectedMatch) return;
+  
+  const weatherKey = `${selectedMatch.campionato}_${selectedMatch.data}`;
+  if (weatherCache[weatherKey]) return;
+  
+  const loadWeather = async () => {
+    try {
+      const w = await fetchWeatherForMatch(selectedMatch);
+      if (w) {
+        setWeatherCache(prev => ({ ...prev, [weatherKey]: w }));
+      } else {
+        // Se il meteo non è disponibile, imposta un placeholder per evitare richieste ripetute
+        setWeatherCache(prev => ({ ...prev, [weatherKey]: null }));
+      }
+    } catch (err) {
+      console.warn('Errore meteo:', err);
+      setWeatherCache(prev => ({ ...prev, [weatherKey]: null }));
     }
-  }, [match]);
+  };
+  
+  loadWeather();
+}, [selectedMatch]);
 
   const generateAnalysis = async () => {
     if (!match) return;
