@@ -1960,134 +1960,177 @@ const getCittaFromChampionship = (champName) => {
   return 'Londra';
 };
 
+// CERCA questa funzione nel tuo codice
 const getCityForMatch = (homeTeam, championship) => {
-  let city = getCityForTeam(homeTeam);
-  if (!city) city = getCittaFromChampionship(championship);
-  if (!city) city = 'Londra';
-  return city;
-};
-
-const fetchWeatherForMatch = async (match) => {
-  if (!match) return null;
-  const city = getCityForMatch(match.casa, match.campionato);
-  if (!city) return null;
+  if (!homeTeam) return 'Londra';
   
-  const cityNameVariants = {
-    'Stoccolma': ['Stockholm', 'Stoccolma'], 'Stockholm': ['Stockholm', 'Stoccolma'],
-    'Göteborg': ['Gothenburg', 'Göteborg'], 'Gothenburg': ['Gothenburg', 'Göteborg'],
-    'Malmö': ['Malmo', 'Malmö'], 'Malmo': ['Malmo', 'Malmö'],
-    'Copenaghen': ['Copenhagen', 'Copenaghen'], 'Copenhagen': ['Copenhagen', 'Copenaghen'],
-    'Londra': ['London', 'Londra'], 'London': ['London', 'Londra'],
-    'Monaco': ['Munich', 'Monaco'], 'Munich': ['Munich', 'Monaco'],
-    'Vienna': ['Vienna', 'Vienna'], 'Berlino': ['Berlin', 'Berlino'],
-    'Berlin': ['Berlin', 'Berlino'], 'Parigi': ['Paris', 'Parigi'],
-    'Paris': ['Paris', 'Parigi'], 'Roma': ['Rome', 'Roma'],
-    'Rome': ['Rome', 'Roma'], 'Milano': ['Milan', 'Milano'],
-    'Milan': ['Milan', 'Milano'], 'Torino': ['Turin', 'Torino'],
-    'Turin': ['Turin', 'Torino'], 'Napoli': ['Naples', 'Napoli'],
-    'Naples': ['Naples', 'Napoli'], 'Firenze': ['Florence', 'Firenze'],
-    'Florence': ['Florence', 'Firenze'], 'Genova': ['Genoa', 'Genova'],
-    'Genoa': ['Genoa', 'Genova'], 'Barcellona': ['Barcelona', 'Barcellona'],
-    'Barcelona': ['Barcelona', 'Barcellona'], 'Siviglia': ['Seville', 'Siviglia'],
-    'Seville': ['Seville', 'Siviglia'], 'Amsterdam': ['Amsterdam', 'Amsterdam'],
-    'Rotterdam': ['Rotterdam', 'Rotterdam'], 'Bruxelles': ['Brussels', 'Bruxelles'],
-    'Brussels': ['Brussels', 'Bruxelles'], 'Lisbona': ['Lisbon', 'Lisbona'],
-    'Lisbon': ['Lisbon', 'Lisbona'], 'Porto': ['Porto', 'Porto'],
-    'Oslo': ['Oslo', 'Oslo'], 'Helsinki': ['Helsinki', 'Helsinki'],
-    'Dublino': ['Dublin', 'Dublino'], 'Dublin': ['Dublin', 'Dublino'],
-    'Reykjavik': ['Reykjavik', 'Reykjavik'], 'Tokyo': ['Tokyo', 'Tokyo'],
-    'Seul': ['Seoul', 'Seul'], 'Seoul': ['Seoul', 'Seul'],
-    'Pechino': ['Beijing', 'Pechino'], 'Beijing': ['Beijing', 'Pechino'],
-    'Shanghai': ['Shanghai', 'Shanghai'], 'New York': ['New York', 'New York'],
-    'Città del Messico': ['Mexico City', 'Città del Messico'],
-    'Mexico City': ['Mexico City', 'Mexico City']
+  // MAPPA SQUADRE -> CITTÀ (completa)
+  const cityMap = {
+    // Serie A
+    'Juventus': 'Torino', 'Milan': 'Milano', 'Inter': 'Milano', 'Roma': 'Roma',
+    'Lazio': 'Roma', 'Napoli': 'Napoli', 'Fiorentina': 'Firenze', 'Atalanta': 'Bergamo',
+    'Bologna': 'Bologna', 'Torino': 'Torino', 'Udinese': 'Udine', 'Sassuolo': 'Reggio Emilia',
+    'Empoli': 'Empoli', 'Salernitana': 'Salerno', 'Lecce': 'Lecce', 'Verona': 'Verona',
+    'Genoa': 'Genova', 'Sampdoria': 'Genova', 'Cagliari': 'Cagliari', 'Monza': 'Monza',
+    'Parma': 'Parma', 'Como': 'Como', 'Venezia': 'Venezia', 'Frosinone': 'Frosinone',
+    'Cremonese': 'Cremona', 'Spezia': 'La Spezia',
+    // Serie B
+    'Bari': 'Bari', 'Brescia': 'Brescia', 'Carrarese': 'Carrara',
+    'Catanzaro': 'Catanzaro', 'Cesena': 'Cesena', 'Cittadella': 'Cittadella',
+    'Cosenza': 'Cosenza', 'Juve Stabia': 'Castellammare di Stabia',
+    'Mantova': 'Mantova', 'Modena': 'Modena', 'Palermo': 'Palermo',
+    'Pisa': 'Pisa', 'Reggiana': 'Reggio Emilia', 'Südtirol': 'Bolzano',
+    // Premier League
+    'Arsenal': 'Londra', 'Chelsea': 'Londra', 'Tottenham': 'Londra', 'West Ham': 'Londra',
+    'Crystal Palace': 'Londra', 'Fulham': 'Londra', 'Brentford': 'Londra',
+    'Manchester City': 'Manchester', 'Manchester United': 'Manchester',
+    'Liverpool': 'Liverpool', 'Everton': 'Liverpool', 'Newcastle': 'Newcastle upon Tyne',
+    'Aston Villa': 'Birmingham', 'Wolverhampton': 'Wolverhampton',
+    'Leeds': 'Leeds', 'Leicester': 'Leicester', 'Southampton': 'Southampton',
+    'Brighton': 'Brighton', 'Bournemouth': 'Bournemouth', 'Nottingham Forest': 'Nottingham',
+    'Sheffield United': 'Sheffield', 'Burnley': 'Burnley', 'Luton': 'Luton',
+    'Ipswich Town': 'Ipswich', 'Norwich City': 'Norwich',
+    // Bundesliga
+    'Bayern Munich': 'Monaco', 'Borussia Dortmund': 'Dortmund', 'RB Leipzig': 'Lipsia',
+    'Bayer Leverkusen': 'Leverkusen', 'Eintracht Frankfurt': 'Francoforte',
+    'Wolfsburg': 'Wolfsburg', 'Mainz': 'Magonza', 'Borussia Mönchengladbach': 'Mönchengladbach',
+    'Freiburg': 'Friburgo', 'Stuttgart': 'Stoccarda', 'Werder Bremen': 'Brema',
+    'Hoffenheim': 'Sinsheim', 'Augsburg': 'Augusta', 'Köln': 'Colonia',
+    'Union Berlin': 'Berlino', 'Hertha Berlin': 'Berlino', 'Schalke': 'Gelsenkirchen',
+    'Bochum': 'Bochum', 'Hamburger SV': 'Amburgo', 'Nürnberg': 'Norimberga',
+    'Fortuna Düsseldorf': 'Düsseldorf', 'Hannover 96': 'Hannover',
+    // La Liga
+    'Real Madrid': 'Madrid', 'Barcelona': 'Barcellona', 'Atletico Madrid': 'Madrid',
+    'Sevilla': 'Siviglia', 'Real Betis': 'Siviglia', 'Athletic Bilbao': 'Bilbao',
+    'Real Sociedad': 'San Sebastián', 'Valencia': 'Valencia', 'Villarreal': 'Villarreal',
+    'Osasuna': 'Pamplona', 'Celta Vigo': 'Vigo', 'Rayo Vallecano': 'Madrid',
+    'Getafe': 'Getafe', 'Mallorca': 'Palma di Maiorca', 'Granada': 'Granada',
+    'Málaga': 'Málaga', 'Real Zaragoza': 'Zaragoza', 'Sporting Gijón': 'Gijón',
+    // Ligue 1
+    'PSG': 'Parigi', 'Marseille': 'Marsiglia', 'Lyon': 'Lione', 'Lille': 'Lilla',
+    'AS Monaco': 'Monaco', 'Nice': 'Nizza', 'Rennes': 'Rennes', 'Strasbourg': 'Strasburgo',
+    'Nantes': 'Nantes', 'Montpellier': 'Montpellier', 'Reims': 'Reims',
+    'Toulouse': 'Tolosa', 'Bordeaux': 'Bordeaux', 'Saint-Étienne': 'Saint-Étienne',
+    'RC Lens': 'Lens', 'Brest': 'Brest', 'Auxerre': 'Auxerre', 'AC Ajaccio': 'Ajaccio',
+    'SC Bastia': 'Bastia', 'FC Metz': 'Metz', 'AS Nancy': 'Nancy', 'Le Havre': 'Le Havre',
+    // Eredivisie
+    'Ajax': 'Amsterdam', 'PSV': 'Eindhoven', 'Feyenoord': 'Rotterdam',
+    'AZ Alkmaar': 'Alkmaar', 'Utrecht': 'Utrecht', 'Twente': 'Enschede',
+    'Heerenveen': 'Heerenveen', 'Vitesse': 'Arnhem', 'Groningen': 'Groningen',
+    'Sparta Rotterdam': 'Rotterdam', 'NEC Nijmegen': 'Nijmegen', 'Willem II': 'Tilburg',
+    'NAC Breda': 'Breda', 'Fortuna Sittard': 'Sittard',
+    // Primeira Liga
+    'Benfica': 'Lisbona', 'Sporting': 'Lisbona', 'Porto': 'Porto',
+    'Braga': 'Braga', 'Vitoria Guimaraes': 'Guimarães', 'Boavista': 'Porto',
+    'Rio Ave': 'Vila do Conde', 'Académica': 'Coimbra', 'Vitória Setúbal': 'Setúbal',
+    'Sporting CP': 'Lisbona', 'Vitoria SC': 'Guimarães',
+    'Gil Vicente': 'Barcelos', 'Moreirense': 'Moreira de Cónegos',
+    'Estoril': 'Estoril', 'Farense': 'Faro', 'Portimonense': 'Portimão',
+    'Maritimo': 'Funchal', 'Nacional': 'Funchal',
+    // Allsvenskan (Svezia)
+    'AIK': 'Stoccolma', 'Djurgården': 'Stoccolma', 'Hammarby': 'Stoccolma',
+    'Malmö FF': 'Malmö', 'IFK Göteborg': 'Göteborg', 'Helsingborg': 'Helsingborg',
+    'Elfsborg': 'Borås', 'Norrköping': 'Norrköping', 'Kalmar FF': 'Kalmar',
+    // Eliteserien (Norvegia)
+    'Rosenborg': 'Trondheim', 'Molde': 'Molde', 'Bodø/Glimt': 'Bodø',
+    'Vålerenga': 'Oslo', 'Lillestrøm': 'Lillestrøm', 'Brann': 'Bergen',
+    'Viking': 'Stavanger', 'Tromsø': 'Tromsø',
+    // Danish Superliga
+    'FC Copenhagen': 'Copenaghen', 'Brøndby': 'Brøndby', 'FC Midtjylland': 'Herning',
+    'AGF': 'Aarhus', 'OB': 'Odense', 'AaB': 'Aalborg', 'Randers': 'Randers',
+    // Pro League (Belgio)
+    'Anderlecht': 'Bruxelles', 'Club Brugge': 'Bruges', 'Genk': 'Genk',
+    'Standard Liège': 'Liegi', 'Gent': 'Gand', 'Charleroi': 'Charleroi',
+    'Antwerp': 'Anversa', 'Cercle Brugge': 'Bruges', 'Mechelen': 'Mechelen',
+    // Swiss Super League
+    'Young Boys': 'Berna', 'Basel': 'Basilea', 'Zürich': 'Zurigo',
+    'Lugano': 'Lugano', 'Servette': 'Ginevra', 'St. Gallen': 'San Gallo',
+    'Luzern': 'Lucerna', 'Lausanne': 'Losanna', 'Sion': 'Sion',
+    // Austrian Bundesliga
+    'Red Bull Salzburg': 'Salisburgo', 'Sturm Graz': 'Graz',
+    'Rapid Vienna': 'Vienna', 'Austria Vienna': 'Vienna', 'LASK': 'Linz',
+    'Wolfsberger': 'Wolfsberg', 'FC Tirol': 'Innsbruck', 'SK Austria Klagenfurt': 'Klagenfurt',
+    // J1 League (Giappone)
+    'Kawasaki Frontale': 'Kawasaki', 'Yokohama F. Marinos': 'Yokohama',
+    'Urawa Red Diamonds': 'Saitama', 'Kashima Antlers': 'Kashima',
+    'Nagoya Grampus': 'Nagoya', 'Cerezo Osaka': 'Osaka', 'Gamba Osaka': 'Osaka',
+    'Vissel Kobe': 'Kobe', 'Sanfrecce Hiroshima': 'Hiroshima', 'Tokyo FC': 'Tokyo',
+    // K League 1 (Corea)
+    'Ulsan Hyundai': 'Ulsan', 'Jeonbuk Hyundai': 'Jeonju', 'FC Seoul': 'Seul',
+    'Suwon Samsung': 'Suwon', 'Pohang Steelers': 'Pohang', 'Daegu FC': 'Daegu',
+    'Incheon United': 'Incheon',
+    // Chinese Super League
+    'Beijing Guoan': 'Pechino', 'Shanghai Shenhua': 'Shanghai', 'Shanghai Port': 'Shanghai',
+    'Shandong Taishan': 'Jinan', 'Tianjin TEDA': 'Tianjin', 'Shenzhen FC': 'Shenzhen',
+    'Guangzhou': 'Canton', 'Wuhan Three Towns': 'Wuhan', 'Zhejiang FC': 'Hangzhou',
+    'Chengdu Rongcheng': 'Chengdu', 'Changchun Yatai': 'Changchun',
+    // Brasileirão
+    'Flamengo': 'Rio de Janeiro', 'Palmeiras': 'San Paolo',
+    'Atlético Mineiro': 'Belo Horizonte', 'Fluminense': 'Rio de Janeiro',
+    'Corinthians': 'San Paolo', 'São Paulo': 'San Paolo',
+    'Internacional': 'Porto Alegre', 'Grêmio': 'Porto Alegre',
+    'Santos': 'Santos', 'Cruzeiro': 'Belo Horizonte',
+    'Vasco da Gama': 'Rio de Janeiro', 'Botafogo': 'Rio de Janeiro',
+    'Athletico Paranaense': 'Curitiba', 'Bahia': 'Salvador', 'Fortaleza': 'Fortaleza',
+    // Liga MX
+    'Club América': 'Città del Messico', 'Guadalajara': 'Guadalajara',
+    'Monterrey': 'Monterrey', 'Tigres UANL': 'San Nicolás de los Garza',
+    'Pumas UNAM': 'Città del Messico', 'Cruz Azul': 'Città del Messico',
+    'Atlas': 'Guadalajara', 'Pachuca': 'Pachuca', 'Toluca': 'Toluca',
+    'Santos Laguna': 'Torreón', 'Tijuana': 'Tijuana',
+    // Premier Division (Irlanda)
+    'Shamrock Rovers': 'Dublino', 'St Patrick\'s Athletic': 'Dublino',
+    'Bohemians': 'Dublino', 'Shelbourne': 'Dublino', 'Derry City': 'Derry',
+    'Dundalk': 'Dundalk', 'Sligo Rovers': 'Sligo', 'Waterford': 'Waterford',
+    'Cork City': 'Cork', 'Galway United': 'Galway',
+    // Besta deild (Islanda)
+    'Breiðablik': 'Kópavogur', 'Víkingur Reykjavík': 'Reykjavik',
+    'FH Hafnarfjörður': 'Hafnarfjörður', 'KA Akureyri': 'Akureyri',
+    'Valur Reykjavík': 'Reykjavik', 'KR Reykjavík': 'Reykjavik',
+    // Veikkausliiga (Finlandia)
+    'HJK': 'Helsinki', 'KuPS': 'Kuopio', 'SJK': 'Seinäjoki', 'FC Inter': 'Turku',
+    'TPS': 'Turku', 'Lahti': 'Lahti', 'Ilves': 'Tampere', 'Haka': 'Valkeakoski',
+    'Mariehamn': 'Mariehamn',
+    // Altre
+    'Henan Songshan Longmen': 'Zhengzhou', 'Dalian Yingbo': 'Dalian',
+    'Dalian Pro': 'Dalian', 'Cangzhou Mighty Lions': 'Cangzhou',
+    'Meizhou Hakka': 'Meizhou', 'Nantong Zhiyun': 'Nantong',
+    'Qingdao Hainiu': 'Qingdao', 'Qingdao West Coast': 'Qingdao',
+    'Henan FC': 'Zhengzhou'
   };
   
-  try {
-    let lat, lon;
-    if (CITY_COORDINATES[city]) {
-      lat = CITY_COORDINATES[city].lat;
-      lon = CITY_COORDINATES[city].lon;
-    } else {
-      const variants = cityNameVariants[city] || [city];
-      let found = false;
-      for (const variant of variants) {
-        if (CITY_COORDINATES[variant]) {
-          lat = CITY_COORDINATES[variant].lat;
-          lon = CITY_COORDINATES[variant].lon;
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        try {
-          const geoRes = await fetch(
-            `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=it&format=json`
-          );
-          if (geoRes.ok) {
-            const geoData = await geoRes.json();
-            if (geoData.results && geoData.results.length > 0) {
-              lat = geoData.results[0].latitude;
-              lon = geoData.results[0].longitude;
-              found = true;
-            }
-          }
-        } catch (e) {}
-        if (!found) {
-          const swedishCities = ['Stoccolma', 'Stockholm', 'Göteborg', 'Gothenburg', 'Malmö', 'Malmo', 'Borås', 'Norrköping', 'Kalmar', 'Helsingborg'];
-          if (swedishCities.includes(city) || swedishCities.some(s => city.includes(s))) {
-            lat = 59.3293; lon = 18.0686;
-          } else {
-            lat = 48.8566; lon = 2.3522;
-          }
-        }
+  // Cerca la squadra nella mappa
+  let city = cityMap[homeTeam];
+  
+  // Se non trovata, cerca corrispondenza parziale
+  if (!city) {
+    for (const [key, value] of Object.entries(cityMap)) {
+      if (homeTeam.toLowerCase().includes(key.toLowerCase()) || 
+          key.toLowerCase().includes(homeTeam.toLowerCase())) {
+        city = value;
+        break;
       }
     }
-    
-    let dateToUse;
-    if (match.data && match.data.match(/^\d{2}\/\d{2}\/\d{4}/)) {
-      const parts = match.data.split('/');
-      dateToUse = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-    } else if (match.data && match.data.match(/^\d{4}-\d{2}-\d{2}/)) {
-      dateToUse = match.data;
-    } else {
-      const today = new Date();
-      dateToUse = today.toISOString().slice(0, 10);
-    }
-    
-    const url = `https://api.open-meteo.com/v1/forecast?` +
-      `latitude=${lat}&longitude=${lon}` +
-      `&current_weather=true` +
-      `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode` +
-      `&timezone=auto` +
-      `&start_date=${dateToUse}&end_date=${dateToUse}`;
-    
-    const weatherRes = await fetch(url);
-    if (!weatherRes.ok) throw new Error(`Errore meteo: ${weatherRes.status}`);
-    const weatherData = await weatherRes.json();
-    if (!weatherData.daily) return null;
-    
-    const weatherCode = weatherData.daily.weathercode[0] || 0;
-    const weatherDesc = getWeatherDescription(weatherCode);
-    
-    return {
-      temp: weatherData.current_weather?.temperature || 0,
-      temp_min: weatherData.daily.temperature_2m_min[0] || 0,
-      temp_max: weatherData.daily.temperature_2m_max[0] || 0,
-      weather: weatherDesc,
-      wind_speed: weatherData.current_weather?.windspeed || 0,
-      rain: weatherData.daily.precipitation_sum[0] || 0,
-      humidity: 0,
-      pressure: 0,
-      forecast_date: dateToUse,
-      city: city,
-      latitude: lat,
-      longitude: lon
-    };
-  } catch (e) {
-    console.error('❌ Errore fetch meteo per', city, ':', e);
-    return null;
   }
+  
+  // Fallback: usa il campionato
+  if (!city) {
+    const champCity = {
+      'Serie A': 'Roma', 'Serie B': 'Roma', 'Premier League': 'Londra',
+      'Bundesliga': 'Berlino', 'Ligue 1': 'Parigi', 'La Liga': 'Madrid',
+      'Eredivisie': 'Amsterdam', 'Primeira Liga': 'Lisbona', 'Allsvenskan': 'Stoccolma',
+      'Eliteserien': 'Oslo', 'Danish Superliga': 'Copenaghen', 'Pro League': 'Bruxelles',
+      'Championship': 'Londra', 'Liga MX': 'Città del Messico', 'Brasileirão': 'Brasilia',
+      'J1 League': 'Tokyo', 'K League 1': 'Seul', 'Swiss Super League': 'Berna',
+      'Austrian Bundesliga': 'Vienna', 'Chinese Super League': 'Pechino',
+      'Premier Division': 'Dublino', 'Besta deild': 'Reykjavik',
+      'Liga Portugal Betclic': 'Lisbona', 'Veikkausliiga': 'Helsinki',
+      'Russian Premier League': 'Mosca'
+    };
+    city = champCity[championship] || 'Londra';
+  }
+  
+  return city;
 };
 
 // ============================================================
@@ -4656,18 +4699,23 @@ function App() {
   const [selectedFamiglie, setSelectedFamiglie] = useState(initial.selectedFamiglie || ['dc_under','mg_casa_ospite','over']);
 
   // ============================================================
-  // EFFETTO PER CARICARE IL METEO CON OPEN-METEO
-  // ============================================================
-  useEffect(() => {
-    if (selectedMatch) {
-      const weatherKey = `${selectedMatch.campionato}_${selectedMatch.data}`;
-      if (!weatherCache[weatherKey]) {
-        fetchWeatherForMatch(selectedMatch).then(w => {
-          if (w) setWeatherCache(prev => ({ ...prev, [weatherKey]: w }));
-        });
-      }
+// EFFETTO PER CARICARE IL METEO CON OPEN-METEO
+// ============================================================
+
+useEffect(() => {
+  if (selectedMatch) {
+    const weatherKey = `${selectedMatch.campionato}_${selectedMatch.data}`;
+    if (!weatherCache[weatherKey]) {
+      fetchWeatherForMatch(selectedMatch).then(w => {
+        if (w) {
+          setWeatherCache(prev => ({ ...prev, [weatherKey]: w }));
+        }
+      }).catch(err => {
+        console.warn('Errore meteo:', err);
+      });
     }
-  }, [selectedMatch]);
+  }
+}, [selectedMatch]);
 
   useEffect(() => { saveState({ championships, matches, apiKeys, theme, customTheme, selectedFamiglie }); }, [championships, matches, apiKeys, theme, customTheme, selectedFamiglie]);
 
