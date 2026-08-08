@@ -3270,6 +3270,15 @@ const HeatmapGiocate = ({ matches, onSelectChampionship, championships = [] }) =
   const withMatches = entries.filter(([_, stats]) => stats && stats.over15 && stats.over15.total > 0).length;
   const withoutMatches = totalEntries - withMatches;
   
+  // Funzione per ottenere solo la classe del colore del testo (senza sfondo)
+  const getTextColorClass = (pct, hasMatches) => {
+    if (!hasMatches) return 'heatmap-pct-white';
+    if (pct > 90) return 'heatmap-pct-bomb';
+    if (pct >= 61) return 'heatmap-pct-green';
+    if (pct >= 31) return 'heatmap-pct-white';
+    return 'heatmap-pct-red';
+  };
+  
   return (
     <div className="card" style={{padding: '14px 16px'}}>
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '8px'}}>
@@ -3289,12 +3298,13 @@ const HeatmapGiocate = ({ matches, onSelectChampionship, championships = [] }) =
         {withoutMatches > 0 && <span>⚪ {withoutMatches} senza partite</span>}
       </div>
       
-      {/* LEGENDA COLORI HEATMAP */}
+      {/* LEGENDA COLORI - SOLO PER IL TESTO */}
       <div style={{display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '10px', padding: '8px 12px', background: 'var(--surface)', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '12px'}}>
-        <span><span style={{display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', background: '#f39c12', marginRight: '4px'}}></span> 🟡 &gt;90%</span>
-        <span><span style={{display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', background: '#6fcf97', marginRight: '4px'}}></span> 🟢 61-90%</span>
-        <span><span style={{display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', background: '#8b949e', marginRight: '4px'}}></span> ⚪ 31-60%</span>
-        <span><span style={{display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', background: '#eb5757', marginRight: '4px'}}></span> 🔴 0-30%</span>
+        <span style={{color: '#f39c12'}}>🟡 &gt;90%</span>
+        <span style={{color: '#6fcf97'}}>🟢 61-90%</span>
+        <span style={{color: '#8b949e'}}>⚪ 31-60%</span>
+        <span style={{color: '#eb5757'}}>🔴 0-30%</span>
+        <span style={{color: 'var(--text-muted)', marginLeft: 'auto'}}>💡 Clicca su un campionato per i dettagli</span>
       </div>
       
       <div className="standings-table-wrap" style={{maxHeight: 'none', overflow: 'visible'}}>
@@ -3325,11 +3335,6 @@ const HeatmapGiocate = ({ matches, onSelectChampionship, championships = [] }) =
               const champShort = champ && champ.length > 22 ? champ.substring(0, 20) + '…' : champ || 'Sconosciuto';
               const hasMatches = totalGames > 0;
               
-              const getDisplayClass = (pct) => {
-                if (!hasMatches) return 'heatmap-pct-white';
-                return getHeatmapColorClass(pct);
-              };
-              
               const formatPct = (pct) => hasMatches ? `${pct}%` : '-';
               
               return (
@@ -3339,22 +3344,22 @@ const HeatmapGiocate = ({ matches, onSelectChampionship, championships = [] }) =
                     {!hasMatches && <span style={{fontSize: '11px', color: 'var(--text-muted)', marginLeft: '6px'}}>⏳</span>}
                   </td>
                   <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
-                    <span className={getDisplayClass(pctOver15)}>{formatPct(pctOver15)}</span>
+                    <span className={getTextColorClass(pctOver15, hasMatches)}>{formatPct(pctOver15)}</span>
                   </td>
                   <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
-                    <span className={getDisplayClass(pct12under45)}>{formatPct(pct12under45)}</span>
+                    <span className={getTextColorClass(pct12under45, hasMatches)}>{formatPct(pct12under45)}</span>
                   </td>
                   <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
-                    <span className={getDisplayClass(pctMGHome)}>{formatPct(pctMGHome)}</span>
+                    <span className={getTextColorClass(pctMGHome, hasMatches)}>{formatPct(pctMGHome)}</span>
                   </td>
                   <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
-                    <span className={getDisplayClass(pctMGAway)}>{formatPct(pctMGAway)}</span>
+                    <span className={getTextColorClass(pctMGAway, hasMatches)}>{formatPct(pctMGAway)}</span>
                   </td>
                   <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
-                    <span className={getDisplayClass(pctMGHome02)}>{formatPct(pctMGHome02)}</span>
+                    <span className={getTextColorClass(pctMGHome02, hasMatches)}>{formatPct(pctMGHome02)}</span>
                   </td>
                   <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
-                    <span className={getDisplayClass(pctMGAway02)}>{formatPct(pctMGAway02)}</span>
+                    <span className={getTextColorClass(pctMGAway02, hasMatches)}>{formatPct(pctMGAway02)}</span>
                   </td>
                   <td style={{fontSize: '13px', color: 'var(--text-muted)', textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)'}}>
                     {totalGames > 0 ? totalGames : '-'}
