@@ -2,75 +2,75 @@
   "championships": [
     {
       "name": "Allsvenskan",
-      "importedAt": "2026-08-09T04:33:31.260657"
+      "importedAt": "2026-08-10T04:52:34.904674"
     },
     {
       "name": "Austrian Bundesliga",
-      "importedAt": "2026-08-09T04:33:31.260669"
+      "importedAt": "2026-08-10T04:52:34.904681"
     },
     {
       "name": "Bundesliga",
-      "importedAt": "2026-08-09T04:33:31.260672"
+      "importedAt": "2026-08-10T04:52:34.904682"
     },
     {
       "name": "Chinese Super League",
-      "importedAt": "2026-08-09T04:33:31.260674"
+      "importedAt": "2026-08-10T04:52:34.904683"
     },
     {
       "name": "Danish Superliga",
-      "importedAt": "2026-08-09T04:33:31.260676"
+      "importedAt": "2026-08-10T04:52:34.904684"
     },
     {
       "name": "Eliteserien",
-      "importedAt": "2026-08-09T04:33:31.260678"
+      "importedAt": "2026-08-10T04:52:34.904685"
     },
     {
       "name": "Eredivisie",
-      "importedAt": "2026-08-09T04:33:31.260680"
+      "importedAt": "2026-08-10T04:52:34.904686"
     },
     {
       "name": "Ireland Premier",
-      "importedAt": "2026-08-09T04:33:31.260681"
+      "importedAt": "2026-08-10T04:52:34.904686"
     },
     {
       "name": "J1 League",
-      "importedAt": "2026-08-09T04:33:31.260683"
+      "importedAt": "2026-08-10T04:52:34.904687"
     },
     {
       "name": "K League 1",
-      "importedAt": "2026-08-09T04:33:31.260685"
+      "importedAt": "2026-08-10T04:52:34.904688"
     },
     {
       "name": "La Liga",
-      "importedAt": "2026-08-09T04:33:31.260687"
+      "importedAt": "2026-08-10T04:52:34.904689"
     },
     {
       "name": "Ligue 1",
-      "importedAt": "2026-08-09T04:33:31.260689"
+      "importedAt": "2026-08-10T04:52:34.904690"
     },
     {
       "name": "Premier League",
-      "importedAt": "2026-08-09T04:33:31.260690"
+      "importedAt": "2026-08-10T04:52:34.904691"
     },
     {
       "name": "Russian PL",
-      "importedAt": "2026-08-09T04:33:31.260692"
+      "importedAt": "2026-08-10T04:52:34.904691"
     },
     {
       "name": "Serie A",
-      "importedAt": "2026-08-09T04:33:31.260693"
+      "importedAt": "2026-08-10T04:52:34.904692"
     },
     {
       "name": "Serie B",
-      "importedAt": "2026-08-09T04:33:31.260695"
+      "importedAt": "2026-08-10T04:52:34.904693"
     },
     {
       "name": "Swiss Super League",
-      "importedAt": "2026-08-09T04:33:31.260696"
+      "importedAt": "2026-08-10T04:52:34.904694"
     },
     {
       "name": "Veikkausliiga",
-      "importedAt": "2026-08-09T04:33:31.260697"
+      "importedAt": "2026-08-10T04:52:34.904694"
     }
   ],
   "matches": [
@@ -875,9 +875,9 @@
       "ora": "14:00",
       "casa": "Malmö",
       "ospiti": "Degerfors",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 1,
+      "golOspite": 2,
       "citta": "N/D"
     },
     {
@@ -888,8 +888,8 @@
       "ora": "14:00",
       "casa": "Hammarby",
       "ospiti": "BK Häcken",
-      "stato": "Futura",
-      "golCasa": 0,
+      "stato": "Giocata",
+      "golCasa": 3,
       "golOspite": 0,
       "citta": "N/D"
     },
@@ -901,9 +901,9 @@
       "ora": "16:30",
       "casa": "Halmstad",
       "ospiti": "GAIS",
-      "stato": "Futura",
+      "stato": "Giocata",
       "golCasa": 0,
-      "golOspite": 0,
+      "golOspite": 2,
       "citta": "N/D"
     },
     {
@@ -914,9 +914,9 @@
       "ora": "17:30(16:30)",
       "casa": "Göteborg",
       "ospiti": "Kalmar",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 3,
+      "golOspite": 2,
       "citta": "N/D"
     },
     {
@@ -3553,9 +3553,9 @@
       "ora": "17:00",
       "casa": "RZ Pellets WAC",
       "ospiti": "RB Salzburg",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 1,
+      "golOspite": 1,
       "citta": "N/D"
     },
     {
@@ -3566,9 +3566,9 @@
       "ora": "17:00",
       "casa": "Ried",
       "ospiti": "Rapid Wien",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 1,
+      "golOspite": 2,
       "citta": "N/D"
     },
     {
@@ -3579,9 +3579,9 @@
       "ora": "19:00",
       "casa": "Austria Wien",
       "ospiti": "LASK",
-      "stato": "Futura",
+      "stato": "Giocata",
       "golCasa": 0,
-      "golOspite": 0,
+      "golOspite": 2,
       "citta": "N/D"
     },
     {
@@ -9845,7 +9845,7 @@
       "ora": "19:00(13:00)",
       "casa": "Henan",
       "ospiti": "Q. West Coast",
-      "stato": "Futura",
+      "stato": "Giocata",
       "golCasa": 0,
       "golOspite": 0,
       "citta": "N/D"
@@ -9858,9 +9858,9 @@
       "ora": "19:35(13:35)",
       "casa": "Chongqing",
       "ospiti": "Shanghai Port",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 2,
+      "golOspite": 3,
       "citta": "N/D"
     },
     {
@@ -9871,9 +9871,9 @@
       "ora": "20:00(14:00)",
       "casa": "SD Taishan",
       "ospiti": "Jinmen Tiger",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 2,
+      "golOspite": 1,
       "citta": "N/D"
     },
     {
@@ -12575,8 +12575,8 @@
       "ora": "16:00",
       "casa": "Randers",
       "ospiti": "Lyngby",
-      "stato": "Futura",
-      "golCasa": 0,
+      "stato": "Giocata",
+      "golCasa": 2,
       "golOspite": 0,
       "citta": "N/D"
     },
@@ -12588,9 +12588,9 @@
       "ora": "18:00",
       "casa": "Horsens",
       "ospiti": "Brøndby",
-      "stato": "Futura",
+      "stato": "Giocata",
       "golCasa": 0,
-      "golOspite": 0,
+      "golOspite": 2,
       "citta": "N/D"
     },
     {
@@ -14577,9 +14577,9 @@
       "ora": "14:30",
       "casa": "Lillestrøm",
       "ospiti": "Rosenborg",
-      "stato": "Futura",
+      "stato": "Giocata",
       "golCasa": 0,
-      "golOspite": 0,
+      "golOspite": 2,
       "citta": "N/D"
     },
     {
@@ -14590,9 +14590,9 @@
       "ora": "17:00",
       "casa": "HamKam",
       "ospiti": "Aalesund",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 1,
+      "golOspite": 1,
       "citta": "N/D"
     },
     {
@@ -14603,9 +14603,9 @@
       "ora": "19:15",
       "casa": "Kristiansund",
       "ospiti": "Molde",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 2,
+      "golOspite": 1,
       "citta": "N/D"
     },
     {
@@ -17931,9 +17931,9 @@
       "ora": "12:15",
       "casa": "Sparta R.",
       "ospiti": "Feyenoord",
-      "stato": "Futura",
+      "stato": "Giocata",
       "golCasa": 0,
-      "golOspite": 0,
+      "golOspite": 1,
       "citta": "N/D"
     },
     {
@@ -17944,9 +17944,9 @@
       "ora": "14:30",
       "casa": "Groningen",
       "ospiti": "Utrecht",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 2,
+      "golOspite": 1,
       "citta": "N/D"
     },
     {
@@ -17957,9 +17957,9 @@
       "ora": "14:30",
       "casa": "Zwolle",
       "ospiti": "Ajax",
-      "stato": "Futura",
+      "stato": "Giocata",
       "golCasa": 0,
-      "golOspite": 0,
+      "golOspite": 2,
       "citta": "N/D"
     },
     {
@@ -17970,8 +17970,8 @@
       "ora": "16:45",
       "casa": "Heerenveen",
       "ospiti": "Twente",
-      "stato": "Futura",
-      "golCasa": 0,
+      "stato": "Giocata",
+      "golCasa": 1,
       "golOspite": 0,
       "citta": "N/D"
     },
@@ -21597,9 +21597,9 @@
       "ora": "15:00(16:00)",
       "casa": "Waterford United",
       "ospiti": "Bohemian FC",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 3,
+      "golOspite": 1,
       "citta": "N/D"
     },
     {
@@ -21610,9 +21610,9 @@
       "ora": "17:00(18:00)",
       "casa": "Shelbourne FC",
       "ospiti": "St Patrick's",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 1,
+      "golOspite": 2,
       "citta": "N/D"
     },
     {
@@ -24600,9 +24600,9 @@
       "ora": "18:00(11:00)",
       "casa": "Tokyo Verdy",
       "ospiti": "Kawasaki F.",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 1,
+      "golOspite": 1,
       "citta": "N/D"
     },
     {
@@ -24613,9 +24613,9 @@
       "ora": "19:00(12:00)",
       "casa": "Nagasaki",
       "ospiti": "Kyoto Sanga",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 2,
+      "golOspite": 1,
       "citta": "N/D"
     },
     {
@@ -45673,9 +45673,9 @@
       "ora": "14:30(13:30)",
       "casa": "Dynamo Moskva",
       "ospiti": "D. Makhachkala",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 3,
+      "golOspite": 1,
       "citta": "N/D"
     },
     {
@@ -45686,9 +45686,9 @@
       "ora": "17:00(16:00)",
       "casa": "Zenit",
       "ospiti": "Rodina Moskva",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 1,
+      "golOspite": 2,
       "citta": "N/D"
     },
     {
@@ -45699,9 +45699,9 @@
       "ora": "20:00(19:00)",
       "casa": "Spartak Moscow",
       "ospiti": "Krasnodar",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 1,
+      "golOspite": 2,
       "citta": "N/D"
     },
     {
@@ -45712,9 +45712,9 @@
       "ora": "20:30(19:30)",
       "casa": "Rubin Kazan",
       "ospiti": "Orenburg",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 1,
+      "golOspite": 1,
       "citta": "N/D"
     },
     {
@@ -58244,8 +58244,8 @@
       "ora": "14:00",
       "casa": "Lugano",
       "ospiti": "Zürich",
-      "stato": "Futura",
-      "golCasa": 0,
+      "stato": "Giocata",
+      "golCasa": 5,
       "golOspite": 0,
       "citta": "N/D"
     },
@@ -58257,9 +58257,9 @@
       "ora": "16:30",
       "casa": "Sion",
       "ospiti": "Vaduz",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 3,
+      "golOspite": 2,
       "citta": "N/D"
     },
     {
@@ -58270,9 +58270,9 @@
       "ora": "16:30",
       "casa": "St. Gallen",
       "ospiti": "Luzern",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 2,
+      "golOspite": 2,
       "citta": "N/D"
     },
     {
@@ -58283,9 +58283,9 @@
       "ora": "16:30",
       "casa": "Basel",
       "ospiti": "Thun",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 4,
+      "golOspite": 2,
       "citta": "N/D"
     },
     {
@@ -59856,9 +59856,9 @@
       "ora": "15:00(14:00)",
       "casa": "KuPS",
       "ospiti": "TPS",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 1,
+      "golOspite": 1,
       "citta": "N/D"
     },
     {
@@ -59869,7 +59869,7 @@
       "ora": "17:00(16:00)",
       "casa": "Inter Turku",
       "ospiti": "Lahti",
-      "stato": "Futura",
+      "stato": "Giocata",
       "golCasa": 0,
       "golOspite": 0,
       "citta": "N/D"
@@ -59882,8 +59882,8 @@
       "ora": "18:00(17:00)",
       "casa": "Ilves",
       "ospiti": "IFK Mariehamn",
-      "stato": "Futura",
-      "golCasa": 0,
+      "stato": "Giocata",
+      "golCasa": 2,
       "golOspite": 0,
       "citta": "N/D"
     },
@@ -59895,9 +59895,9 @@
       "ora": "19:00(18:00)",
       "casa": "AC Oulu",
       "ospiti": "HJK Helsinki",
-      "stato": "Futura",
+      "stato": "Giocata",
       "golCasa": 0,
-      "golOspite": 0,
+      "golOspite": 1,
       "citta": "N/D"
     },
     {
@@ -61210,5 +61210,5 @@
     "mg_casa_ospite",
     "over"
   ],
-  "exportedAt": "2026-08-09T04:33:31.260699"
+  "exportedAt": "2026-08-10T04:52:34.904696"
 }
