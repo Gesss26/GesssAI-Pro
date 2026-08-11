@@ -2,75 +2,75 @@
   "championships": [
     {
       "name": "Allsvenskan",
-      "importedAt": "2026-08-10T04:52:34.904674"
+      "importedAt": "2026-08-11T05:14:00.354425"
     },
     {
       "name": "Austrian Bundesliga",
-      "importedAt": "2026-08-10T04:52:34.904681"
+      "importedAt": "2026-08-11T05:14:00.354437"
     },
     {
       "name": "Bundesliga",
-      "importedAt": "2026-08-10T04:52:34.904682"
+      "importedAt": "2026-08-11T05:14:00.354438"
     },
     {
       "name": "Chinese Super League",
-      "importedAt": "2026-08-10T04:52:34.904683"
+      "importedAt": "2026-08-11T05:14:00.354440"
     },
     {
       "name": "Danish Superliga",
-      "importedAt": "2026-08-10T04:52:34.904684"
+      "importedAt": "2026-08-11T05:14:00.354441"
     },
     {
       "name": "Eliteserien",
-      "importedAt": "2026-08-10T04:52:34.904685"
+      "importedAt": "2026-08-11T05:14:00.354442"
     },
     {
       "name": "Eredivisie",
-      "importedAt": "2026-08-10T04:52:34.904686"
+      "importedAt": "2026-08-11T05:14:00.354443"
     },
     {
       "name": "Ireland Premier",
-      "importedAt": "2026-08-10T04:52:34.904686"
+      "importedAt": "2026-08-11T05:14:00.354444"
     },
     {
       "name": "J1 League",
-      "importedAt": "2026-08-10T04:52:34.904687"
+      "importedAt": "2026-08-11T05:14:00.354445"
     },
     {
       "name": "K League 1",
-      "importedAt": "2026-08-10T04:52:34.904688"
+      "importedAt": "2026-08-11T05:14:00.354446"
     },
     {
       "name": "La Liga",
-      "importedAt": "2026-08-10T04:52:34.904689"
+      "importedAt": "2026-08-11T05:14:00.354447"
     },
     {
       "name": "Ligue 1",
-      "importedAt": "2026-08-10T04:52:34.904690"
+      "importedAt": "2026-08-11T05:14:00.354448"
     },
     {
       "name": "Premier League",
-      "importedAt": "2026-08-10T04:52:34.904691"
+      "importedAt": "2026-08-11T05:14:00.354449"
     },
     {
       "name": "Russian PL",
-      "importedAt": "2026-08-10T04:52:34.904691"
+      "importedAt": "2026-08-11T05:14:00.354450"
     },
     {
       "name": "Serie A",
-      "importedAt": "2026-08-10T04:52:34.904692"
+      "importedAt": "2026-08-11T05:14:00.354451"
     },
     {
       "name": "Serie B",
-      "importedAt": "2026-08-10T04:52:34.904693"
+      "importedAt": "2026-08-11T05:14:00.354452"
     },
     {
       "name": "Swiss Super League",
-      "importedAt": "2026-08-10T04:52:34.904694"
+      "importedAt": "2026-08-11T05:14:00.354453"
     },
     {
       "name": "Veikkausliiga",
-      "importedAt": "2026-08-10T04:52:34.904694"
+      "importedAt": "2026-08-11T05:14:00.354455"
     }
   ],
   "matches": [
@@ -979,8 +979,8 @@
       "ora": "19:00",
       "casa": "Västerås",
       "ospiti": "Djurgården",
-      "stato": "Futura",
-      "golCasa": 0,
+      "stato": "Giocata",
+      "golCasa": 1,
       "golOspite": 0,
       "citta": "N/D"
     },
@@ -992,9 +992,9 @@
       "ora": "19:00",
       "casa": "Sirius",
       "ospiti": "Brommapojkarna",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
+      "stato": "Giocata",
+      "golCasa": 2,
+      "golOspite": 2,
       "citta": "N/D"
     },
     {
@@ -10111,19 +10111,6 @@
       "citta": "N/D"
     },
     {
-      "id": "Chinese Super League_11_07_2026_Shanghai_Shen_Beijing_Guoan",
-      "campionato": "Chinese Super League",
-      "round": "18",
-      "data": "11/07/2026",
-      "ora": "19:35(13:35)",
-      "casa": "Shanghai Shen",
-      "ospiti": "Beijing Guoan",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
-      "citta": "N/D"
-    },
-    {
       "id": "Chinese Super League_11_07_2026_SZ_Peng_City_Q._West_Coast",
       "campionato": "Chinese Super League",
       "round": "18",
@@ -10228,26 +10215,13 @@
       "citta": "N/D"
     },
     {
-      "id": "Chinese Super League_12_07_2026_Jinmen_Tiger_Shenyang_Urban",
+      "id": "Chinese Super League_12_09_2026_Jinmen_Tiger_Shenyang_Urban",
       "campionato": "Chinese Super League",
       "round": "18",
-      "data": "12/07/2026",
+      "data": "12/09/2026",
       "ora": "19:00(13:00)",
       "casa": "Jinmen Tiger",
       "ospiti": "Shenyang Urban",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
-      "citta": "N/D"
-    },
-    {
-      "id": "Chinese Super League_12_07_2026_Shanghai_Port_Dalian_Yingbo",
-      "campionato": "Chinese Super League",
-      "round": "18",
-      "data": "12/07/2026",
-      "ora": "19:35(13:35)",
-      "casa": "Shanghai Port",
-      "ospiti": "Dalian Yingbo",
       "stato": "Futura",
       "golCasa": 0,
       "golOspite": 0,
@@ -10852,6 +10826,19 @@
       "citta": "N/D"
     },
     {
+      "id": "Chinese Super League_18_08_2026_Shanghai_Shen_Beijing_Guoan",
+      "campionato": "Chinese Super League",
+      "round": "18",
+      "data": "18/08/2026",
+      "ora": "19:35(13:35)",
+      "casa": "Shanghai Shen",
+      "ospiti": "Beijing Guoan",
+      "stato": "Futura",
+      "golCasa": 0,
+      "golOspite": 0,
+      "citta": "N/D"
+    },
+    {
       "id": "Chinese Super League_18_10_2026_Wuhan_3_Towns_Shanghai_Shen",
       "campionato": "Chinese Super League",
       "round": "28",
@@ -10940,6 +10927,19 @@
       "stato": "Giocata",
       "golCasa": 0,
       "golOspite": 1,
+      "citta": "N/D"
+    },
+    {
+      "id": "Chinese Super League_19_08_2026_Shanghai_Port_Dalian_Yingbo",
+      "campionato": "Chinese Super League",
+      "round": "18",
+      "data": "19/08/2026",
+      "ora": "19:35(13:35)",
+      "casa": "Shanghai Port",
+      "ospiti": "Dalian Yingbo",
+      "stato": "Futura",
+      "golCasa": 0,
+      "golOspite": 0,
       "citta": "N/D"
     },
     {
@@ -12601,8 +12601,8 @@
       "ora": "19:00",
       "casa": "Silkeborg",
       "ospiti": "Odense",
-      "stato": "Futura",
-      "golCasa": 0,
+      "stato": "Giocata",
+      "golCasa": 1,
       "golOspite": 0,
       "citta": "N/D"
     },
@@ -45725,7 +45725,7 @@
       "ora": "19:30(18:30)",
       "casa": "Fakel Voronezh",
       "ospiti": "Akhmat Grozny",
-      "stato": "Futura",
+      "stato": "Giocata",
       "golCasa": 0,
       "golOspite": 0,
       "citta": "N/D"
@@ -61210,5 +61210,5 @@
     "mg_casa_ospite",
     "over"
   ],
-  "exportedAt": "2026-08-10T04:52:34.904696"
+  "exportedAt": "2026-08-11T05:14:00.354458"
 }
