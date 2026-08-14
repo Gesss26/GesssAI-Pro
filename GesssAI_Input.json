@@ -2,75 +2,75 @@
   "championships": [
     {
       "name": "Allsvenskan",
-      "importedAt": "2026-08-11T05:14:00.354425"
+      "importedAt": "2026-08-14T07:56:11.792320"
     },
     {
       "name": "Austrian Bundesliga",
-      "importedAt": "2026-08-11T05:14:00.354437"
+      "importedAt": "2026-08-14T07:56:11.792327"
     },
     {
       "name": "Bundesliga",
-      "importedAt": "2026-08-11T05:14:00.354438"
+      "importedAt": "2026-08-14T07:56:11.792328"
     },
     {
       "name": "Chinese Super League",
-      "importedAt": "2026-08-11T05:14:00.354440"
+      "importedAt": "2026-08-14T07:56:11.792329"
     },
     {
       "name": "Danish Superliga",
-      "importedAt": "2026-08-11T05:14:00.354441"
+      "importedAt": "2026-08-14T07:56:11.792330"
     },
     {
       "name": "Eliteserien",
-      "importedAt": "2026-08-11T05:14:00.354442"
+      "importedAt": "2026-08-14T07:56:11.792331"
     },
     {
       "name": "Eredivisie",
-      "importedAt": "2026-08-11T05:14:00.354443"
+      "importedAt": "2026-08-14T07:56:11.792332"
     },
     {
       "name": "Ireland Premier",
-      "importedAt": "2026-08-11T05:14:00.354444"
+      "importedAt": "2026-08-14T07:56:11.792333"
     },
     {
       "name": "J1 League",
-      "importedAt": "2026-08-11T05:14:00.354445"
+      "importedAt": "2026-08-14T07:56:11.792333"
     },
     {
       "name": "K League 1",
-      "importedAt": "2026-08-11T05:14:00.354446"
+      "importedAt": "2026-08-14T07:56:11.792334"
     },
     {
       "name": "La Liga",
-      "importedAt": "2026-08-11T05:14:00.354447"
+      "importedAt": "2026-08-14T07:56:11.792335"
     },
     {
       "name": "Ligue 1",
-      "importedAt": "2026-08-11T05:14:00.354448"
+      "importedAt": "2026-08-14T07:56:11.792336"
     },
     {
       "name": "Premier League",
-      "importedAt": "2026-08-11T05:14:00.354449"
+      "importedAt": "2026-08-14T07:56:11.792337"
     },
     {
       "name": "Russian PL",
-      "importedAt": "2026-08-11T05:14:00.354450"
+      "importedAt": "2026-08-14T07:56:11.792337"
     },
     {
       "name": "Serie A",
-      "importedAt": "2026-08-11T05:14:00.354451"
+      "importedAt": "2026-08-14T07:56:11.792338"
     },
     {
       "name": "Serie B",
-      "importedAt": "2026-08-11T05:14:00.354452"
+      "importedAt": "2026-08-14T07:56:11.792339"
     },
     {
       "name": "Swiss Super League",
-      "importedAt": "2026-08-11T05:14:00.354453"
+      "importedAt": "2026-08-14T07:56:11.792340"
     },
     {
       "name": "Veikkausliiga",
-      "importedAt": "2026-08-11T05:14:00.354455"
+      "importedAt": "2026-08-14T07:56:11.792341"
     }
   ],
   "matches": [
@@ -3234,6 +3234,19 @@
       "citta": "N/D"
     },
     {
+      "id": "Austrian Bundesliga_01_09_2026_RZ_Pellets_WAC_LASK",
+      "campionato": "Austrian Bundesliga",
+      "round": "4",
+      "data": "01/09/2026",
+      "ora": "19:30",
+      "casa": "RZ Pellets WAC",
+      "ospiti": "LASK",
+      "stato": "Futura",
+      "golCasa": 0,
+      "golOspite": 0,
+      "citta": "N/D"
+    },
+    {
       "id": "Austrian Bundesliga_02_08_2026_Austria_Lustenau_Ried",
       "campionato": "Austrian Bundesliga",
       "round": "1",
@@ -4300,19 +4313,6 @@
       "citta": "N/D"
     },
     {
-      "id": "Austrian Bundesliga_22_08_2026_Sturm_Graz_Austria_Lustenau",
-      "campionato": "Austrian Bundesliga",
-      "round": "4",
-      "data": "22/08/2026",
-      "ora": "17:00",
-      "casa": "Sturm Graz",
-      "ospiti": "Austria Lustenau",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
-      "citta": "N/D"
-    },
-    {
       "id": "Austrian Bundesliga_22_08_2026_Rheindorf_Altach_Hartberg",
       "campionato": "Austrian Bundesliga",
       "round": "4",
@@ -4326,13 +4326,13 @@
       "citta": "N/D"
     },
     {
-      "id": "Austrian Bundesliga_22_08_2026_RZ_Pellets_WAC_LASK",
+      "id": "Austrian Bundesliga_22_08_2026_Sturm_Graz_Austria_Lustenau",
       "campionato": "Austrian Bundesliga",
       "round": "4",
       "data": "22/08/2026",
       "ora": "19:30",
-      "casa": "RZ Pellets WAC",
-      "ospiti": "LASK",
+      "casa": "Sturm Graz",
+      "ospiti": "Austria Lustenau",
       "stato": "Futura",
       "golCasa": 0,
       "golOspite": 0,
@@ -13231,19 +13231,6 @@
       "citta": "N/D"
     },
     {
-      "id": "Danish Superliga_21_08_2026_AGF_Odense",
-      "campionato": "Danish Superliga",
-      "round": "5",
-      "data": "21/08/2026",
-      "ora": "19:00",
-      "casa": "AGF",
-      "ospiti": "Odense",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
-      "citta": "N/D"
-    },
-    {
       "id": "Danish Superliga_22_11_2026_Horsens_Silkeborg",
       "campionato": "Danish Superliga",
       "round": "15",
@@ -13342,6 +13329,19 @@
       "ora": "14:00",
       "casa": "Midtjylland",
       "ospiti": "Randers",
+      "stato": "Futura",
+      "golCasa": 0,
+      "golOspite": 0,
+      "citta": "N/D"
+    },
+    {
+      "id": "Danish Superliga_23_08_2026_AGF_Odense",
+      "campionato": "Danish Superliga",
+      "round": "5",
+      "data": "23/08/2026",
+      "ora": "14:00",
+      "casa": "AGF",
+      "ospiti": "Odense",
       "stato": "Futura",
       "golCasa": 0,
       "golOspite": 0,
@@ -33212,19 +33212,6 @@
       "citta": "N/D"
     },
     {
-      "id": "La Liga_16_08_2026_Celta_Vigo_Osasuna",
-      "campionato": "La Liga",
-      "round": "1",
-      "data": "16/08/2026",
-      "ora": "21:30",
-      "casa": "Celta Vigo",
-      "ospiti": "Osasuna",
-      "stato": "Futura",
-      "golCasa": 0,
-      "golOspite": 0,
-      "citta": "N/D"
-    },
-    {
       "id": "La Liga_16_09_2026_Atlético_Madrid_Osasuna",
       "campionato": "La Liga",
       "round": "6",
@@ -35084,6 +35071,19 @@
       "citta": "N/D"
     },
     {
+      "id": "La Liga_27_08_2026_Celta_Vigo_Osasuna",
+      "campionato": "La Liga",
+      "round": "1",
+      "data": "27/08/2026",
+      "ora": "20:30",
+      "casa": "Celta Vigo",
+      "ospiti": "Osasuna",
+      "stato": "Futura",
+      "golCasa": 0,
+      "golOspite": 0,
+      "citta": "N/D"
+    },
+    {
       "id": "La Liga_27_08_2026_Barcelona_Athletic_Club",
       "campionato": "La Liga",
       "round": "1",
@@ -36124,26 +36124,26 @@
       "citta": "N/D"
     },
     {
-      "id": "Ligue 1_04_09_2026_PSG_Monaco",
+      "id": "Ligue 1_04_09_2026_Lyon_Auxerre",
       "campionato": "Ligue 1",
       "round": "3",
       "data": "04/09/2026",
-      "ora": "20:45",
-      "casa": "PSG",
-      "ospiti": "Monaco",
+      "ora": "19:00",
+      "casa": "Lyon",
+      "ospiti": "Auxerre",
       "stato": "Futura",
       "golCasa": 0,
       "golOspite": 0,
       "citta": "N/D"
     },
     {
-      "id": "Ligue 1_05_09_2026_Lyon_Auxerre",
+      "id": "Ligue 1_04_09_2026_PSG_Monaco",
       "campionato": "Ligue 1",
       "round": "3",
-      "data": "05/09/2026",
-      "ora": "",
-      "casa": "Lyon",
-      "ospiti": "Auxerre",
+      "data": "04/09/2026",
+      "ora": "21:05",
+      "casa": "PSG",
+      "ospiti": "Monaco",
       "stato": "Futura",
       "golCasa": 0,
       "golOspite": 0,
@@ -61210,5 +61210,5 @@
     "mg_casa_ospite",
     "over"
   ],
-  "exportedAt": "2026-08-11T05:14:00.354458"
+  "exportedAt": "2026-08-14T07:56:11.792342"
 }
