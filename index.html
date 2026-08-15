@@ -802,6 +802,26 @@
   .heatmap-bg-green { background: rgba(111, 207, 151, 0.2) !important; }
   .heatmap-bg-white { background: rgba(139, 148, 158, 0.15) !important; }
   .heatmap-bg-red { background: rgba(235, 87, 87, 0.15) !important; }
+
+  /* STILI SCHEDINA */
+  .schedina-container .card {
+    padding: 16px;
+  }
+  .schedina-container .form-group {
+    margin-bottom: 0;
+  }
+  .schedina-container .form-group label {
+    font-size: 12px;
+  }
+  .schedina-container select,
+  .schedina-container input {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  .schedina-container .btn {
+    font-size: 11px;
+    padding: 4px 12px;
+  }
 </style>
 </head>
 <body>
@@ -812,7 +832,7 @@
 // COSTANTI E FUNZIONI DI UTILITÀ
 // ============================================================
 
-const { useState, useEffect, useMemo, useRef } = React;
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
 const THEMES = {
   'Scuro Blu Notte': { bg:'#0f1419', surface:'#1a2028', card:'#232b36', banner:'#2c3642', text:'#e6edf3', textMuted:'#ffff00', accent:'#f39c12', accent2:'#e67e22', border:'#30363d', tabActive:'#f39c12' },
@@ -823,7 +843,7 @@ const THEMES = {
   'Calcio': { bg:'#1b5e20', surface:'#2e7d32', card:'#388e3c', banner:'#2e7d32', text:'#fff', textMuted:'#ffff00', accent:'#ffc107', accent2:'#ff9800', border:'#1b5e20', tabActive:'#ffc107' },
 };
 
-const MAIN_TABS = ['Home','Palinsesto','Statistiche','Storico','API KEY','Impostazioni'];
+const MAIN_TABS = ['Home','Palinsesto','Statistiche','Storico','Schedina','API KEY','Impostazioni'];
 const SETTINGS_TABS = ['Temi','API KEY','Dati Locali','Importa Campionato','Giocate','Grandezza Caratteri','Città Meteo','Visuale'];
 
 const CHAMPIONSHIP_COLORS = {
@@ -4352,6 +4372,29 @@ const CittaMeteo = ({ matches }) => {
 };
 
 // ============================================================
+// ESPOSIZIONE FUNZIONI GLOBALI PER IL MODULO SCHEDINA
+// ============================================================
+
+// Esponi le funzioni di utilità per il modulo Schedina
+window.computeMatchStats = computeMatchStats;
+window.getGiocataPct = getGiocataPct;
+window.getBestBetForFamily = getBestBetForFamily;
+window.getPercentualeClasse = getPercentualeClasse;
+window.getMultigolRange = getMultigolRange;
+window.calcFormAndStats = calcFormAndStats;
+window.getChampColor = getChampColor;
+window.getCountryFlagHtml = getCountryFlagHtml;
+window.formatDateEU = formatDateEU;
+window.normalizeDate = normalizeDate;
+window.parseDate = parseDate;
+window.getCityForMatch = getCityForMatch;
+window.FAMIGLIE_GIOCATE = FAMIGLIE_GIOCATE;
+window.getHeatmapColorClass = getHeatmapColorClass;
+window.TeamLogo = TeamLogo;
+
+console.log('✅ Funzioni esposte globalmente per il modulo Schedina');
+
+// ============================================================
 // COMPONENTE APP
 // ============================================================
 
@@ -4529,7 +4572,7 @@ function App() {
           {MAIN_TABS.map(t => (
             <button key={t} className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>
               {t === 'Home' && '🏠 '}{t === 'Palinsesto' && '📅 '}{t === 'Statistiche' && '📊 '}
-              {t === 'Storico' && '📜 '}{t === 'API KEY' && '🔑 '}{t === 'Impostazioni' && '⚙️ '}{t}
+              {t === 'Storico' && '📜 '}{t === 'Schedina' && '🎯 '}{t === 'API KEY' && '🔑 '}{t === 'Impostazioni' && '⚙️ '}{t}
             </button>
           ))}
         </div>
@@ -4735,6 +4778,22 @@ function App() {
                   </div>
                 );
               })()}
+            </div>
+          )}
+
+          {tab === 'Schedina' && (
+            <div>
+              {window.SchedinaComponent ? (
+                <window.SchedinaComponent 
+                  matches={matches} 
+                  championships={championships}
+                  selectedFamiglie={selectedFamiglie}
+                  onSelectMatch={selectMatch}
+                  showAlert={showAlert}
+                />
+              ) : (
+                <div className="alert alert-info">⏳ Caricamento modulo Schedina... Assicurati che il file <b>schedina.js</b> sia presente nella stessa cartella.</div>
+              )}
             </div>
           )}
 
