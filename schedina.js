@@ -1,6 +1,6 @@
 // ============================================================
 // SCHEDINA.JS - Modulo Schedina per GesssAI-Pro
-// VERSIONE AGGIORNATA con colori e filtri data corretti
+// VERSIONE con CARATTERI INGRANDITI (+50%)
 // ============================================================
 
 (function() {
@@ -406,21 +406,39 @@
       calcolaPartite();
     }, [calcolaPartite]);
 
+    // Stili per caratteri grandi
+    const styles = {
+      container: { display: 'grid', gap: '20px' },
+      card: { padding: '18px 22px' },
+      label: { fontSize: '15px', fontWeight: '600' },
+      select: { padding: '10px 14px', fontSize: '17px', borderRadius: '8px' },
+      input: { padding: '10px 14px', fontSize: '17px', borderRadius: '8px' },
+      button: { fontSize: '15px', padding: '8px 18px' },
+      title: { fontSize: '20px', fontWeight: 'bold' },
+      subtitle: { fontSize: '16px', fontWeight: '600' },
+      text: { fontSize: '16px' },
+      textBold: { fontSize: '16px', fontWeight: 'bold' },
+      smallText: { fontSize: '13px' },
+      valueLarge: { fontSize: '20px', fontWeight: 'bold' },
+      valueXLarge: { fontSize: '24px', fontWeight: 'bold' },
+      gridItem: { padding: '8px 12px' }
+    };
+
     // Render
     return (
-      <div className="schedina-container" style={{ display: 'grid', gap: '16px' }}>
+      <div className="schedina-container" style={styles.container}>
 
         {/* FILTRI */}
-        <div className="card" style={{ padding: '14px 16px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+        <div className="card" style={styles.card}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
             
             {/* Campionato */}
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label style={{ fontSize: '11px' }}>🏆 Campionato</label>
+              <label style={styles.label}>🏆 Campionato</label>
               <select 
                 value={filtri.campionato} 
                 onChange={e => setFiltri(prev => ({ ...prev, campionato: e.target.value }))}
-                style={{ padding: '5px 8px', fontSize: '12px' }}
+                style={styles.select}
               >
                 <option value="Tutti">📊 Tutti</option>
                 {championships && championships.map(c => (
@@ -429,13 +447,13 @@
               </select>
             </div>
 
-            {/* Data - AGGIORNATO */}
+            {/* Data */}
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label style={{ fontSize: '11px' }}>📅 Data</label>
+              <label style={styles.label}>📅 Data</label>
               <select 
                 value={filtri.data} 
                 onChange={e => setFiltri(prev => ({ ...prev, data: e.target.value }))}
-                style={{ padding: '5px 8px', fontSize: '12px' }}
+                style={styles.select}
               >
                 <option value="oggi">📅 Oggi (1 giorno)</option>
                 <option value="oggi_domani">📅 Oggi+Domani (1-2 giorni)</option>
@@ -446,11 +464,11 @@
 
             {/* Giocata */}
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label style={{ fontSize: '11px' }}>🎯 Giocata</label>
+              <label style={styles.label}>🎯 Giocata</label>
               <select 
                 value={filtri.giocata} 
                 onChange={e => setFiltri(prev => ({ ...prev, giocata: e.target.value }))}
-                style={{ padding: '5px 8px', fontSize: '12px' }}
+                style={styles.select}
               >
                 <option value="Tutti">🎯 Migliore</option>
                 {Object.values(window.FAMIGLIE_GIOCATE || {}).flatMap(f => f.options || []).map(opt => (
@@ -461,11 +479,11 @@
 
             {/* Numero Partite */}
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label style={{ fontSize: '11px' }}>📊 Partite</label>
+              <label style={styles.label}>📊 Partite</label>
               <select 
                 value={filtri.numeroPartite} 
                 onChange={e => setFiltri(prev => ({ ...prev, numeroPartite: parseInt(e.target.value) }))}
-                style={{ padding: '5px 8px', fontSize: '12px' }}
+                style={styles.select}
               >
                 {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                   <option key={n} value={n}>{n} partite</option>
@@ -474,30 +492,46 @@
             </div>
 
             {/* Contatore selezioni */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', background: 'var(--surface)', borderRadius: '6px', border: '1px solid var(--border)', justifyContent: 'center' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Selezionate:</span>
-              <span style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--accent)' }}>{partiteSelezionate.length}</span>
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>/ 10</span>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              padding: '8px 16px', 
+              background: 'var(--surface)', 
+              borderRadius: '8px', 
+              border: '1px solid var(--border)', 
+              justifyContent: 'center',
+              fontSize: '17px'
+            }}>
+              <span style={{ color: 'var(--text-muted)' }}>Selezionate:</span>
+              <span style={{ fontSize: '22px', fontWeight: 'bold', color: 'var(--accent)' }}>{partiteSelezionate.length}</span>
+              <span style={{ fontSize: '15px', color: 'var(--text-muted)' }}>/ 10</span>
             </div>
           </div>
         </div>
 
         {/* LISTA PARTITE */}
-        <div className="card" style={{ padding: '14px 16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-            <h4 style={{ margin: 0, fontSize: '14px' }}>📋 Partite ({partiteDisponibili.length})</h4>
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              <button className="btn btn-secondary" onClick={() => setPartiteSelezionate([])} style={{ fontSize: '10px', padding: '3px 10px' }}>🗑️ Deseleziona</button>
+        <div className="card" style={styles.card}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+            <h4 style={styles.title}>📋 Partite ({partiteDisponibili.length})</h4>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setPartiteSelezionate([])} 
+                style={{ ...styles.button, fontSize: '15px', padding: '6px 16px' }}
+              >
+                🗑️ Deseleziona
+              </button>
             </div>
           </div>
 
           {partiteDisponibili.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>
-              <span style={{ fontSize: '28px' }}>📭</span>
-              <p style={{ fontSize: '13px' }}>Nessuna partita disponibile</p>
+            <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '40px' }}>📭</span>
+              <p style={{ fontSize: '18px' }}>Nessuna partita disponibile</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gap: '3px', maxHeight: '400px', overflowY: 'auto' }}>
+            <div style={{ display: 'grid', gap: '6px', maxHeight: '500px', overflowY: 'auto' }}>
               {partiteDisponibili.map(m => {
                 const selezionata = isPartitaSelezionata(m.id);
                 const color = window.getChampColor(m.campionato);
@@ -510,43 +544,43 @@
                       display: 'grid',
                       gridTemplateColumns: 'auto 1fr auto auto auto',
                       alignItems: 'center',
-                      gap: '4px',
-                      padding: '4px 8px',
-                      background: selezionata ? 'rgba(243, 156, 18, 0.12)' : 'var(--surface)',
-                      borderRadius: '4px',
-                      border: selezionata ? '1px solid var(--accent)' : '1px solid var(--border)',
+                      gap: '10px',
+                      padding: '10px 16px',
+                      background: selezionata ? 'rgba(243, 156, 18, 0.15)' : 'var(--surface)',
+                      borderRadius: '8px',
+                      border: selezionata ? '2px solid var(--accent)' : '1px solid var(--border)',
                       cursor: 'pointer',
-                      fontSize: '12px'
+                      fontSize: '16px',
+                      transition: 'all 0.2s'
                     }}
                   >
-                    <span>{selezionata ? '☑️' : '⬜'}</span>
+                    <span style={{ fontSize: '22px' }}>{selezionata ? '☑️' : '⬜'}</span>
                     <div>
-                      <span style={{ fontWeight: 'bold' }}>{m.casa}</span>
-                      <span style={{ color: 'var(--text-muted)', margin: '0 3px' }}>vs</span>
-                      <span style={{ fontWeight: 'bold' }}>{m.ospiti}</span>
-                      <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{m.campionato}</div>
+                      <span style={{ fontWeight: 'bold', fontSize: '17px' }}>{m.casa}</span>
+                      <span style={{ color: 'var(--text-muted)', margin: '0 6px', fontSize: '15px' }}>vs</span>
+                      <span style={{ fontWeight: 'bold', fontSize: '17px' }}>{m.ospiti}</span>
+                      <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{m.campionato}</div>
                     </div>
                     <div style={{ 
                       background: color, 
-                      padding: '1px 6px', 
-                      borderRadius: '3px', 
-                      fontSize: '10px', 
+                      padding: '4px 12px', 
+                      borderRadius: '6px', 
+                      fontSize: '14px', 
                       fontWeight: 'bold', 
                       color: '#000' 
                     }}>
                       {m.giocata || 'N/D'}
                     </div>
-                    <div style={{ fontWeight: 'bold', color: m.isBomb ? 'var(--accent)' : 'var(--text)' }}>
-                      {m.pct}%{m.isBomb && '💣'}
+                    <div style={{ fontWeight: 'bold', fontSize: '17px', color: m.isBomb ? 'var(--accent)' : 'var(--text)' }}>
+                      {m.pct}%{m.isBomb && ' 💣'}
                     </div>
                     <div style={{ 
                       fontWeight: 'bold', 
-                      color: 'var(--accent)',
                       background: colorePct.colore,
-                      padding: '2px 8px',
-                      borderRadius: '4px',
+                      padding: '4px 14px',
+                      borderRadius: '6px',
                       color: '#000',
-                      fontSize: '11px'
+                      fontSize: '16px'
                     }}>
                       {m.quote.toFixed(2)}
                     </div>
@@ -558,43 +592,88 @@
         </div>
 
         {/* SCHEDINA CORRENTE */}
-        <div className="card" style={{ padding: '14px 16px', border: '2px solid var(--accent)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-            <h4 style={{ margin: 0, fontSize: '14px' }}>🎯 Schedina</h4>
-            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-              <button className="btn btn-secondary" onClick={condividiWhatsApp} style={{ fontSize: '10px', padding: '3px 8px' }}>💬 WhatsApp</button>
-              <button className="btn btn-secondary" onClick={condividiTelegram} style={{ fontSize: '10px', padding: '3px 8px' }}>📨 Telegram</button>
-              <button className="btn" onClick={salvaSchedina} style={{ fontSize: '10px', padding: '3px 10px' }}>💾 Salva</button>
+        <div className="card" style={{ ...styles.card, border: '3px solid var(--accent)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+            <h4 style={styles.title}>🎯 Schedina</h4>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              <button 
+                className="btn btn-secondary" 
+                onClick={condividiWhatsApp} 
+                style={{ ...styles.button, fontSize: '15px', padding: '6px 14px' }}
+              >
+                💬 WhatsApp
+              </button>
+              <button 
+                className="btn btn-secondary" 
+                onClick={condividiTelegram} 
+                style={{ ...styles.button, fontSize: '15px', padding: '6px 14px' }}
+              >
+                📨 Telegram
+              </button>
+              <button 
+                className="btn" 
+                onClick={salvaSchedina} 
+                style={{ ...styles.button, fontSize: '15px', padding: '6px 18px' }}
+              >
+                💾 Salva
+              </button>
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label style={{ fontSize: '10px' }}>📝 Nome</label>
-              <input type="text" value={schedinaCorrente.nome} onChange={e => setSchedinaCorrente(prev => ({ ...prev, nome: e.target.value }))} placeholder="Nome..." style={{ padding: '4px 8px', fontSize: '12px' }} />
+              <label style={styles.label}>📝 Nome</label>
+              <input 
+                type="text" 
+                value={schedinaCorrente.nome} 
+                onChange={e => setSchedinaCorrente(prev => ({ ...prev, nome: e.target.value }))} 
+                placeholder="Nome schedina..." 
+                style={styles.input}
+              />
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label style={{ fontSize: '10px' }}>💰 Posta (€)</label>
-              <input type="number" value={schedinaCorrente.stake} onChange={e => setSchedinaCorrente(prev => ({ ...prev, stake: parseFloat(e.target.value) || 0 }))} min="0" step="0.50" style={{ padding: '4px 8px', fontSize: '12px' }} />
+              <label style={styles.label}>💰 Posta (€)</label>
+              <input 
+                type="number" 
+                value={schedinaCorrente.stake} 
+                onChange={e => setSchedinaCorrente(prev => ({ ...prev, stake: parseFloat(e.target.value) || 0 }))} 
+                min="0" 
+                step="0.50" 
+                style={styles.input}
+              />
             </div>
           </div>
 
           {partiteSelezionate.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '12px', color: 'var(--text-muted)', fontSize: '12px' }}>Nessuna partita selezionata</div>
+            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '17px' }}>Nessuna partita selezionata</div>
           ) : (
             <>
-              <div style={{ display: 'grid', gap: '3px', marginBottom: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+              <div style={{ display: 'grid', gap: '6px', marginBottom: '12px', maxHeight: '250px', overflowY: 'auto' }}>
                 {partiteSelezionate.map((m, i) => {
                   const colorePct = m.colore || getColorePercentuale(m.pct);
                   return (
-                    <div key={m.id} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto auto', alignItems: 'center', gap: '4px', padding: '3px 6px', background: 'var(--surface)', borderRadius: '3px', border: '1px solid var(--border)', fontSize: '11px' }}>
-                      <span style={{ fontWeight: 'bold', color: 'var(--accent)' }}>#{i+1}</span>
-                      <div><span style={{ fontWeight: 'bold' }}>{m.casa}</span> vs <span style={{ fontWeight: 'bold' }}>{m.ospiti}</span></div>
+                    <div key={m.id} style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'auto 1fr auto auto', 
+                      alignItems: 'center', 
+                      gap: '8px', 
+                      padding: '8px 14px', 
+                      background: 'var(--surface)', 
+                      borderRadius: '6px', 
+                      border: '1px solid var(--border)', 
+                      fontSize: '15px' 
+                    }}>
+                      <span style={{ fontWeight: 'bold', color: 'var(--accent)', fontSize: '18px' }}>#{i+1}</span>
+                      <div>
+                        <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{m.casa}</span>
+                        <span style={{ color: 'var(--text-muted)', margin: '0 4px' }}>vs</span>
+                        <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{m.ospiti}</span>
+                      </div>
                       <div style={{ 
                         background: window.getChampColor(m.campionato), 
-                        padding: '0 4px', 
-                        borderRadius: '2px', 
-                        fontSize: '9px', 
+                        padding: '2px 10px', 
+                        borderRadius: '4px', 
+                        fontSize: '13px', 
                         fontWeight: 'bold', 
                         color: '#000' 
                       }}>
@@ -604,9 +683,9 @@
                         fontWeight: 'bold', 
                         color: '#000',
                         background: colorePct.colore,
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        fontSize: '10px'
+                        padding: '4px 14px',
+                        borderRadius: '6px',
+                        fontSize: '15px'
                       }}>
                         {m.quote.toFixed(2)} | {m.pct}%
                       </div>
@@ -616,19 +695,27 @@
               </div>
 
               {/* Riepilogo con MEDIA PERCENTUALI */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(70px, 1fr))', gap: '4px', padding: '6px 10px', background: 'var(--surface)', borderRadius: '4px', border: '1px solid var(--border)' }}>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', 
+                gap: '8px', 
+                padding: '12px 16px', 
+                background: 'var(--surface)', 
+                borderRadius: '8px', 
+                border: '1px solid var(--border)' 
+              }}>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Partite</div>
-                  <div style={{ fontSize: '14px', fontWeight: 'bold' }}>{partiteSelezionate.length}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Partite</div>
+                  <div style={{ fontSize: '22px', fontWeight: 'bold' }}>{partiteSelezionate.length}</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Quote Totali</div>
-                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--accent)' }}>{calcolaTotaleQuote().toFixed(2)}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Quote Totali</div>
+                  <div style={{ fontSize: '22px', fontWeight: 'bold', color: 'var(--accent)' }}>{calcolaTotaleQuote().toFixed(2)}</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Media %</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Media %</div>
                   <div style={{ 
-                    fontSize: '16px', 
+                    fontSize: '26px', 
                     fontWeight: 'bold', 
                     color: calcolaMediaPercentuali() >= 90 ? '#f39c12' : 
                            calcolaMediaPercentuali() >= 66.67 ? '#6fcf97' : 
@@ -638,12 +725,12 @@
                   </div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Vincita</div>
-                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--win)' }}>€{calcolaVincitaPotenziale().toFixed(2)}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Vincita</div>
+                  <div style={{ fontSize: '22px', fontWeight: 'bold', color: 'var(--win)' }}>€{calcolaVincitaPotenziale().toFixed(2)}</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Rendimento</div>
-                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: calcolaPercentualeVincita() > 0 ? 'var(--win)' : 'var(--lose)' }}>+{calcolaPercentualeVincita().toFixed(0)}%</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Rendimento</div>
+                  <div style={{ fontSize: '22px', fontWeight: 'bold', color: calcolaPercentualeVincita() > 0 ? 'var(--win)' : 'var(--lose)' }}>+{calcolaPercentualeVincita().toFixed(0)}%</div>
                 </div>
               </div>
             </>
@@ -651,34 +738,59 @@
         </div>
 
         {/* SCHEDINE SALVATE */}
-        <div className="card" style={{ padding: '14px 16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-            <h4 style={{ margin: 0, fontSize: '14px' }}>📂 Salvate ({schedineSalvate.length})</h4>
-            <div style={{ display: 'flex', gap: '4px' }}>
+        <div className="card" style={styles.card}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+            <h4 style={styles.title}>📂 Salvate ({schedineSalvate.length})</h4>
+            <div style={{ display: 'flex', gap: '6px' }}>
               <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" onChange={(e) => { if (e.target.files[0]) importaQuoteExcel(e.target.files[0]); e.target.value = ''; }} style={{ display: 'none' }} />
-              <button className="btn btn-secondary" onClick={() => fileInputRef.current?.click()} style={{ fontSize: '10px', padding: '3px 8px' }}>📊 Importa Quote</button>
-              <button className="btn btn-secondary" onClick={() => { if (confirm('🗑️ Eliminare tutte?')) { setSchedineSalvate([]); localStorage.setItem('ft_schedine_salvate', JSON.stringify([])); if (showAlert) showAlert('info', '🗑️ Tutte eliminate'); } }} style={{ fontSize: '10px', padding: '3px 8px' }}>🗑️ Tutte</button>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => fileInputRef.current?.click()} 
+                style={{ ...styles.button, fontSize: '14px', padding: '6px 14px' }}
+              >
+                📊 Importa Quote
+              </button>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => { if (confirm('🗑️ Eliminare tutte?')) { setSchedineSalvate([]); localStorage.setItem('ft_schedine_salvate', JSON.stringify([])); if (showAlert) showAlert('info', '🗑️ Tutte eliminate'); } }} 
+                style={{ ...styles.button, fontSize: '14px', padding: '6px 14px' }}
+              >
+                🗑️ Tutte
+              </button>
             </div>
           </div>
 
           {schedineSalvate.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '12px', color: 'var(--text-muted)', fontSize: '12px' }}>Nessuna schedina salvata</div>
+            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '17px' }}>Nessuna schedina salvata</div>
           ) : (
-            <div style={{ display: 'grid', gap: '4px', maxHeight: '300px', overflowY: 'auto' }}>
+            <div style={{ display: 'grid', gap: '6px', maxHeight: '350px', overflowY: 'auto' }}>
               {schedineSalvate.map(s => (
-                <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto auto', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'var(--surface)', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '11px' }}>
+                <div key={s.id} style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: '1fr auto auto auto auto', 
+                  alignItems: 'center', 
+                  gap: '8px', 
+                  padding: '10px 16px', 
+                  background: 'var(--surface)', 
+                  borderRadius: '6px', 
+                  border: '1px solid var(--border)', 
+                  fontSize: '15px' 
+                }}>
                   <div>
-                    <div style={{ fontWeight: 'bold', fontSize: '12px' }}>{s.nome}</div>
-                    <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{new Date(s.dataCreazione).toLocaleDateString()} {s.partite.length} partite{s.partite.some(p => p.isBomb) && ' 💣'}</div>
+                    <div style={{ fontWeight: 'bold', fontSize: '17px' }}>{s.nome}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                      {new Date(s.dataCreazione).toLocaleDateString()} {s.partite.length} partite{s.partite.some(p => p.isBomb) && ' 💣'}
+                    </div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Quote</div>
-                    <div style={{ fontWeight: 'bold', color: 'var(--accent)' }}>{s.totaleQuote.toFixed(2)}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Quote</div>
+                    <div style={{ fontWeight: 'bold', fontSize: '17px', color: 'var(--accent)' }}>{s.totaleQuote.toFixed(2)}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Media %</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Media %</div>
                     <div style={{ 
                       fontWeight: 'bold', 
+                      fontSize: '17px',
                       color: (s.mediaPercentuali || 0) >= 90 ? '#f39c12' : 
                              (s.mediaPercentuali || 0) >= 66.67 ? '#6fcf97' : 
                              (s.mediaPercentuali || 0) >= 33.34 ? '#8b949e' : '#eb5757'
@@ -687,12 +799,24 @@
                     </div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Vincita</div>
-                    <div style={{ fontWeight: 'bold', color: 'var(--win)' }}>€{s.vincitaPotenziale.toFixed(2)}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Vincita</div>
+                    <div style={{ fontWeight: 'bold', fontSize: '17px', color: 'var(--win)' }}>€{s.vincitaPotenziale.toFixed(2)}</div>
                   </div>
-                  <div style={{ display: 'flex', gap: '2px' }}>
-                    <button className="btn btn-secondary" onClick={() => caricaSchedina(s)} style={{ fontSize: '9px', padding: '2px 6px' }}>📂</button>
-                    <button className="btn btn-danger" onClick={() => eliminaSchedina(s.id)} style={{ fontSize: '9px', padding: '2px 6px', background: 'var(--lose)' }}>🗑️</button>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button 
+                      className="btn btn-secondary" 
+                      onClick={() => caricaSchedina(s)} 
+                      style={{ fontSize: '15px', padding: '4px 12px' }}
+                    >
+                      📂
+                    </button>
+                    <button 
+                      className="btn btn-danger" 
+                      onClick={() => eliminaSchedina(s.id)} 
+                      style={{ fontSize: '15px', padding: '4px 12px', background: 'var(--lose)' }}
+                    >
+                      🗑️
+                    </button>
                   </div>
                 </div>
               ))}
@@ -701,13 +825,24 @@
         </div>
 
         {/* LEGENDA */}
-        <div style={{ fontSize: '10px', color: 'var(--text-muted)', padding: '4px 12px', background: 'var(--surface)', borderRadius: '4px', border: '1px solid var(--border)', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <span style={{ color: '#f39c12' }}>💣 Oro (≥90%)</span>
-          <span style={{ color: '#6fcf97' }}>🟢 Verde (66,67-89,99%)</span>
-          <span style={{ color: '#8b949e' }}>⚪ Bianco (33,34-66,66%)</span>
-          <span style={{ color: '#eb5757' }}>🔴 Rosso (0-33,33%)</span>
-          <span>📊 Media %: media aritmetica delle percentuali selezionate</span>
-          <span>💡 Clicca su una partita per selezionarla/deselezionarla</span>
+        <div style={{ 
+          fontSize: '15px', 
+          color: 'var(--text-muted)', 
+          padding: '12px 20px', 
+          background: 'var(--surface)', 
+          borderRadius: '8px', 
+          border: '1px solid var(--border)', 
+          display: 'flex', 
+          gap: '16px', 
+          flexWrap: 'wrap',
+          alignItems: 'center'
+        }}>
+          <span style={{ color: '#f39c12', fontWeight: 'bold', fontSize: '16px' }}>💣 Oro (≥90%)</span>
+          <span style={{ color: '#6fcf97', fontWeight: 'bold', fontSize: '16px' }}>🟢 Verde (66,67-89,99%)</span>
+          <span style={{ color: '#8b949e', fontWeight: 'bold', fontSize: '16px' }}>⚪ Bianco (33,34-66,66%)</span>
+          <span style={{ color: '#eb5757', fontWeight: 'bold', fontSize: '16px' }}>🔴 Rosso (0-33,33%)</span>
+          <span style={{ fontSize: '15px' }}>📊 Media %: media aritmetica delle percentuali selezionate</span>
+          <span style={{ fontSize: '15px' }}>💡 Clicca su una partita per selezionarla/deselezionarla</span>
         </div>
       </div>
     );
