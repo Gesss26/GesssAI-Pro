@@ -1,25 +1,20 @@
 // ============================================================
 // SCHEDINA.JS - Modulo Schedina per GesssAI-Pro
+// VERSIONE AGGIORNATA con filtro partite e media percentuali
 // ============================================================
 
 (function() {
   'use strict';
 
-  // ============================================================
-  // COMPONENTE SCHEDINA
-  // ============================================================
-
   const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectMatch, showAlert }) => {
-    const { useState, useEffect, useCallback, useMemo, useRef } = React;
+    const { useState, useEffect, useCallback, useRef } = React;
 
-    // ============================================================
-    // STATI
-    // ============================================================
-
+    // Stati
     const [filtri, setFiltri] = useState({
       campionato: 'Tutti',
-      data: 'oggi', // 'oggi', 'domani', '3gg', '6gg', 'tutte'
-      giocata: 'Tutti'
+      data: 'oggi',
+      giocata: 'Tutti',
+      numeroPartite: 10  // NUOVO: filtro numero partite
     });
 
     const [partiteDisponibili, setPartiteDisponibili] = useState([]);
@@ -33,17 +28,14 @@
       stake: 10,
       dataCreazione: new Date().toISOString()
     });
-    const [mostraSchedineSalvate, setMostraSchedineSalvate] = useState(true);
-    const [quotePersonalizzate, setQuotePersonalizzate] = useState({});
-    const [importandoQuote, setImportandoQuote] = useState(false);
-    const [messaggio, setMessaggio] = useState(null);
+    const [quotePersonalizzate, setQuotePersonalizzate] = useState(() => {
+      const saved = localStorage.getItem('ft_quote_personalizzate');
+      return saved ? JSON.parse(saved) : {};
+    });
 
     const fileInputRef = useRef(null);
 
-    // ============================================================
-    // FUNZIONI DI UTILITÀ
-    // ============================================================
-
+    // Funzioni di utilità
     const getDataRange = useCallback(() => {
       const oggi = new Date();
       oggi.setHours(0, 0, 0, 0);
@@ -59,10 +51,7 @@
       return ranges[filtri.data] || ranges['oggi'];
     }, [filtri.data]);
 
-    // ============================================================
-    // CALCOLO PARTITE DISPONIBILI
-    // ============================================================
-
+    // Calcolo partite disponibili
     const calcolaPartite = useCallback(() => {
       if (!matches || matches.length === 0) {
         setPartiteDisponibili([]);
@@ -71,31 +60,27 @@
 
       let disponibili = matches.filter(m => m.stato === 'Futura');
 
-      // Filtro per campionato
       if (filtri.campionato !== 'Tutti') {
         disponibili = disponibili.filter(m => m.campionato === filtri.campionato);
       }
 
-      // Filtro per data
       const range = getDataRange();
       if (range) {
         disponibili = disponibili.filter(m => {
           if (!m.data) return false;
-          const dataMatch = new Date(normalizeDate(m.data));
+          const dataMatch = new Date(window.normalizeDate(m.data));
           dataMatch.setHours(0, 0, 0, 0);
           return dataMatch >= range.start && dataMatch <= range.end;
         });
       }
 
-      // Ordina per data
       disponibili.sort((a, b) => {
-        const da = normalizeDate(a.data);
-        const db = normalizeDate(b.data);
+        const da = window.normalizeDate(a.data);
+        const db = window.normalizeDate(b.data);
         if (!da || !db) return 0;
         return da.localeCompare(db);
       });
 
-      // Calcola la giocata migliore per ogni partita
       const conGiocata = disponibili.map(m => {
         const stats = window.computeMatchStats(m, matches);
         if (stats.error) return { ...m, giocata: null, pct: 0, quote: 0 };
@@ -113,7 +98,6 @@
         let migliorGiocata = null;
         let migliorPct = 0;
 
-        // Se è selezionata una giocata specifica
         if (filtri.giocata !== 'Tutti') {
           const pct = window.getGiocataPct(filtri.giocata, stats, homeMG, awayMG, mgTot);
           if (pct > 0) {
@@ -121,13 +105,9 @@
             migliorPct = pct;
           }
         } else {
-          // Cerca la migliore tra tutte le famiglie
           const famiglieDaCercare = selectedFamiglie.length > 0 ? selectedFamiglie : Object.keys(window.FAMIGLIE_GIOCATE);
           
           famiglieDaCercare.forEach(familyId => {
-            const family = window.FAMIGLIE_GIOCATE[familyId];
-            if (!family) return;
-            
             const best = window.getBestBetForFamily(familyId, stats, homeRange, awayRange, homeMG, awayMG, mgTot);
             if (best && best.pct > migliorPct) {
               migliorGiocata = best.giocata;
@@ -136,16 +116,13 @@
           });
         }
 
-        // Calcola la quota (se abbiamo una percentuale)
         let quote = 0;
         if (migliorPct > 0) {
-          // Se c'è una quota personalizzata per questa giocata
           const key = `${m.campionato}_${migliorGiocata}`;
           if (quotePersonalizzate[key]) {
             quote = quotePersonalizzate[key];
           } else {
-            // Quota base calcolata dalla percentuale
-            quote = (100 / migliorPct) * 0.85; // Margine del 15%
+            quote = (100 / migliorPct) * 0.85;
             quote = Math.round(quote * 100) / 100;
           }
         }
@@ -159,15 +136,12 @@
         };
       });
 
-      // Filtra solo quelle con una giocata valida
       const valide = conGiocata.filter(m => m.giocata && m.pct > 0);
-      setPartiteDisponibili(valide);
-
+      
+      // Limita al numero di partite selezionato
+      const limitate = valide.slice(0, filtri.numeroPartite);
+      setPartiteDisponibili(limitate);
     }, [matches, filtri, selectedFamiglie, quotePersonalizzate, getDataRange]);
-
-    // ============================================================
-    // GESTIONE SELEZIONE PARTITE
-    // ============================================================
 
     const toggleSelezionePartita = (match) => {
       if (!match.giocata) return;
@@ -190,13 +164,16 @@
       return partiteSelezionate.some(m => m.id === matchId);
     };
 
-    // ============================================================
-    // CALCOLO SCHEDINA
-    // ============================================================
-
     const calcolaTotaleQuote = useCallback(() => {
       if (partiteSelezionate.length === 0) return 0;
       return partiteSelezionate.reduce((acc, m) => acc * m.quote, 1);
+    }, [partiteSelezionate]);
+
+    // NUOVA: Calcola la media delle percentuali
+    const calcolaMediaPercentuali = useCallback(() => {
+      if (partiteSelezionate.length === 0) return 0;
+      const somma = partiteSelezionate.reduce((acc, m) => acc + m.pct, 0);
+      return Math.round(somma / partiteSelezionate.length);
     }, [partiteSelezionate]);
 
     const calcolaVincitaPotenziale = useCallback(() => {
@@ -209,10 +186,6 @@
       const totale = calcolaTotaleQuote();
       return (totale * 100) - 100;
     }, [calcolaTotaleQuote]);
-
-    // ============================================================
-    // SALVATAGGIO SCHEDINA
-    // ============================================================
 
     const salvaSchedina = () => {
       if (partiteSelezionate.length < 2) {
@@ -239,6 +212,7 @@
           isBomb: m.isBomb
         })),
         totaleQuote: calcolaTotaleQuote(),
+        mediaPercentuali: calcolaMediaPercentuali(), // NUOVO: salva la media
         stake: parseFloat(schedinaCorrente.stake) || 10,
         vincitaPotenziale: calcolaVincitaPotenziale(),
         percentualeVincita: calcolaPercentualeVincita()
@@ -248,7 +222,6 @@
       setSchedineSalvate(nuoveSchedine);
       localStorage.setItem('ft_schedine_salvate', JSON.stringify(nuoveSchedine));
 
-      // Reset selezione
       setPartiteSelezionate([]);
       setSchedinaCorrente({
         nome: '',
@@ -259,10 +232,6 @@
       if (showAlert) showAlert('success', `✅ Schedina "${nuovaSchedina.nome}" salvata!`);
     };
 
-    // ============================================================
-    // ELIMINA SCHEDINA
-    // ============================================================
-
     const eliminaSchedina = (id) => {
       if (!confirm('🗑️ Eliminare questa schedina?')) return;
       const nuove = schedineSalvate.filter(s => s.id !== id);
@@ -271,14 +240,8 @@
       if (showAlert) showAlert('info', '🗑️ Schedina eliminata');
     };
 
-    // ============================================================
-    // CARICA SCHEDINA
-    // ============================================================
-
     const caricaSchedina = (schedina) => {
-      // Carica le partite della schedina come selezione corrente
       const partiteDaCaricare = schedina.partite.map(p => {
-        // Trova la partita originale nei matches
         const matchOriginale = matches.find(m => m.id === p.id);
         if (matchOriginale) {
           return {
@@ -305,17 +268,31 @@
       }
     };
 
-    // ============================================================
-    // CONDIVISIONE
-    // ============================================================
-
     const condividiWhatsApp = () => {
       if (partiteSelezionate.length === 0) {
         if (showAlert) showAlert('error', '⚠️ Nessuna partita selezionata');
         return;
       }
 
-      const testo = generaTestoCondivisione();
+      let testo = `🎯 *SCHEDINA GesssAI-Pro*\n`;
+      testo += `📅 ${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}\n`;
+      testo += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+      partiteSelezionate.forEach((m, i) => {
+        const emoji = m.isBomb ? '💣 ' : '';
+        testo += `${i+1}. ${m.casa} vs ${m.ospiti}\n`;
+        testo += `   🎯 ${emoji}${m.giocata} → ${m.pct}% (${m.quote.toFixed(2)})\n\n`;
+      });
+
+      testo += `━━━━━━━━━━━━━━━━━━━━━\n`;
+      testo += `📊 Totale Quote: ${calcolaTotaleQuote().toFixed(2)}\n`;
+      testo += `📈 Media %: ${calcolaMediaPercentuali()}%\n`; // NUOVO
+      testo += `💰 Posta: €${parseFloat(schedinaCorrente.stake || 10).toFixed(2)}\n`;
+      testo += `🏆 Vincita: €${calcolaVincitaPotenziale().toFixed(2)}\n`;
+      testo += `📈 Rendimento: +${calcolaPercentualeVincita().toFixed(0)}%\n`;
+      testo += `━━━━━━━━━━━━━━━━━━━━━\n`;
+      testo += `🔗 GesssAI-Pro v3.0`;
+
       const url = `https://wa.me/?text=${encodeURIComponent(testo)}`;
       window.open(url, '_blank');
     };
@@ -326,46 +303,33 @@
         return;
       }
 
-      const testo = generaTestoCondivisione();
-      const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(testo)}`;
-      window.open(url, '_blank');
-    };
-
-    const generaTestoCondivisione = () => {
-      const now = new Date();
       let testo = `🎯 *SCHEDINA GesssAI-Pro*\n`;
-      testo += `📅 ${now.toLocaleDateString('it-IT')} ${now.toLocaleTimeString('it-IT')}\n`;
+      testo += `📅 ${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}\n`;
       testo += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
       partiteSelezionate.forEach((m, i) => {
-        const flag = window.getCountryFlagHtml(m.campionato);
         const emoji = m.isBomb ? '💣 ' : '';
         testo += `${i+1}. ${m.casa} vs ${m.ospiti}\n`;
-        testo += `   ${flag} ${m.campionato}\n`;
         testo += `   🎯 ${emoji}${m.giocata} → ${m.pct}% (${m.quote.toFixed(2)})\n\n`;
       });
 
       testo += `━━━━━━━━━━━━━━━━━━━━━\n`;
       testo += `📊 Totale Quote: ${calcolaTotaleQuote().toFixed(2)}\n`;
+      testo += `📈 Media %: ${calcolaMediaPercentuali()}%\n`; // NUOVO
       testo += `💰 Posta: €${parseFloat(schedinaCorrente.stake || 10).toFixed(2)}\n`;
-      testo += `🏆 Vincita Potenziale: €${calcolaVincitaPotenziale().toFixed(2)}\n`;
+      testo += `🏆 Vincita: €${calcolaVincitaPotenziale().toFixed(2)}\n`;
       testo += `📈 Rendimento: +${calcolaPercentualeVincita().toFixed(0)}%\n`;
       testo += `━━━━━━━━━━━━━━━━━━━━━\n`;
       testo += `🔗 GesssAI-Pro v3.0`;
 
-      return testo;
+      const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(testo)}`;
+      window.open(url, '_blank');
     };
-
-    // ============================================================
-    // IMPORT QUOTE DA EXCEL
-    // ============================================================
 
     const importaQuoteExcel = (file) => {
       if (!file) return;
       
-      setImportandoQuote(true);
       const reader = new FileReader();
-      
       reader.onload = (e) => {
         try {
           const data = new Uint8Array(e.target.result);
@@ -375,13 +339,11 @@
 
           if (jsonData.length === 0) {
             if (showAlert) showAlert('error', '❌ Il file è vuoto');
-            setImportandoQuote(false);
             return;
           }
 
           const nuoveQuote = {};
           jsonData.forEach(row => {
-            // Cerca le colonne: Campionato, Giocata, Quota
             const campionato = row['Campionato'] || row['campionato'] || row['League'] || '';
             const giocata = row['Giocata'] || row['giocata'] || row['Bet'] || '';
             const quota = parseFloat(row['Quota'] || row['quota'] || row['Odds'] || 0);
@@ -394,60 +356,41 @@
 
           if (Object.keys(nuoveQuote).length === 0) {
             if (showAlert) showAlert('error', '❌ Nessuna quota valida trovata');
-            setImportandoQuote(false);
             return;
           }
 
-          setQuotePersonalizzate(prev => ({ ...prev, ...nuoveQuote }));
-          localStorage.setItem('ft_quote_personalizzate', JSON.stringify({ ...quotePersonalizzate, ...nuoveQuote }));
+          const updated = { ...quotePersonalizzate, ...nuoveQuote };
+          setQuotePersonalizzate(updated);
+          localStorage.setItem('ft_quote_personalizzate', JSON.stringify(updated));
           
           if (showAlert) showAlert('success', `✅ Importate ${Object.keys(nuoveQuote).length} quote personalizzate!`);
-          
         } catch (err) {
-          if (showAlert) showAlert('error', '❌ Errore nell\'importazione: ' + err.message);
+          if (showAlert) showAlert('error', '❌ Errore: ' + err.message);
         }
-        setImportandoQuote(false);
       };
-      
       reader.readAsArrayBuffer(file);
     };
 
-    // ============================================================
-    // EFFETTI
-    // ============================================================
-
-    useEffect(() => {
-      // Carica quote personalizzate salvate
-      const savedQuotes = localStorage.getItem('ft_quote_personalizzate');
-      if (savedQuotes) {
-        try {
-          setQuotePersonalizzate(JSON.parse(savedQuotes));
-        } catch (e) {}
-      }
-    }, []);
-
+    // Effetti
     useEffect(() => {
       calcolaPartite();
     }, [calcolaPartite]);
 
-    // ============================================================
-    // RENDER
-    // ============================================================
-
+    // Render
     return (
-      <div className="schedina-container" style={{ display: 'grid', gap: '20px' }}>
+      <div className="schedina-container" style={{ display: 'grid', gap: '16px' }}>
 
-        {/* ======== FILTRI ======== */}
-        <div className="card" style={{ padding: '16px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+        {/* FILTRI */}
+        <div className="card" style={{ padding: '14px 16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
             
             {/* Campionato */}
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label style={{ fontSize: '12px' }}>🏆 Campionato</label>
+              <label style={{ fontSize: '11px' }}>🏆 Campionato</label>
               <select 
                 value={filtri.campionato} 
                 onChange={e => setFiltri(prev => ({ ...prev, campionato: e.target.value }))}
-                style={{ padding: '6px 10px', fontSize: '13px' }}
+                style={{ padding: '5px 8px', fontSize: '12px' }}
               >
                 <option value="Tutti">📊 Tutti</option>
                 {championships && championships.map(c => (
@@ -458,11 +401,11 @@
 
             {/* Data */}
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label style={{ fontSize: '12px' }}>📅 Data</label>
+              <label style={{ fontSize: '11px' }}>📅 Data</label>
               <select 
                 value={filtri.data} 
                 onChange={e => setFiltri(prev => ({ ...prev, data: e.target.value }))}
-                style={{ padding: '6px 10px', fontSize: '13px' }}
+                style={{ padding: '5px 8px', fontSize: '12px' }}
               >
                 <option value="oggi">📅 Oggi</option>
                 <option value="domani">📅 Domani</option>
@@ -474,120 +417,94 @@
 
             {/* Giocata */}
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label style={{ fontSize: '12px' }}>🎯 Giocata</label>
+              <label style={{ fontSize: '11px' }}>🎯 Giocata</label>
               <select 
                 value={filtri.giocata} 
                 onChange={e => setFiltri(prev => ({ ...prev, giocata: e.target.value }))}
-                style={{ padding: '6px 10px', fontSize: '13px' }}
+                style={{ padding: '5px 8px', fontSize: '12px' }}
               >
                 <option value="Tutti">🎯 Migliore</option>
-                {Object.values(window.FAMIGLIE_GIOCATE).flatMap(f => f.options).map(opt => (
+                {Object.values(window.FAMIGLIE_GIOCATE || {}).flatMap(f => f.options || []).map(opt => (
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
               </select>
             </div>
 
+            {/* NUOVO: Numero Partite */}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label style={{ fontSize: '11px' }}>📊 Partite</label>
+              <select 
+                value={filtri.numeroPartite} 
+                onChange={e => setFiltri(prev => ({ ...prev, numeroPartite: parseInt(e.target.value) }))}
+                style={{ padding: '5px 8px', fontSize: '12px' }}
+              >
+                {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                  <option key={n} value={n}>{n} partite</option>
+                ))}
+              </select>
+            </div>
+
             {/* Contatore selezioni */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 12px', background: 'var(--surface)', borderRadius: '6px', border: '1px solid var(--border)', justifyContent: 'center' }}>
-              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Selezionate:</span>
-              <span style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--accent)' }}>{partiteSelezionate.length}</span>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>/ 10</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', background: 'var(--surface)', borderRadius: '6px', border: '1px solid var(--border)', justifyContent: 'center' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Selezionate:</span>
+              <span style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--accent)' }}>{partiteSelezionate.length}</span>
+              <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>/ 10</span>
             </div>
           </div>
         </div>
 
-        {/* ======== LISTA PARTITE ======== */}
-        <div className="card" style={{ padding: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-            <h4 style={{ margin: 0, fontSize: '15px' }}>📋 Partite Disponibili ({partiteDisponibili.length})</h4>
+        {/* LISTA PARTITE */}
+        <div className="card" style={{ padding: '14px 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+            <h4 style={{ margin: 0, fontSize: '14px' }}>📋 Partite ({partiteDisponibili.length})</h4>
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              <button 
-                className="btn btn-secondary" 
-                onClick={() => setPartiteSelezionate([])}
-                style={{ fontSize: '11px', padding: '4px 12px' }}
-              >
-                🗑️ Deseleziona tutto
-              </button>
-              <button 
-                className="btn" 
-                onClick={() => {
-                  // Seleziona automaticamente le migliori (max 10)
-                  const migliori = [...partiteDisponibili]
-                    .sort((a, b) => b.pct - a.pct)
-                    .slice(0, 10);
-                  setPartiteSelezionate(migliori);
-                  if (showAlert) showAlert('info', `✅ Selezionate ${migliori.length} migliori partite`);
-                }}
-                style={{ fontSize: '11px', padding: '4px 12px' }}
-              >
-                ⭐ Auto-seleziona
-              </button>
+              <button className="btn btn-secondary" onClick={() => setPartiteSelezionate([])} style={{ fontSize: '10px', padding: '3px 10px' }}>🗑️ Deseleziona</button>
+              <button className="btn" onClick={() => {
+                const maxSelezionabili = Math.min(10, partiteDisponibili.length);
+                const migliori = [...partiteDisponibili].sort((a, b) => b.pct - a.pct).slice(0, maxSelezionabili);
+                setPartiteSelezionate(migliori);
+                if (showAlert) showAlert('info', `✅ Selezionate ${migliori.length} migliori`);
+              }} style={{ fontSize: '10px', padding: '3px 10px' }}>⭐ Auto</button>
             </div>
           </div>
 
           {partiteDisponibili.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
-              <span style={{ fontSize: '32px' }}>📭</span>
-              <p>Nessuna partita disponibile con i filtri selezionati</p>
+            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '28px' }}>📭</span>
+              <p style={{ fontSize: '13px' }}>Nessuna partita disponibile</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gap: '4px', maxHeight: '500px', overflowY: 'auto' }}>
+            <div style={{ display: 'grid', gap: '3px', maxHeight: '400px', overflowY: 'auto' }}>
               {partiteDisponibili.map(m => {
                 const selezionata = isPartitaSelezionata(m.id);
-                const flag = window.getCountryFlagHtml(m.campionato);
                 const color = window.getChampColor(m.campionato);
-                
                 return (
                   <div 
                     key={m.id}
                     onClick={() => toggleSelezionePartita(m)}
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: 'auto 1fr auto auto auto auto',
+                      gridTemplateColumns: 'auto 1fr auto auto auto',
                       alignItems: 'center',
-                      gap: '8px',
-                      padding: '8px 12px',
-                      background: selezionata ? 'rgba(243, 156, 18, 0.15)' : 'var(--surface)',
-                      borderRadius: '6px',
-                      border: selezionata ? '2px solid var(--accent)' : '1px solid var(--border)',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      fontSize: '13px'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateX(4px)'}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateX(0)'}
-                  >
-                    <span style={{ fontSize: '16px' }}>{selezionata ? '☑️' : '⬜'}</span>
-                    <div>
-                      <div style={{ fontWeight: 'bold' }}>{m.casa} vs {m.ospiti}</div>
-                      <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                        <span dangerouslySetInnerHTML={{ __html: flag }} />
-                        {m.campionato} • {formatDateEU(m.data)}
-                      </div>
-                    </div>
-                    <div style={{ 
-                      background: color, 
-                      padding: '2px 10px', 
+                      gap: '4px',
+                      padding: '4px 8px',
+                      background: selezionata ? 'rgba(243, 156, 18, 0.12)' : 'var(--surface)',
                       borderRadius: '4px',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      color: '#000'
-                    }}>
-                      {m.giocata || 'N/D'}
+                      border: selezionata ? '1px solid var(--accent)' : '1px solid var(--border)',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                  >
+                    <span>{selezionata ? '☑️' : '⬜'}</span>
+                    <div>
+                      <span style={{ fontWeight: 'bold' }}>{m.casa}</span>
+                      <span style={{ color: 'var(--text-muted)', margin: '0 3px' }}>vs</span>
+                      <span style={{ fontWeight: 'bold' }}>{m.ospiti}</span>
+                      <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{m.campionato}</div>
                     </div>
-                    <div style={{ 
-                      fontWeight: 'bold',
-                      color: m.isBomb ? 'var(--accent)' : 'var(--text)'
-                    }}>
-                      {m.pct}%
-                      {m.isBomb && <span style={{ marginLeft: '4px' }}>💣</span>}
-                    </div>
-                    <div style={{ fontWeight: 'bold', color: 'var(--accent)' }}>
-                      {m.quote.toFixed(2)}
-                    </div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                      #{partiteDisponibili.indexOf(m) + 1}
-                    </div>
+                    <div style={{ background: color, padding: '1px 6px', borderRadius: '3px', fontSize: '10px', fontWeight: 'bold', color: '#000' }}>{m.giocata || 'N/D'}</div>
+                    <div style={{ fontWeight: 'bold', color: m.isBomb ? 'var(--accent)' : 'var(--text)' }}>{m.pct}%{m.isBomb && '💣'}</div>
+                    <div style={{ fontWeight: 'bold', color: 'var(--accent)' }}>{m.quote.toFixed(2)}</div>
                   </div>
                 );
               })}
@@ -595,227 +512,114 @@
           )}
         </div>
 
-        {/* ======== SCHEDINA CORRENTE ======== */}
-        <div className="card" style={{ padding: '16px', border: '2px solid var(--accent)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-            <h4 style={{ margin: 0, fontSize: '15px' }}>🎯 Schedina Corrente</h4>
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              <button className="btn btn-secondary" onClick={condividiWhatsApp} style={{ fontSize: '11px', padding: '4px 12px' }}>
-                💬 WhatsApp
-              </button>
-              <button className="btn btn-secondary" onClick={condividiTelegram} style={{ fontSize: '11px', padding: '4px 12px' }}>
-                📨 Telegram
-              </button>
-              <button className="btn" onClick={salvaSchedina} style={{ fontSize: '11px', padding: '4px 12px' }}>
-                💾 Salva
-              </button>
+        {/* SCHEDINA CORRENTE */}
+        <div className="card" style={{ padding: '14px 16px', border: '2px solid var(--accent)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+            <h4 style={{ margin: 0, fontSize: '14px' }}>🎯 Schedina</h4>
+            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+              <button className="btn btn-secondary" onClick={condividiWhatsApp} style={{ fontSize: '10px', padding: '3px 8px' }}>💬 WhatsApp</button>
+              <button className="btn btn-secondary" onClick={condividiTelegram} style={{ fontSize: '10px', padding: '3px 8px' }}>📨 Telegram</button>
+              <button className="btn" onClick={salvaSchedina} style={{ fontSize: '10px', padding: '3px 10px' }}>💾 Salva</button>
             </div>
           </div>
 
-          {/* Nome e Stake */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label style={{ fontSize: '11px' }}>📝 Nome Schedina</label>
-              <input 
-                type="text" 
-                value={schedinaCorrente.nome} 
-                onChange={e => setSchedinaCorrente(prev => ({ ...prev, nome: e.target.value }))}
-                placeholder="Nome schedina..."
-                style={{ padding: '6px 10px', fontSize: '13px' }}
-              />
+              <label style={{ fontSize: '10px' }}>📝 Nome</label>
+              <input type="text" value={schedinaCorrente.nome} onChange={e => setSchedinaCorrente(prev => ({ ...prev, nome: e.target.value }))} placeholder="Nome..." style={{ padding: '4px 8px', fontSize: '12px' }} />
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label style={{ fontSize: '11px' }}>💰 Posta (€)</label>
-              <input 
-                type="number" 
-                value={schedinaCorrente.stake} 
-                onChange={e => setSchedinaCorrente(prev => ({ ...prev, stake: parseFloat(e.target.value) || 0 }))}
-                min="0"
-                step="0.50"
-                style={{ padding: '6px 10px', fontSize: '13px' }}
-              />
+              <label style={{ fontSize: '10px' }}>💰 Posta (€)</label>
+              <input type="number" value={schedinaCorrente.stake} onChange={e => setSchedinaCorrente(prev => ({ ...prev, stake: parseFloat(e.target.value) || 0 }))} min="0" step="0.50" style={{ padding: '4px 8px', fontSize: '12px' }} />
             </div>
           </div>
 
-          {/* Lista partite selezionate */}
           {partiteSelezionate.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '13px' }}>
-              Nessuna partita selezionata. Scegli le partite dalla lista sopra.
-            </div>
+            <div style={{ textAlign: 'center', padding: '12px', color: 'var(--text-muted)', fontSize: '12px' }}>Nessuna partita selezionata</div>
           ) : (
             <>
-              <div style={{ display: 'grid', gap: '4px', marginBottom: '12px', maxHeight: '300px', overflowY: 'auto' }}>
+              <div style={{ display: 'grid', gap: '3px', marginBottom: '8px', maxHeight: '200px', overflowY: 'auto' }}>
                 {partiteSelezionate.map((m, i) => (
-                  <div key={m.id} style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'auto 1fr auto auto auto',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '6px 10px',
-                    background: 'var(--surface)',
-                    borderRadius: '4px',
-                    border: '1px solid var(--border)',
-                    fontSize: '12px'
-                  }}>
+                  <div key={m.id} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto auto', alignItems: 'center', gap: '4px', padding: '3px 6px', background: 'var(--surface)', borderRadius: '3px', border: '1px solid var(--border)', fontSize: '11px' }}>
                     <span style={{ fontWeight: 'bold', color: 'var(--accent)' }}>#{i+1}</span>
-                    <div>
-                      <span style={{ fontWeight: 'bold' }}>{m.casa}</span>
-                      <span style={{ color: 'var(--text-muted)', margin: '0 4px' }}>vs</span>
-                      <span style={{ fontWeight: 'bold' }}>{m.ospiti}</span>
-                    </div>
-                    <div style={{ 
-                      background: window.getChampColor(m.campionato),
-                      padding: '1px 8px',
-                      borderRadius: '3px',
-                      fontSize: '11px',
-                      fontWeight: 'bold',
-                      color: '#000'
-                    }}>
-                      {m.giocata}
-                    </div>
-                    <div style={{ fontWeight: 'bold', color: m.isBomb ? 'var(--accent)' : 'var(--text)' }}>
-                      {m.pct}% {m.isBomb && '💣'}
-                    </div>
-                    <div style={{ fontWeight: 'bold', color: 'var(--accent)' }}>
-                      {m.quote.toFixed(2)}
-                    </div>
+                    <div><span style={{ fontWeight: 'bold' }}>{m.casa}</span> vs <span style={{ fontWeight: 'bold' }}>{m.ospiti}</span></div>
+                    <div style={{ background: window.getChampColor(m.campionato), padding: '0 4px', borderRadius: '2px', fontSize: '9px', fontWeight: 'bold', color: '#000' }}>{m.giocata}</div>
+                    <div style={{ fontWeight: 'bold', color: 'var(--accent)' }}>{m.quote.toFixed(2)}</div>
                   </div>
                 ))}
               </div>
 
-              {/* Riepilogo */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-                gap: '8px',
-                padding: '12px',
-                background: 'var(--surface)',
-                borderRadius: '6px',
-                border: '1px solid var(--border)'
-              }}>
+              {/* Riepilogo con MEDIA PERCENTUALI */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(70px, 1fr))', gap: '4px', padding: '6px 10px', background: 'var(--surface)', borderRadius: '4px', border: '1px solid var(--border)' }}>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Partite</div>
-                  <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{partiteSelezionate.length}</div>
+                  <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Partite</div>
+                  <div style={{ fontSize: '14px', fontWeight: 'bold' }}>{partiteSelezionate.length}</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Totale Quote</div>
-                  <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--accent)' }}>
-                    {calcolaTotaleQuote().toFixed(2)}
+                  <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Quote Totali</div>
+                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--accent)' }}>{calcolaTotaleQuote().toFixed(2)}</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Media %</div>
+                  <div style={{ 
+                    fontSize: '16px', 
+                    fontWeight: 'bold', 
+                    color: calcolaMediaPercentuali() >= 80 ? 'var(--win)' : 
+                           calcolaMediaPercentuali() >= 60 ? 'var(--draw)' : 
+                           calcolaMediaPercentuali() >= 40 ? 'var(--text)' : 'var(--lose)'
+                  }}>
+                    {calcolaMediaPercentuali()}%
                   </div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Posta</div>
-                  <div style={{ fontSize: '18px', fontWeight: 'bold' }}>€{parseFloat(schedinaCorrente.stake || 10).toFixed(2)}</div>
+                  <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Vincita</div>
+                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--win)' }}>€{calcolaVincitaPotenziale().toFixed(2)}</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Vincita Potenziale</div>
-                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--win)' }}>
-                    €{calcolaVincitaPotenziale().toFixed(2)}
-                  </div>
-                  <div style={{ fontSize: '11px', color: calcolaPercentualeVincita() > 0 ? 'var(--win)' : 'var(--lose)' }}>
-                    +{calcolaPercentualeVincita().toFixed(0)}%
-                  </div>
+                  <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Rendimento</div>
+                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: calcolaPercentualeVincita() > 0 ? 'var(--win)' : 'var(--lose)' }}>+{calcolaPercentualeVincita().toFixed(0)}%</div>
                 </div>
               </div>
             </>
           )}
         </div>
 
-        {/* ======== SCHEDINE SALVATE ======== */}
-        <div className="card" style={{ padding: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-            <h4 style={{ margin: 0, fontSize: '15px' }}>📂 Schedine Salvate ({schedineSalvate.length})</h4>
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              <button 
-                className="btn btn-secondary" 
-                onClick={() => {
-                  if (confirm('🗑️ Eliminare TUTTE le schedine salvate?')) {
-                    setSchedineSalvate([]);
-                    localStorage.setItem('ft_schedine_salvate', JSON.stringify([]));
-                    if (showAlert) showAlert('info', '🗑️ Tutte le schedine eliminate');
-                  }
-                }}
-                style={{ fontSize: '11px', padding: '4px 12px' }}
-              >
-                🗑️ Elimina tutte
-              </button>
-              <button 
-                className="btn btn-secondary" 
-                onClick={() => {
-                  // Importa quote Excel
-                  if (fileInputRef.current) {
-                    fileInputRef.current.click();
-                  }
-                }}
-                style={{ fontSize: '11px', padding: '4px 12px' }}
-              >
-                📊 Importa Quote
-              </button>
-              <input 
-                ref={fileInputRef}
-                type="file" 
-                accept=".xlsx,.xls,.csv" 
-                onChange={(e) => {
-                  if (e.target.files[0]) importaQuoteExcel(e.target.files[0]);
-                  e.target.value = '';
-                }}
-                style={{ display: 'none' }}
-              />
+        {/* SCHEDINE SALVATE */}
+        <div className="card" style={{ padding: '14px 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+            <h4 style={{ margin: 0, fontSize: '14px' }}>📂 Salvate ({schedineSalvate.length})</h4>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" onChange={(e) => { if (e.target.files[0]) importaQuoteExcel(e.target.files[0]); e.target.value = ''; }} style={{ display: 'none' }} />
+              <button className="btn btn-secondary" onClick={() => fileInputRef.current?.click()} style={{ fontSize: '10px', padding: '3px 8px' }}>📊 Importa Quote</button>
+              <button className="btn btn-secondary" onClick={() => { if (confirm('🗑️ Eliminare tutte?')) { setSchedineSalvate([]); localStorage.setItem('ft_schedine_salvate', JSON.stringify([])); if (showAlert) showAlert('info', '🗑️ Tutte eliminate'); } }} style={{ fontSize: '10px', padding: '3px 8px' }}>🗑️ Tutte</button>
             </div>
           </div>
 
           {schedineSalvate.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '13px' }}>
-              Nessuna schedina salvata. Crea la tua prima schedina!
-            </div>
+            <div style={{ textAlign: 'center', padding: '12px', color: 'var(--text-muted)', fontSize: '12px' }}>Nessuna schedina salvata</div>
           ) : (
-            <div style={{ display: 'grid', gap: '8px', maxHeight: '400px', overflowY: 'auto' }}>
-              {schedineSalvate.map((s, idx) => (
-                <div key={s.id} style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr auto auto auto',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '10px 14px',
-                  background: 'var(--surface)',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border)',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateX(4px)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateX(0)'}
-                >
+            <div style={{ display: 'grid', gap: '4px', maxHeight: '300px', overflowY: 'auto' }}>
+              {schedineSalvate.map(s => (
+                <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto auto', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'var(--surface)', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '11px' }}>
                   <div>
-                    <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{s.nome}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                      {new Date(s.dataCreazione).toLocaleDateString('it-IT')} {new Date(s.dataCreazione).toLocaleTimeString('it-IT')}
-                      {' • '}{s.partite.length} partite
-                      {s.partite.some(p => p.isBomb) && <span style={{ marginLeft: '6px' }}>💣</span>}
-                    </div>
+                    <div style={{ fontWeight: 'bold', fontSize: '12px' }}>{s.nome}</div>
+                    <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{new Date(s.dataCreazione).toLocaleDateString()} {s.partite.length} partite{s.partite.some(p => p.isBomb) && ' 💣'}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Quote</div>
+                    <div style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Quote</div>
                     <div style={{ fontWeight: 'bold', color: 'var(--accent)' }}>{s.totaleQuote.toFixed(2)}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Vincita</div>
+                    <div style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Media %</div>
+                    <div style={{ fontWeight: 'bold', color: (s.mediaPercentuali || 0) >= 80 ? 'var(--win)' : 'var(--draw)' }}>{(s.mediaPercentuali || 0)}%</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Vincita</div>
                     <div style={{ fontWeight: 'bold', color: 'var(--win)' }}>€{s.vincitaPotenziale.toFixed(2)}</div>
                   </div>
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    <button 
-                      className="btn btn-secondary" 
-                      onClick={() => caricaSchedina(s)}
-                      style={{ fontSize: '11px', padding: '3px 10px' }}
-                    >
-                      📂
-                    </button>
-                    <button 
-                      className="btn btn-danger" 
-                      onClick={() => eliminaSchedina(s.id)}
-                      style={{ fontSize: '11px', padding: '3px 10px', background: 'var(--lose)' }}
-                    >
-                      🗑️
-                    </button>
+                  <div style={{ display: 'flex', gap: '2px' }}>
+                    <button className="btn btn-secondary" onClick={() => caricaSchedina(s)} style={{ fontSize: '9px', padding: '2px 6px' }}>📂</button>
+                    <button className="btn btn-danger" onClick={() => eliminaSchedina(s.id)} style={{ fontSize: '9px', padding: '2px 6px', background: 'var(--lose)' }}>🗑️</button>
                   </div>
                 </div>
               ))}
@@ -823,36 +627,21 @@
           )}
         </div>
 
-        {/* ======== LEGENDA ======== */}
-        <div style={{ 
-          fontSize: '11px', 
-          color: 'var(--text-muted)', 
-          padding: '8px 16px',
-          background: 'var(--surface)',
-          borderRadius: '6px',
-          border: '1px solid var(--border)',
-          display: 'flex',
-          gap: '16px',
-          flexWrap: 'wrap'
-        }}>
+        {/* LEGENDA */}
+        <div style={{ fontSize: '10px', color: 'var(--text-muted)', padding: '4px 12px', background: 'var(--surface)', borderRadius: '4px', border: '1px solid var(--border)', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <span>💣 Bomba (≥90%)</span>
           <span>🟢 Alta (≥66%)</span>
           <span>⚪ Media (≥33%)</span>
           <span>🔴 Bassa (&lt;33%)</span>
-          <span>📊 Massimo 10 partite</span>
-          <span>💡 Clicca su una partita per selezionarla/deselezionarla</span>
+          <span>📊 Media %: media aritmetica delle percentuali selezionate</span>
+          <span>💡 Clicca su una partita per selezionarla</span>
         </div>
       </div>
     );
   };
 
-  // ============================================================
-  // REGISTRAZIONE DEL COMPONENTE
-  // ============================================================
-
-  // Esponi il componente globalmente
+  // Registra il componente globalmente
   window.SchedinaComponent = SchedinaComponent;
-
   console.log('✅ Modulo Schedina caricato!');
 
 })();
