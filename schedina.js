@@ -1,6 +1,6 @@
 // ============================================================
 // SCHEDINA.JS - Modulo Schedina per GesssAI-Pro
-// VERSIONE con CARATTERI INGRANDITI (+50%)
+// VERSIONE con SVUOTA LISTA e SCREENSHOT per condivisione
 // ============================================================
 
 (function() {
@@ -32,8 +32,11 @@
       const saved = localStorage.getItem('ft_quote_personalizzate');
       return saved ? JSON.parse(saved) : {};
     });
+    const [mostraOpzioniCondivisione, setMostraOpzioniCondivisione] = useState(false);
+    const [tipoCondivisione, setTipoCondivisione] = useState('testo'); // 'testo' o 'screenshot'
 
     const fileInputRef = useRef(null);
+    const schedinaRef = useRef(null);
 
     // Funzione per ottenere il colore in base alla percentuale
     const getColorePercentuale = (pct) => {
@@ -213,6 +216,203 @@
       return (totale * 100) - 100;
     }, [calcolaTotaleQuote]);
 
+    // Genera il testo della schedina per la condivisione
+    const generaTestoSchedina = () => {
+      let testo = `🎯 *SCHEDINA GesssAI-Pro*\n`;
+      testo += `📅 ${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}\n`;
+      testo += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+      partiteSelezionate.forEach((m, i) => {
+        const emoji = m.isBomb ? '💣 ' : '';
+        const colore = m.colore || getColorePercentuale(m.pct);
+        testo += `${i+1}. ${m.casa} vs ${m.ospiti}\n`;
+        testo += `   🎯 ${emoji}${m.giocata} → ${m.pct}% (${m.quote.toFixed(2)}) ${colore.label}\n\n`;
+      });
+
+      testo += `━━━━━━━━━━━━━━━━━━━━━\n`;
+      testo += `📊 Totale Quote: ${calcolaTotaleQuote().toFixed(2)}\n`;
+      testo += `📈 Media %: ${calcolaMediaPercentuali()}%\n`;
+      testo += `💰 Posta: €${parseFloat(schedinaCorrente.stake || 10).toFixed(2)}\n`;
+      testo += `🏆 Vincita: €${calcolaVincitaPotenziale().toFixed(2)}\n`;
+      testo += `📈 Rendimento: +${calcolaPercentualeVincita().toFixed(0)}%\n`;
+      testo += `━━━━━━━━━━━━━━━━━━━━━\n`;
+      testo += `🔗 GesssAI-Pro v3.0`;
+
+      return testo;
+    };
+
+    // Funzione per fare screenshot dell'area schedina
+    const generaScreenshot = async () => {
+      // Verifica se html2canvas è caricato
+      if (typeof html2canvas === 'undefined') {
+        // Carica la libreria dinamicamente
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+
+      // Crea un elemento temporaneo per lo screenshot
+      const tempDiv = document.createElement('div');
+      tempDiv.style.cssText = `
+        position: fixed;
+        top: -9999px;
+        left: -9999px;
+        background: #0f1419;
+        padding: 30px;
+        border-radius: 16px;
+        min-width: 500px;
+        max-width: 600px;
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+        color: #e6edf3;
+        z-index: 99999;
+      `;
+
+      // Costruisci il contenuto per lo screenshot
+      let htmlContent = `
+        <div style="background: #1a2028; padding: 20px; border-radius: 12px; border: 2px solid #f39c12;">
+          <div style="text-align: center; margin-bottom: 16px;">
+            <div style="font-size: 28px; font-weight: bold; color: #f39c12;">🎯 SCHEDINA GesssAI-Pro</div>
+            <div style="font-size: 14px; color: #ffff00;">${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}</div>
+          </div>
+          <div style="border-bottom: 2px solid #30363d; margin-bottom: 12px;"></div>
+      `;
+
+      partiteSelezionate.forEach((m, i) => {
+        const colore = m.colore || getColorePercentuale(m.pct);
+        const emoji = m.isBomb ? '💣 ' : '';
+        htmlContent += `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #232b36;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-weight: bold; color: #f39c12; font-size: 16px;">#${i+1}</span>
+              <span style="font-weight: bold; font-size: 16px;">${m.casa}</span>
+              <span style="color: #8b949e;">vs</span>
+              <span style="font-weight: bold; font-size: 16px;">${m.ospiti}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="background: ${window.getChampColor(m.campionato)}; padding: 2px 10px; border-radius: 4px; font-size: 13px; font-weight: bold; color: #000;">${m.giocata}</span>
+              <span style="background: ${colore.colore}; padding: 2px 10px; border-radius: 4px; font-weight: bold; color: #000; font-size: 14px;">${m.pct}%</span>
+              <span style="font-weight: bold; color: #f39c12; font-size: 15px;">${m.quote.toFixed(2)}</span>
+              ${m.isBomb ? '<span style="font-size: 20px;">💣</span>' : ''}
+            </div>
+          </div>
+        `;
+      });
+
+      htmlContent += `
+          <div style="border-top: 2px solid #30363d; margin-top: 12px; padding-top: 12px;">
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; text-align: center;">
+              <div>
+                <div style="font-size: 11px; color: #8b949e;">Partite</div>
+                <div style="font-size: 18px; font-weight: bold;">${partiteSelezionate.length}</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: #8b949e;">Quote Totali</div>
+                <div style="font-size: 18px; font-weight: bold; color: #f39c12;">${calcolaTotaleQuote().toFixed(2)}</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: #8b949e;">Media %</div>
+                <div style="font-size: 18px; font-weight: bold; color: ${calcolaMediaPercentuali() >= 90 ? '#f39c12' : calcolaMediaPercentuali() >= 66.67 ? '#6fcf97' : calcolaMediaPercentuali() >= 33.34 ? '#8b949e' : '#eb5757'};">${calcolaMediaPercentuali()}%</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: #8b949e;">Vincita</div>
+                <div style="font-size: 18px; font-weight: bold; color: #6fcf97;">€${calcolaVincitaPotenziale().toFixed(2)}</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: #8b949e;">Rendimento</div>
+                <div style="font-size: 18px; font-weight: bold; color: ${calcolaPercentualeVincita() > 0 ? '#6fcf97' : '#eb5757'};">+${calcolaPercentualeVincita().toFixed(0)}%</div>
+              </div>
+            </div>
+          </div>
+          <div style="text-align: center; margin-top: 12px; font-size: 11px; color: #8b949e; border-top: 1px solid #30363d; padding-top: 8px;">
+            🔗 GesssAI-Pro v3.0
+          </div>
+        </div>
+      `;
+
+      tempDiv.innerHTML = htmlContent;
+      document.body.appendChild(tempDiv);
+
+      try {
+        const canvas = await html2canvas(tempDiv, {
+          backgroundColor: '#0f1419',
+          scale: 1.5,
+          useCORS: true,
+          logging: false,
+          width: tempDiv.scrollWidth,
+          height: tempDiv.scrollHeight
+        });
+        document.body.removeChild(tempDiv);
+        return canvas.toDataURL('image/png');
+      } catch (error) {
+        document.body.removeChild(tempDiv);
+        console.error('Errore screenshot:', error);
+        return null;
+      }
+    };
+
+    // Funzione di condivisione unificata
+    const condividi = async (piattaforma) => {
+      if (partiteSelezionate.length === 0) {
+        if (showAlert) showAlert('error', '⚠️ Nessuna partita selezionata');
+        return;
+      }
+
+      setMostraOpzioniCondivisione(false);
+
+      if (tipoCondivisione === 'testo') {
+        // Condivisione testo
+        const testo = generaTestoSchedina();
+        const url = piattaforma === 'whatsapp' 
+          ? `https://wa.me/?text=${encodeURIComponent(testo)}`
+          : `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(testo)}`;
+        window.open(url, '_blank');
+      } else {
+        // Condivisione screenshot
+        if (showAlert) showAlert('info', '⏳ Generazione screenshot in corso...');
+        
+        const screenshotDataUrl = await generaScreenshot();
+        
+        if (!screenshotDataUrl) {
+          if (showAlert) showAlert('error', '❌ Errore nella generazione dello screenshot');
+          return;
+        }
+
+        if (piattaforma === 'whatsapp') {
+          // WhatsApp con screenshot - apro con testo + immagine (non supportato direttamente)
+          const testo = generaTestoSchedina();
+          const url = `https://wa.me/?text=${encodeURIComponent(testo + '\n\n📸 Screenshot allegato (salva e invia manualmente)')}`;
+          window.open(url, '_blank');
+          
+          // Scarica l'immagine come fallback
+          const link = document.createElement('a');
+          link.download = `schedina_${new Date().toISOString().slice(0,10)}.png`;
+          link.href = screenshotDataUrl;
+          link.click();
+          
+          if (showAlert) showAlert('success', '✅ Screenshot scaricato! Puoi allegarlo manualmente su WhatsApp.');
+        } else {
+          // Telegram - supporta l'invio di immagini via link
+          const testo = generaTestoSchedina();
+          // Creo un blob dall'immagine per caricarla
+          const response = await fetch(screenshotDataUrl);
+          const blob = await response.blob();
+          
+          // Creo un URL per l'immagine (solo per visualizzazione, non per invio diretto)
+          const imageUrl = URL.createObjectURL(blob);
+          
+          // Apro Telegram con il testo + link all'immagine (da salvare manualmente)
+          const url = `https://t.me/share/url?url=${encodeURIComponent(imageUrl)}&text=${encodeURIComponent(testo + '\n\n📸 Screenshot allegato (salva manualmente)')}`;
+          window.open(url, '_blank');
+          
+          if (showAlert) showAlert('success', '✅ Screenshot generato! Puoi allegarlo manualmente su Telegram.');
+        }
+      }
+    };
+
     const salvaSchedina = () => {
       if (partiteSelezionate.length < 2) {
         if (showAlert) showAlert('error', '⚠️ Seleziona almeno 2 partite!');
@@ -296,66 +496,6 @@
       }
     };
 
-    const condividiWhatsApp = () => {
-      if (partiteSelezionate.length === 0) {
-        if (showAlert) showAlert('error', '⚠️ Nessuna partita selezionata');
-        return;
-      }
-
-      let testo = `🎯 *SCHEDINA GesssAI-Pro*\n`;
-      testo += `📅 ${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}\n`;
-      testo += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-
-      partiteSelezionate.forEach((m, i) => {
-        const emoji = m.isBomb ? '💣 ' : '';
-        const colore = m.colore || getColorePercentuale(m.pct);
-        testo += `${i+1}. ${m.casa} vs ${m.ospiti}\n`;
-        testo += `   🎯 ${emoji}${m.giocata} → ${m.pct}% (${m.quote.toFixed(2)}) ${colore.label}\n\n`;
-      });
-
-      testo += `━━━━━━━━━━━━━━━━━━━━━\n`;
-      testo += `📊 Totale Quote: ${calcolaTotaleQuote().toFixed(2)}\n`;
-      testo += `📈 Media %: ${calcolaMediaPercentuali()}%\n`;
-      testo += `💰 Posta: €${parseFloat(schedinaCorrente.stake || 10).toFixed(2)}\n`;
-      testo += `🏆 Vincita: €${calcolaVincitaPotenziale().toFixed(2)}\n`;
-      testo += `📈 Rendimento: +${calcolaPercentualeVincita().toFixed(0)}%\n`;
-      testo += `━━━━━━━━━━━━━━━━━━━━━\n`;
-      testo += `🔗 GesssAI-Pro v3.0`;
-
-      const url = `https://wa.me/?text=${encodeURIComponent(testo)}`;
-      window.open(url, '_blank');
-    };
-
-    const condividiTelegram = () => {
-      if (partiteSelezionate.length === 0) {
-        if (showAlert) showAlert('error', '⚠️ Nessuna partita selezionata');
-        return;
-      }
-
-      let testo = `🎯 *SCHEDINA GesssAI-Pro*\n`;
-      testo += `📅 ${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}\n`;
-      testo += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-
-      partiteSelezionate.forEach((m, i) => {
-        const emoji = m.isBomb ? '💣 ' : '';
-        const colore = m.colore || getColorePercentuale(m.pct);
-        testo += `${i+1}. ${m.casa} vs ${m.ospiti}\n`;
-        testo += `   🎯 ${emoji}${m.giocata} → ${m.pct}% (${m.quote.toFixed(2)}) ${colore.label}\n\n`;
-      });
-
-      testo += `━━━━━━━━━━━━━━━━━━━━━\n`;
-      testo += `📊 Totale Quote: ${calcolaTotaleQuote().toFixed(2)}\n`;
-      testo += `📈 Media %: ${calcolaMediaPercentuali()}%\n`;
-      testo += `💰 Posta: €${parseFloat(schedinaCorrente.stake || 10).toFixed(2)}\n`;
-      testo += `🏆 Vincita: €${calcolaVincitaPotenziale().toFixed(2)}\n`;
-      testo += `📈 Rendimento: +${calcolaPercentualeVincita().toFixed(0)}%\n`;
-      testo += `━━━━━━━━━━━━━━━━━━━━━\n`;
-      testo += `🔗 GesssAI-Pro v3.0`;
-
-      const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(testo)}`;
-      window.open(url, '_blank');
-    };
-
     const importaQuoteExcel = (file) => {
       if (!file) return;
       
@@ -401,6 +541,17 @@
       reader.readAsArrayBuffer(file);
     };
 
+    // Funzione per svuotare la lista
+    const svuotaLista = () => {
+      if (partiteDisponibili.length === 0) {
+        if (showAlert) showAlert('info', 'ℹ️ La lista è già vuota');
+        return;
+      }
+      setPartiteDisponibili([]);
+      setPartiteSelezionate([]);
+      if (showAlert) showAlert('info', '🗑️ Lista svuotata!');
+    };
+
     // Effetti
     useEffect(() => {
       calcolaPartite();
@@ -426,7 +577,7 @@
 
     // Render
     return (
-      <div className="schedina-container" style={styles.container}>
+      <div className="schedina-container" style={styles.container} ref={schedinaRef}>
 
         {/* FILTRI */}
         <div className="card" style={styles.card}>
@@ -517,10 +668,10 @@
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <button 
                 className="btn btn-secondary" 
-                onClick={() => setPartiteSelezionate([])} 
-                style={{ ...styles.button, fontSize: '15px', padding: '6px 16px' }}
+                onClick={svuotaLista} 
+                style={{ ...styles.button, fontSize: '15px', padding: '6px 16px', background: '#eb5757', color: '#fff' }}
               >
-                🗑️ Deseleziona
+                🗑️ Svuota Lista
               </button>
             </div>
           </div>
@@ -529,6 +680,7 @@
             <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
               <span style={{ fontSize: '40px' }}>📭</span>
               <p style={{ fontSize: '18px' }}>Nessuna partita disponibile</p>
+              <p style={{ fontSize: '14px' }}>Usa i filtri sopra per cercare partite</p>
             </div>
           ) : (
             <div style={{ display: 'grid', gap: '6px', maxHeight: '500px', overflowY: 'auto' }}>
@@ -598,17 +750,10 @@
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               <button 
                 className="btn btn-secondary" 
-                onClick={condividiWhatsApp} 
-                style={{ ...styles.button, fontSize: '15px', padding: '6px 14px' }}
+                onClick={() => setMostraOpzioniCondivisione(!mostraOpzioniCondivisione)}
+                style={{ ...styles.button, fontSize: '15px', padding: '6px 14px', background: 'var(--accent)', color: '#000' }}
               >
-                💬 WhatsApp
-              </button>
-              <button 
-                className="btn btn-secondary" 
-                onClick={condividiTelegram} 
-                style={{ ...styles.button, fontSize: '15px', padding: '6px 14px' }}
-              >
-                📨 Telegram
+                📤 Condividi
               </button>
               <button 
                 className="btn" 
@@ -619,6 +764,73 @@
               </button>
             </div>
           </div>
+
+          {/* Opzioni di condivisione */}
+          {mostraOpzioniCondivisione && (
+            <div style={{ 
+              background: 'var(--surface)', 
+              padding: '16px 20px', 
+              borderRadius: '8px', 
+              marginBottom: '12px',
+              border: '2px solid var(--accent)'
+            }}>
+              <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '12px', color: 'var(--accent)' }}>
+                📤 Scegli come condividere
+              </div>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', cursor: 'pointer' }}>
+                  <input 
+                    type="radio" 
+                    name="condivisione" 
+                    value="testo" 
+                    checked={tipoCondivisione === 'testo'} 
+                    onChange={() => setTipoCondivisione('testo')}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  📝 Testo
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', cursor: 'pointer' }}>
+                  <input 
+                    type="radio" 
+                    name="condivisione" 
+                    value="screenshot" 
+                    checked={tipoCondivisione === 'screenshot'} 
+                    onChange={() => setTipoCondivisione('screenshot')}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  📸 Screenshot
+                </label>
+                <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={() => condividi('whatsapp')}
+                    style={{ fontSize: '14px', padding: '6px 14px', background: '#25D366', color: '#fff', border: 'none' }}
+                  >
+                    💬 WhatsApp
+                  </button>
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={() => condividi('telegram')}
+                    style={{ fontSize: '14px', padding: '6px 14px', background: '#0088cc', color: '#fff', border: 'none' }}
+                  >
+                    📨 Telegram
+                  </button>
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={() => setMostraOpzioniCondivisione(false)}
+                    style={{ fontSize: '14px', padding: '6px 12px' }}
+                  >
+                    ✖ Chiudi
+                  </button>
+                </div>
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>
+                {tipoCondivisione === 'testo' 
+                  ? '📝 Invia il testo della schedina' 
+                  : '📸 Genera e invia uno screenshot della schedina'}
+              </div>
+            </div>
+          )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
