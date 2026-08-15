@@ -1,6 +1,6 @@
 // ============================================================
 // SCHEDINA.JS - Modulo Schedina per GesssAI-Pro
-// VERSIONE CON EMOJI COMPATIBILI WHATSAPP + TELEGRAM
+// VERSIONE CON EMOJI WHATSAPP-COMPATIBILI + ORARIO E CAMPIONATO
 // ============================================================
 
 (function() {
@@ -33,17 +33,16 @@
       return saved ? JSON.parse(saved) : {};
     });
     const [mostraOpzioniCondivisione, setMostraOpzioniCondivisione] = useState(false);
-    const [tipoCondivisione, setTipoCondivisione] = useState('testo');
 
     const fileInputRef = useRef(null);
     const schedinaRef = useRef(null);
 
     // Funzione per ottenere il colore in base alla percentuale
     const getColorePercentuale = (pct) => {
-      if (pct >= 90) return { classe: 'flag-bomb', colore: '#f39c12', label: '💣 Oro' };
-      if (pct >= 66.67) return { classe: 'flag-green', colore: '#6fcf97', label: '🟢 Verde' };
-      if (pct >= 33.34) return { classe: 'flag-white', colore: '#8b949e', label: '⚪ Bianco' };
-      return { classe: 'flag-red', colore: '#eb5757', label: '🔴 Rosso' };
+      if (pct >= 90) return { classe: 'flag-bomb', colore: '#f39c12', label: 'Oro' };
+      if (pct >= 66.67) return { classe: 'flag-green', colore: '#6fcf97', label: 'Verde' };
+      if (pct >= 33.34) return { classe: 'flag-white', colore: '#8b949e', label: 'Bianco' };
+      return { classe: 'flag-red', colore: '#eb5757', label: 'Rosso' };
     };
 
     // Funzioni di utilità
@@ -216,30 +215,35 @@
       return (totale * 100) - 100;
     }, [calcolaTotaleQuote]);
 
-    // Genera il testo della schedina con EMOJI COMPATIBILI
-    // Usa solo emoji che funzionano su WhatsApp e Telegram
+    // Genera il testo della schedina con EMOJI WHATSAPP-COMPATIBILI
+    // Usa solo: ✅ ⚪ 🔴 🟢 🟡 💣 📅 ⏰ (tutte supportate)
     const generaTestoSchedina = () => {
       let testo = `🎯 SCHEDINA GesssAI-Pro\n`;
       testo += `📅 ${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}\n`;
       testo += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
       partiteSelezionate.forEach((m, i) => {
-        const colore = m.colore || getColorePercentuale(m.pct);
         const emoji = m.isBomb ? '💣 ' : '';
-        // Usa solo emoji compatibili: ✅ ⚪ 🔴 🟢 🟡 💣
+        // Emoji colore compatibili
         let coloreEmoji = '⚪';
         if (m.pct >= 90) coloreEmoji = '🟡';
         else if (m.pct >= 66.67) coloreEmoji = '🟢';
         else if (m.pct >= 33.34) coloreEmoji = '⚪';
         else coloreEmoji = '🔴';
         
+        const orario = m.ora && m.ora !== 'TBD' && m.ora !== 'N/D' ? `⏰ ${m.ora}` : '';
+        const campionato = m.campionato || '';
+        
         testo += `${i+1}. ${m.casa} vs ${m.ospiti}\n`;
+        if (orario || campionato) {
+          testo += `   ${orario} ${campionato}\n`;
+        }
         testo += `   ${emoji}${m.giocata} → ${m.pct}% (${m.quote.toFixed(2)}) ${coloreEmoji}\n\n`;
       });
 
       testo += `━━━━━━━━━━━━━━━━━━━━━\n`;
       testo += `📊 Totale Quote: ${calcolaTotaleQuote().toFixed(2)}\n`;
-      testo += `📈 Media %%: ${calcolaMediaPercentuali()}%\n`;
+      testo += `📈 Media %: ${calcolaMediaPercentuali()}%\n`;
       testo += `💰 Posta: €${parseFloat(schedinaCorrente.stake || 10).toFixed(2)}\n`;
       testo += `🏆 Vincita: €${calcolaVincitaPotenziale().toFixed(2)}\n`;
       testo += `📈 Rendimento: +${calcolaPercentualeVincita().toFixed(0)}%\n`;
@@ -288,6 +292,7 @@
           ospiti: m.ospiti,
           campionato: m.campionato,
           data: m.data,
+          ora: m.ora,
           giocata: m.giocata,
           pct: m.pct,
           quote: m.quote,
@@ -535,6 +540,7 @@
                 const selezionata = isPartitaSelezionata(m.id);
                 const color = window.getChampColor(m.campionato);
                 const colorePct = m.colore || getColorePercentuale(m.pct);
+                const orario = m.ora && m.ora !== 'TBD' && m.ora !== 'N/D' ? `⏰ ${m.ora}` : '';
                 return (
                   <div 
                     key={m.id}
@@ -553,12 +559,14 @@
                       transition: 'all 0.2s'
                     }}
                   >
-                    <span style={{ fontSize: '22px' }}>{selezionata ? '☑️' : '⬜'}</span>
+                    <span style={{ fontSize: '22px' }}>{selezionata ? '✅' : '⬜'}</span>
                     <div>
                       <span style={{ fontWeight: 'bold', fontSize: '17px' }}>{m.casa}</span>
                       <span style={{ color: 'var(--text-muted)', margin: '0 6px', fontSize: '15px' }}>vs</span>
                       <span style={{ fontWeight: 'bold', fontSize: '17px' }}>{m.ospiti}</span>
-                      <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{m.campionato}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                        {orario} {m.campionato}
+                      </div>
                     </div>
                     <div style={{ 
                       background: color, 
@@ -653,7 +661,7 @@
                 </div>
               </div>
               <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>
-                💡 Il testo contiene emoji compatibili con WhatsApp e Telegram
+                💡 Testo con emoji compatibili WhatsApp e Telegram
               </div>
             </div>
           )}
@@ -689,6 +697,7 @@
               <div style={{ display: 'grid', gap: '6px', marginBottom: '12px', maxHeight: '250px', overflowY: 'auto' }}>
                 {partiteSelezionate.map((m, i) => {
                   const colorePct = m.colore || getColorePercentuale(m.pct);
+                  const orario = m.ora && m.ora !== 'TBD' && m.ora !== 'N/D' ? `⏰ ${m.ora}` : '';
                   return (
                     <div key={m.id} style={{ 
                       display: 'grid', 
@@ -706,6 +715,9 @@
                         <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{m.casa}</span>
                         <span style={{ color: 'var(--text-muted)', margin: '0 4px' }}>vs</span>
                         <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{m.ospiti}</span>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                          {orario} {m.campionato}
+                        </div>
                       </div>
                       <div style={{ 
                         background: window.getChampColor(m.campionato), 
