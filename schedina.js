@@ -1,6 +1,6 @@
 // ============================================================
 // SCHEDINA.JS - Modulo Schedina per GesssAI-Pro
-// VERSIONE AGGIORNATA con filtro partite e media percentuali
+// VERSIONE AGGIORNATA con colori e filtri data corretti
 // ============================================================
 
 (function() {
@@ -14,7 +14,7 @@
       campionato: 'Tutti',
       data: 'oggi',
       giocata: 'Tutti',
-      numeroPartite: 10  // NUOVO: filtro numero partite
+      numeroPartite: 10
     });
 
     const [partiteDisponibili, setPartiteDisponibili] = useState([]);
@@ -35,16 +35,35 @@
 
     const fileInputRef = useRef(null);
 
+    // Funzione per ottenere il colore in base alla percentuale
+    const getColorePercentuale = (pct) => {
+      if (pct >= 90) return { classe: 'flag-bomb', colore: '#f39c12', label: '💣 Oro' };
+      if (pct >= 66.67) return { classe: 'flag-green', colore: '#6fcf97', label: '🟢 Verde' };
+      if (pct >= 33.34) return { classe: 'flag-white', colore: '#8b949e', label: '⚪ Bianco' };
+      return { classe: 'flag-red', colore: '#eb5757', label: '🔴 Rosso' };
+    };
+
     // Funzioni di utilità
     const getDataRange = useCallback(() => {
       const oggi = new Date();
       oggi.setHours(0, 0, 0, 0);
       
       const ranges = {
-        'oggi': { start: oggi, end: new Date(oggi) },
-        'domani': { start: new Date(oggi.setDate(oggi.getDate() + 1)), end: new Date(oggi) },
-        '3gg': { start: new Date(oggi), end: new Date(oggi.setDate(oggi.getDate() + 3)) },
-        '6gg': { start: new Date(oggi), end: new Date(oggi.setDate(oggi.getDate() + 6)) },
+        'oggi': { 
+          start: oggi, 
+          end: new Date(oggi),
+          label: 'Oggi (1 giorno)'
+        },
+        'oggi_domani': { 
+          start: oggi, 
+          end: new Date(new Date(oggi).setDate(oggi.getDate() + 1)),
+          label: 'Oggi+Domani (1-2 giorni)'
+        },
+        'oggi_3': { 
+          start: oggi, 
+          end: new Date(new Date(oggi).setDate(oggi.getDate() + 3)),
+          label: 'Oggi +3 giorni'
+        },
         'tutte': null
       };
       
@@ -55,6 +74,7 @@
     const calcolaPartite = useCallback(() => {
       if (!matches || matches.length === 0) {
         setPartiteDisponibili([]);
+        setPartiteSelezionate([]);
         return;
       }
 
@@ -132,7 +152,8 @@
           giocata: migliorGiocata,
           pct: migliorPct,
           quote: quote,
-          isBomb: migliorPct >= 90
+          isBomb: migliorPct >= 90,
+          colore: getColorePercentuale(migliorPct)
         };
       });
 
@@ -141,6 +162,12 @@
       // Limita al numero di partite selezionato
       const limitate = valide.slice(0, filtri.numeroPartite);
       setPartiteDisponibili(limitate);
+      
+      // Seleziona automaticamente le prime partite disponibili (max 10)
+      const maxSelezionabili = Math.min(10, limitate.length);
+      const daSelezionare = limitate.slice(0, maxSelezionabili);
+      setPartiteSelezionate(daSelezionare);
+      
     }, [matches, filtri, selectedFamiglie, quotePersonalizzate, getDataRange]);
 
     const toggleSelezionePartita = (match) => {
@@ -169,7 +196,6 @@
       return partiteSelezionate.reduce((acc, m) => acc * m.quote, 1);
     }, [partiteSelezionate]);
 
-    // NUOVA: Calcola la media delle percentuali
     const calcolaMediaPercentuali = useCallback(() => {
       if (partiteSelezionate.length === 0) return 0;
       const somma = partiteSelezionate.reduce((acc, m) => acc + m.pct, 0);
@@ -209,10 +235,11 @@
           giocata: m.giocata,
           pct: m.pct,
           quote: m.quote,
-          isBomb: m.isBomb
+          isBomb: m.isBomb,
+          colore: m.colore
         })),
         totaleQuote: calcolaTotaleQuote(),
-        mediaPercentuali: calcolaMediaPercentuali(), // NUOVO: salva la media
+        mediaPercentuali: calcolaMediaPercentuali(),
         stake: parseFloat(schedinaCorrente.stake) || 10,
         vincitaPotenziale: calcolaVincitaPotenziale(),
         percentualeVincita: calcolaPercentualeVincita()
@@ -249,7 +276,8 @@
             giocata: p.giocata,
             pct: p.pct,
             quote: p.quote,
-            isBomb: p.isBomb
+            isBomb: p.isBomb,
+            colore: p.colore || getColorePercentuale(p.pct)
           };
         }
         return null;
@@ -280,13 +308,14 @@
 
       partiteSelezionate.forEach((m, i) => {
         const emoji = m.isBomb ? '💣 ' : '';
+        const colore = m.colore || getColorePercentuale(m.pct);
         testo += `${i+1}. ${m.casa} vs ${m.ospiti}\n`;
-        testo += `   🎯 ${emoji}${m.giocata} → ${m.pct}% (${m.quote.toFixed(2)})\n\n`;
+        testo += `   🎯 ${emoji}${m.giocata} → ${m.pct}% (${m.quote.toFixed(2)}) ${colore.label}\n\n`;
       });
 
       testo += `━━━━━━━━━━━━━━━━━━━━━\n`;
       testo += `📊 Totale Quote: ${calcolaTotaleQuote().toFixed(2)}\n`;
-      testo += `📈 Media %: ${calcolaMediaPercentuali()}%\n`; // NUOVO
+      testo += `📈 Media %: ${calcolaMediaPercentuali()}%\n`;
       testo += `💰 Posta: €${parseFloat(schedinaCorrente.stake || 10).toFixed(2)}\n`;
       testo += `🏆 Vincita: €${calcolaVincitaPotenziale().toFixed(2)}\n`;
       testo += `📈 Rendimento: +${calcolaPercentualeVincita().toFixed(0)}%\n`;
@@ -309,13 +338,14 @@
 
       partiteSelezionate.forEach((m, i) => {
         const emoji = m.isBomb ? '💣 ' : '';
+        const colore = m.colore || getColorePercentuale(m.pct);
         testo += `${i+1}. ${m.casa} vs ${m.ospiti}\n`;
-        testo += `   🎯 ${emoji}${m.giocata} → ${m.pct}% (${m.quote.toFixed(2)})\n\n`;
+        testo += `   🎯 ${emoji}${m.giocata} → ${m.pct}% (${m.quote.toFixed(2)}) ${colore.label}\n\n`;
       });
 
       testo += `━━━━━━━━━━━━━━━━━━━━━\n`;
       testo += `📊 Totale Quote: ${calcolaTotaleQuote().toFixed(2)}\n`;
-      testo += `📈 Media %: ${calcolaMediaPercentuali()}%\n`; // NUOVO
+      testo += `📈 Media %: ${calcolaMediaPercentuali()}%\n`;
       testo += `💰 Posta: €${parseFloat(schedinaCorrente.stake || 10).toFixed(2)}\n`;
       testo += `🏆 Vincita: €${calcolaVincitaPotenziale().toFixed(2)}\n`;
       testo += `📈 Rendimento: +${calcolaPercentualeVincita().toFixed(0)}%\n`;
@@ -399,7 +429,7 @@
               </select>
             </div>
 
-            {/* Data */}
+            {/* Data - AGGIORNATO */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label style={{ fontSize: '11px' }}>📅 Data</label>
               <select 
@@ -407,11 +437,10 @@
                 onChange={e => setFiltri(prev => ({ ...prev, data: e.target.value }))}
                 style={{ padding: '5px 8px', fontSize: '12px' }}
               >
-                <option value="oggi">📅 Oggi</option>
-                <option value="domani">📅 Domani</option>
-                <option value="3gg">📅 +3 giorni</option>
-                <option value="6gg">📅 +6 giorni</option>
-                <option value="tutte">📅 Tutte</option>
+                <option value="oggi">📅 Oggi (1 giorno)</option>
+                <option value="oggi_domani">📅 Oggi+Domani (1-2 giorni)</option>
+                <option value="oggi_3">📅 Oggi +3 giorni</option>
+                <option value="tutte">📅 Tutte (+6)</option>
               </select>
             </div>
 
@@ -430,7 +459,7 @@
               </select>
             </div>
 
-            {/* NUOVO: Numero Partite */}
+            {/* Numero Partite */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label style={{ fontSize: '11px' }}>📊 Partite</label>
               <select 
@@ -459,12 +488,6 @@
             <h4 style={{ margin: 0, fontSize: '14px' }}>📋 Partite ({partiteDisponibili.length})</h4>
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               <button className="btn btn-secondary" onClick={() => setPartiteSelezionate([])} style={{ fontSize: '10px', padding: '3px 10px' }}>🗑️ Deseleziona</button>
-              <button className="btn" onClick={() => {
-                const maxSelezionabili = Math.min(10, partiteDisponibili.length);
-                const migliori = [...partiteDisponibili].sort((a, b) => b.pct - a.pct).slice(0, maxSelezionabili);
-                setPartiteSelezionate(migliori);
-                if (showAlert) showAlert('info', `✅ Selezionate ${migliori.length} migliori`);
-              }} style={{ fontSize: '10px', padding: '3px 10px' }}>⭐ Auto</button>
             </div>
           </div>
 
@@ -478,6 +501,7 @@
               {partiteDisponibili.map(m => {
                 const selezionata = isPartitaSelezionata(m.id);
                 const color = window.getChampColor(m.campionato);
+                const colorePct = m.colore || getColorePercentuale(m.pct);
                 return (
                   <div 
                     key={m.id}
@@ -502,9 +526,30 @@
                       <span style={{ fontWeight: 'bold' }}>{m.ospiti}</span>
                       <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{m.campionato}</div>
                     </div>
-                    <div style={{ background: color, padding: '1px 6px', borderRadius: '3px', fontSize: '10px', fontWeight: 'bold', color: '#000' }}>{m.giocata || 'N/D'}</div>
-                    <div style={{ fontWeight: 'bold', color: m.isBomb ? 'var(--accent)' : 'var(--text)' }}>{m.pct}%{m.isBomb && '💣'}</div>
-                    <div style={{ fontWeight: 'bold', color: 'var(--accent)' }}>{m.quote.toFixed(2)}</div>
+                    <div style={{ 
+                      background: color, 
+                      padding: '1px 6px', 
+                      borderRadius: '3px', 
+                      fontSize: '10px', 
+                      fontWeight: 'bold', 
+                      color: '#000' 
+                    }}>
+                      {m.giocata || 'N/D'}
+                    </div>
+                    <div style={{ fontWeight: 'bold', color: m.isBomb ? 'var(--accent)' : 'var(--text)' }}>
+                      {m.pct}%{m.isBomb && '💣'}
+                    </div>
+                    <div style={{ 
+                      fontWeight: 'bold', 
+                      color: 'var(--accent)',
+                      background: colorePct.colore,
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      color: '#000',
+                      fontSize: '11px'
+                    }}>
+                      {m.quote.toFixed(2)}
+                    </div>
                   </div>
                 );
               })}
@@ -539,14 +584,35 @@
           ) : (
             <>
               <div style={{ display: 'grid', gap: '3px', marginBottom: '8px', maxHeight: '200px', overflowY: 'auto' }}>
-                {partiteSelezionate.map((m, i) => (
-                  <div key={m.id} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto auto', alignItems: 'center', gap: '4px', padding: '3px 6px', background: 'var(--surface)', borderRadius: '3px', border: '1px solid var(--border)', fontSize: '11px' }}>
-                    <span style={{ fontWeight: 'bold', color: 'var(--accent)' }}>#{i+1}</span>
-                    <div><span style={{ fontWeight: 'bold' }}>{m.casa}</span> vs <span style={{ fontWeight: 'bold' }}>{m.ospiti}</span></div>
-                    <div style={{ background: window.getChampColor(m.campionato), padding: '0 4px', borderRadius: '2px', fontSize: '9px', fontWeight: 'bold', color: '#000' }}>{m.giocata}</div>
-                    <div style={{ fontWeight: 'bold', color: 'var(--accent)' }}>{m.quote.toFixed(2)}</div>
-                  </div>
-                ))}
+                {partiteSelezionate.map((m, i) => {
+                  const colorePct = m.colore || getColorePercentuale(m.pct);
+                  return (
+                    <div key={m.id} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto auto', alignItems: 'center', gap: '4px', padding: '3px 6px', background: 'var(--surface)', borderRadius: '3px', border: '1px solid var(--border)', fontSize: '11px' }}>
+                      <span style={{ fontWeight: 'bold', color: 'var(--accent)' }}>#{i+1}</span>
+                      <div><span style={{ fontWeight: 'bold' }}>{m.casa}</span> vs <span style={{ fontWeight: 'bold' }}>{m.ospiti}</span></div>
+                      <div style={{ 
+                        background: window.getChampColor(m.campionato), 
+                        padding: '0 4px', 
+                        borderRadius: '2px', 
+                        fontSize: '9px', 
+                        fontWeight: 'bold', 
+                        color: '#000' 
+                      }}>
+                        {m.giocata}
+                      </div>
+                      <div style={{ 
+                        fontWeight: 'bold', 
+                        color: '#000',
+                        background: colorePct.colore,
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontSize: '10px'
+                      }}>
+                        {m.quote.toFixed(2)} | {m.pct}%
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Riepilogo con MEDIA PERCENTUALI */}
@@ -564,9 +630,9 @@
                   <div style={{ 
                     fontSize: '16px', 
                     fontWeight: 'bold', 
-                    color: calcolaMediaPercentuali() >= 80 ? 'var(--win)' : 
-                           calcolaMediaPercentuali() >= 60 ? 'var(--draw)' : 
-                           calcolaMediaPercentuali() >= 40 ? 'var(--text)' : 'var(--lose)'
+                    color: calcolaMediaPercentuali() >= 90 ? '#f39c12' : 
+                           calcolaMediaPercentuali() >= 66.67 ? '#6fcf97' : 
+                           calcolaMediaPercentuali() >= 33.34 ? '#8b949e' : '#eb5757'
                   }}>
                     {calcolaMediaPercentuali()}%
                   </div>
@@ -611,7 +677,14 @@
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Media %</div>
-                    <div style={{ fontWeight: 'bold', color: (s.mediaPercentuali || 0) >= 80 ? 'var(--win)' : 'var(--draw)' }}>{(s.mediaPercentuali || 0)}%</div>
+                    <div style={{ 
+                      fontWeight: 'bold', 
+                      color: (s.mediaPercentuali || 0) >= 90 ? '#f39c12' : 
+                             (s.mediaPercentuali || 0) >= 66.67 ? '#6fcf97' : 
+                             (s.mediaPercentuali || 0) >= 33.34 ? '#8b949e' : '#eb5757'
+                    }}>
+                      {(s.mediaPercentuali || 0)}%
+                    </div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Vincita</div>
@@ -629,12 +702,12 @@
 
         {/* LEGENDA */}
         <div style={{ fontSize: '10px', color: 'var(--text-muted)', padding: '4px 12px', background: 'var(--surface)', borderRadius: '4px', border: '1px solid var(--border)', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <span>💣 Bomba (≥90%)</span>
-          <span>🟢 Alta (≥66%)</span>
-          <span>⚪ Media (≥33%)</span>
-          <span>🔴 Bassa (&lt;33%)</span>
+          <span style={{ color: '#f39c12' }}>💣 Oro (≥90%)</span>
+          <span style={{ color: '#6fcf97' }}>🟢 Verde (66,67-89,99%)</span>
+          <span style={{ color: '#8b949e' }}>⚪ Bianco (33,34-66,66%)</span>
+          <span style={{ color: '#eb5757' }}>🔴 Rosso (0-33,33%)</span>
           <span>📊 Media %: media aritmetica delle percentuali selezionate</span>
-          <span>💡 Clicca su una partita per selezionarla</span>
+          <span>💡 Clicca su una partita per selezionarla/deselezionarla</span>
         </div>
       </div>
     );
