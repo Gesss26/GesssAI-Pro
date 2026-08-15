@@ -1,6 +1,6 @@
 // ============================================================
 // SCHEDINA.JS - Modulo Schedina per GesssAI-Pro
-// VERSIONE CON EMOJI NEL TESTO E SCREENSHOT PNG
+// VERSIONE CON EMOJI COMPATIBILI WHATSAPP + TELEGRAM
 // ============================================================
 
 (function() {
@@ -216,22 +216,30 @@
       return (totale * 100) - 100;
     }, [calcolaTotaleQuote]);
 
-    // Genera il testo della schedina per la condivisione (CON EMOJI)
+    // Genera il testo della schedina con EMOJI COMPATIBILI
+    // Usa solo emoji che funzionano su WhatsApp e Telegram
     const generaTestoSchedina = () => {
-      let testo = `🎯 *SCHEDINA GesssAI-Pro*\n`;
+      let testo = `🎯 SCHEDINA GesssAI-Pro\n`;
       testo += `📅 ${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}\n`;
       testo += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
       partiteSelezionate.forEach((m, i) => {
         const colore = m.colore || getColorePercentuale(m.pct);
         const emoji = m.isBomb ? '💣 ' : '';
+        // Usa solo emoji compatibili: ✅ ⚪ 🔴 🟢 🟡 💣
+        let coloreEmoji = '⚪';
+        if (m.pct >= 90) coloreEmoji = '🟡';
+        else if (m.pct >= 66.67) coloreEmoji = '🟢';
+        else if (m.pct >= 33.34) coloreEmoji = '⚪';
+        else coloreEmoji = '🔴';
+        
         testo += `${i+1}. ${m.casa} vs ${m.ospiti}\n`;
-        testo += `   ${emoji}${m.giocata} → ${m.pct}% (${m.quote.toFixed(2)}) ${colore.label}\n\n`;
+        testo += `   ${emoji}${m.giocata} → ${m.pct}% (${m.quote.toFixed(2)}) ${coloreEmoji}\n\n`;
       });
 
       testo += `━━━━━━━━━━━━━━━━━━━━━\n`;
       testo += `📊 Totale Quote: ${calcolaTotaleQuote().toFixed(2)}\n`;
-      testo += `📈 Media %: ${calcolaMediaPercentuali()}%\n`;
+      testo += `📈 Media %%: ${calcolaMediaPercentuali()}%\n`;
       testo += `💰 Posta: €${parseFloat(schedinaCorrente.stake || 10).toFixed(2)}\n`;
       testo += `🏆 Vincita: €${calcolaVincitaPotenziale().toFixed(2)}\n`;
       testo += `📈 Rendimento: +${calcolaPercentualeVincita().toFixed(0)}%\n`;
@@ -241,158 +249,23 @@
       return testo;
     };
 
-    // Funzione per fare screenshot dell'area schedina (PNG)
-    const generaScreenshot = async () => {
-      if (typeof html2canvas === 'undefined') {
-        await new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-          script.onload = resolve;
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
-      }
-
-      const tempDiv = document.createElement('div');
-      tempDiv.style.cssText = `
-        position: fixed;
-        top: -9999px;
-        left: -9999px;
-        background: #0f1419;
-        padding: 30px;
-        border-radius: 16px;
-        min-width: 520px;
-        max-width: 620px;
-        font-family: 'Segoe UI', Tahoma, sans-serif;
-        color: #e6edf3;
-        z-index: 99999;
-      `;
-
-      let htmlContent = `
-        <div style="background: #1a2028; padding: 24px; border-radius: 12px; border: 2px solid #f39c12;">
-          <div style="text-align: center; margin-bottom: 16px;">
-            <div style="font-size: 26px; font-weight: bold; color: #f39c12;">🎯 SCHEDINA GesssAI-Pro</div>
-            <div style="font-size: 14px; color: #ffff00;">📅 ${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}</div>
-          </div>
-          <div style="border-bottom: 2px solid #30363d; margin-bottom: 12px;"></div>
-      `;
-
-      partiteSelezionate.forEach((m, i) => {
-        const colore = m.colore || getColorePercentuale(m.pct);
-        const emoji = m.isBomb ? '💣 ' : '';
-        htmlContent += `
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #232b36;">
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <span style="font-weight: bold; color: #f39c12; font-size: 16px;">#${i+1}</span>
-              <span style="font-weight: bold; font-size: 16px;">${m.casa}</span>
-              <span style="color: #8b949e; font-size: 14px;">vs</span>
-              <span style="font-weight: bold; font-size: 16px;">${m.ospiti}</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <span style="background: ${window.getChampColor(m.campionato)}; padding: 2px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; color: #000;">${m.giocata}</span>
-              <span style="background: ${colore.colore}; padding: 2px 12px; border-radius: 4px; font-weight: bold; color: #000; font-size: 15px;">${m.pct}% ${emoji}</span>
-              <span style="font-weight: bold; color: #f39c12; font-size: 15px;">${m.quote.toFixed(2)}</span>
-            </div>
-          </div>
-        `;
-      });
-
-      htmlContent += `
-          <div style="border-top: 2px solid #30363d; margin-top: 12px; padding-top: 12px;">
-            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; text-align: center;">
-              <div>
-                <div style="font-size: 11px; color: #8b949e;">📊 Partite</div>
-                <div style="font-size: 20px; font-weight: bold;">${partiteSelezionate.length}</div>
-              </div>
-              <div>
-                <div style="font-size: 11px; color: #8b949e;">📊 Quote Totali</div>
-                <div style="font-size: 20px; font-weight: bold; color: #f39c12;">${calcolaTotaleQuote().toFixed(2)}</div>
-              </div>
-              <div>
-                <div style="font-size: 11px; color: #8b949e;">📈 Media %</div>
-                <div style="font-size: 20px; font-weight: bold; color: ${calcolaMediaPercentuali() >= 90 ? '#f39c12' : calcolaMediaPercentuali() >= 66.67 ? '#6fcf97' : calcolaMediaPercentuali() >= 33.34 ? '#8b949e' : '#eb5757'};">${calcolaMediaPercentuali()}%</div>
-              </div>
-              <div>
-                <div style="font-size: 11px; color: #8b949e;">🏆 Vincita</div>
-                <div style="font-size: 20px; font-weight: bold; color: #6fcf97;">€${calcolaVincitaPotenziale().toFixed(2)}</div>
-              </div>
-              <div>
-                <div style="font-size: 11px; color: #8b949e;">📈 Rendimento</div>
-                <div style="font-size: 20px; font-weight: bold; color: ${calcolaPercentualeVincita() > 0 ? '#6fcf97' : '#eb5757'};">+${calcolaPercentualeVincita().toFixed(0)}%</div>
-              </div>
-            </div>
-          </div>
-          <div style="text-align: center; margin-top: 12px; font-size: 11px; color: #8b949e; border-top: 1px solid #30363d; padding-top: 8px;">
-            🔗 GesssAI-Pro v3.0
-          </div>
-        </div>
-      `;
-
-      tempDiv.innerHTML = htmlContent;
-      document.body.appendChild(tempDiv);
-
-      try {
-        const canvas = await html2canvas(tempDiv, {
-          backgroundColor: '#0f1419',
-          scale: 2.5,
-          useCORS: true,
-          logging: false,
-          width: tempDiv.scrollWidth,
-          height: tempDiv.scrollHeight
-        });
-        document.body.removeChild(tempDiv);
-        return canvas.toDataURL('image/png');
-      } catch (error) {
-        document.body.removeChild(tempDiv);
-        console.error('Errore screenshot:', error);
-        return null;
-      }
-    };
-
     // Funzione di condivisione
-    const condividi = async (piattaforma) => {
+    const condividi = (piattaforma) => {
       if (partiteSelezionate.length === 0) {
         if (showAlert) showAlert('error', '⚠️ Nessuna partita selezionata');
         return;
       }
 
       setMostraOpzioniCondivisione(false);
-
-      if (tipoCondivisione === 'testo') {
-        const testo = generaTestoSchedina();
-        const url = piattaforma === 'whatsapp' 
-          ? `https://wa.me/?text=${encodeURIComponent(testo)}`
-          : `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(testo)}`;
+      
+      const testo = generaTestoSchedina();
+      
+      if (piattaforma === 'whatsapp') {
+        const url = `https://wa.me/?text=${encodeURIComponent(testo)}`;
         window.open(url, '_blank');
       } else {
-        if (showAlert) showAlert('info', '⏳ Generazione screenshot in corso...');
-        
-        const screenshotDataUrl = await generaScreenshot();
-        
-        if (!screenshotDataUrl) {
-          if (showAlert) showAlert('error', '❌ Errore nella generazione dello screenshot');
-          return;
-        }
-
-        // Scarica il PNG
-        const link = document.createElement('a');
-        const nomeFile = `schedina_${new Date().toISOString().slice(0,10)}.png`;
-        link.download = nomeFile;
-        link.href = screenshotDataUrl;
-        link.click();
-
-        const testo = generaTestoSchedina();
-        const msg = `📸 Screenshot generato: ${nomeFile}\n\n${testo}`;
-        
-        if (piattaforma === 'whatsapp') {
-          const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-          window.open(url, '_blank');
-        } else {
-          const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(msg)}`;
-          window.open(url, '_blank');
-        }
-        
-        if (showAlert) showAlert('success', `✅ Screenshot salvato come ${nomeFile}`);
+        const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(testo)}`;
+        window.open(url, '_blank');
       }
     };
 
@@ -697,7 +570,6 @@
                     }}>
                       {m.giocata || 'N/D'}
                     </div>
-                    {/* QUI IL COLORE DELLA TARGHETTA È LEGATO ALLA PERCENTUALE */}
                     <div style={{ 
                       fontWeight: 'bold', 
                       fontSize: '17px',
@@ -753,59 +625,35 @@
               border: '2px solid var(--accent)'
             }}>
               <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '12px', color: 'var(--accent)' }}>
-                📤 Scegli come condividere
+                📤 Condividi Schedina
               </div>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', cursor: 'pointer' }}>
-                  <input 
-                    type="radio" 
-                    name="condivisione" 
-                    value="testo" 
-                    checked={tipoCondivisione === 'testo'} 
-                    onChange={() => setTipoCondivisione('testo')}
-                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                  />
-                  📝 Testo
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', cursor: 'pointer' }}>
-                  <input 
-                    type="radio" 
-                    name="condivisione" 
-                    value="screenshot" 
-                    checked={tipoCondivisione === 'screenshot'} 
-                    onChange={() => setTipoCondivisione('screenshot')}
-                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                  />
-                  📸 Screenshot PNG
-                </label>
-                <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
                   <button 
                     className="btn btn-secondary" 
                     onClick={() => condividi('whatsapp')}
-                    style={{ fontSize: '14px', padding: '6px 14px', background: '#25D366', color: '#fff', border: 'none', borderRadius: '6px' }}
+                    style={{ fontSize: '15px', padding: '8px 18px', background: '#25D366', color: '#fff', border: 'none', borderRadius: '8px' }}
                   >
                     💬 WhatsApp
                   </button>
                   <button 
                     className="btn btn-secondary" 
                     onClick={() => condividi('telegram')}
-                    style={{ fontSize: '14px', padding: '6px 14px', background: '#0088cc', color: '#fff', border: 'none', borderRadius: '6px' }}
+                    style={{ fontSize: '15px', padding: '8px 18px', background: '#0088cc', color: '#fff', border: 'none', borderRadius: '8px' }}
                   >
                     📨 Telegram
                   </button>
                   <button 
                     className="btn btn-secondary" 
                     onClick={() => setMostraOpzioniCondivisione(false)}
-                    style={{ fontSize: '14px', padding: '6px 12px' }}
+                    style={{ fontSize: '14px', padding: '6px 14px' }}
                   >
                     ✖ Chiudi
                   </button>
                 </div>
               </div>
               <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>
-                {tipoCondivisione === 'testo' 
-                  ? '📝 Invia il testo della schedina con emoji' 
-                  : '📸 Genera e invia uno screenshot PNG della schedina'}
+                💡 Il testo contiene emoji compatibili con WhatsApp e Telegram
               </div>
             </div>
           )}
@@ -1026,7 +874,7 @@
           flexWrap: 'wrap',
           alignItems: 'center'
         }}>
-          <span style={{ color: '#f39c12', fontWeight: 'bold', fontSize: '16px' }}>💣 Oro (≥90%)</span>
+          <span style={{ color: '#f39c12', fontWeight: 'bold', fontSize: '16px' }}>🟡 Oro (≥90%)</span>
           <span style={{ color: '#6fcf97', fontWeight: 'bold', fontSize: '16px' }}>🟢 Verde (66,67-89,99%)</span>
           <span style={{ color: '#8b949e', fontWeight: 'bold', fontSize: '16px' }}>⚪ Bianco (33,34-66,66%)</span>
           <span style={{ color: '#eb5757', fontWeight: 'bold', fontSize: '16px' }}>🔴 Rosso (0-33,33%)</span>
