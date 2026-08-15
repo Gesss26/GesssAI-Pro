@@ -1,6 +1,6 @@
 // ============================================================
 // SCHEDINA.JS - Modulo Schedina per GesssAI-Pro
-// VERSIONE con SVUOTA LISTA e SCREENSHOT per condivisione
+// VERSIONE CON EMOJI NEL TESTO E SCREENSHOT PNG
 // ============================================================
 
 (function() {
@@ -33,7 +33,7 @@
       return saved ? JSON.parse(saved) : {};
     });
     const [mostraOpzioniCondivisione, setMostraOpzioniCondivisione] = useState(false);
-    const [tipoCondivisione, setTipoCondivisione] = useState('testo'); // 'testo' o 'screenshot'
+    const [tipoCondivisione, setTipoCondivisione] = useState('testo');
 
     const fileInputRef = useRef(null);
     const schedinaRef = useRef(null);
@@ -150,23 +150,23 @@
           }
         }
 
+        const colorePct = getColorePercentuale(migliorPct);
+
         return {
           ...m,
           giocata: migliorGiocata,
           pct: migliorPct,
           quote: quote,
           isBomb: migliorPct >= 90,
-          colore: getColorePercentuale(migliorPct)
+          colore: colorePct
         };
       });
 
       const valide = conGiocata.filter(m => m.giocata && m.pct > 0);
       
-      // Limita al numero di partite selezionato
       const limitate = valide.slice(0, filtri.numeroPartite);
       setPartiteDisponibili(limitate);
       
-      // Seleziona automaticamente le prime partite disponibili (max 10)
       const maxSelezionabili = Math.min(10, limitate.length);
       const daSelezionare = limitate.slice(0, maxSelezionabili);
       setPartiteSelezionate(daSelezionare);
@@ -216,17 +216,17 @@
       return (totale * 100) - 100;
     }, [calcolaTotaleQuote]);
 
-    // Genera il testo della schedina per la condivisione
+    // Genera il testo della schedina per la condivisione (CON EMOJI)
     const generaTestoSchedina = () => {
       let testo = `🎯 *SCHEDINA GesssAI-Pro*\n`;
       testo += `📅 ${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}\n`;
       testo += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
       partiteSelezionate.forEach((m, i) => {
-        const emoji = m.isBomb ? '💣 ' : '';
         const colore = m.colore || getColorePercentuale(m.pct);
+        const emoji = m.isBomb ? '💣 ' : '';
         testo += `${i+1}. ${m.casa} vs ${m.ospiti}\n`;
-        testo += `   🎯 ${emoji}${m.giocata} → ${m.pct}% (${m.quote.toFixed(2)}) ${colore.label}\n\n`;
+        testo += `   ${emoji}${m.giocata} → ${m.pct}% (${m.quote.toFixed(2)}) ${colore.label}\n\n`;
       });
 
       testo += `━━━━━━━━━━━━━━━━━━━━━\n`;
@@ -241,11 +241,9 @@
       return testo;
     };
 
-    // Funzione per fare screenshot dell'area schedina
+    // Funzione per fare screenshot dell'area schedina (PNG)
     const generaScreenshot = async () => {
-      // Verifica se html2canvas è caricato
       if (typeof html2canvas === 'undefined') {
-        // Carica la libreria dinamicamente
         await new Promise((resolve, reject) => {
           const script = document.createElement('script');
           script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
@@ -255,7 +253,6 @@
         });
       }
 
-      // Crea un elemento temporaneo per lo screenshot
       const tempDiv = document.createElement('div');
       tempDiv.style.cssText = `
         position: fixed;
@@ -264,19 +261,18 @@
         background: #0f1419;
         padding: 30px;
         border-radius: 16px;
-        min-width: 500px;
-        max-width: 600px;
+        min-width: 520px;
+        max-width: 620px;
         font-family: 'Segoe UI', Tahoma, sans-serif;
         color: #e6edf3;
         z-index: 99999;
       `;
 
-      // Costruisci il contenuto per lo screenshot
       let htmlContent = `
-        <div style="background: #1a2028; padding: 20px; border-radius: 12px; border: 2px solid #f39c12;">
+        <div style="background: #1a2028; padding: 24px; border-radius: 12px; border: 2px solid #f39c12;">
           <div style="text-align: center; margin-bottom: 16px;">
-            <div style="font-size: 28px; font-weight: bold; color: #f39c12;">🎯 SCHEDINA GesssAI-Pro</div>
-            <div style="font-size: 14px; color: #ffff00;">${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}</div>
+            <div style="font-size: 26px; font-weight: bold; color: #f39c12;">🎯 SCHEDINA GesssAI-Pro</div>
+            <div style="font-size: 14px; color: #ffff00;">📅 ${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}</div>
           </div>
           <div style="border-bottom: 2px solid #30363d; margin-bottom: 12px;"></div>
       `;
@@ -285,18 +281,17 @@
         const colore = m.colore || getColorePercentuale(m.pct);
         const emoji = m.isBomb ? '💣 ' : '';
         htmlContent += `
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #232b36;">
-            <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #232b36;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
               <span style="font-weight: bold; color: #f39c12; font-size: 16px;">#${i+1}</span>
               <span style="font-weight: bold; font-size: 16px;">${m.casa}</span>
-              <span style="color: #8b949e;">vs</span>
+              <span style="color: #8b949e; font-size: 14px;">vs</span>
               <span style="font-weight: bold; font-size: 16px;">${m.ospiti}</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="background: ${window.getChampColor(m.campionato)}; padding: 2px 10px; border-radius: 4px; font-size: 13px; font-weight: bold; color: #000;">${m.giocata}</span>
-              <span style="background: ${colore.colore}; padding: 2px 10px; border-radius: 4px; font-weight: bold; color: #000; font-size: 14px;">${m.pct}%</span>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="background: ${window.getChampColor(m.campionato)}; padding: 2px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; color: #000;">${m.giocata}</span>
+              <span style="background: ${colore.colore}; padding: 2px 12px; border-radius: 4px; font-weight: bold; color: #000; font-size: 15px;">${m.pct}% ${emoji}</span>
               <span style="font-weight: bold; color: #f39c12; font-size: 15px;">${m.quote.toFixed(2)}</span>
-              ${m.isBomb ? '<span style="font-size: 20px;">💣</span>' : ''}
             </div>
           </div>
         `;
@@ -306,24 +301,24 @@
           <div style="border-top: 2px solid #30363d; margin-top: 12px; padding-top: 12px;">
             <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; text-align: center;">
               <div>
-                <div style="font-size: 11px; color: #8b949e;">Partite</div>
-                <div style="font-size: 18px; font-weight: bold;">${partiteSelezionate.length}</div>
+                <div style="font-size: 11px; color: #8b949e;">📊 Partite</div>
+                <div style="font-size: 20px; font-weight: bold;">${partiteSelezionate.length}</div>
               </div>
               <div>
-                <div style="font-size: 11px; color: #8b949e;">Quote Totali</div>
-                <div style="font-size: 18px; font-weight: bold; color: #f39c12;">${calcolaTotaleQuote().toFixed(2)}</div>
+                <div style="font-size: 11px; color: #8b949e;">📊 Quote Totali</div>
+                <div style="font-size: 20px; font-weight: bold; color: #f39c12;">${calcolaTotaleQuote().toFixed(2)}</div>
               </div>
               <div>
-                <div style="font-size: 11px; color: #8b949e;">Media %</div>
-                <div style="font-size: 18px; font-weight: bold; color: ${calcolaMediaPercentuali() >= 90 ? '#f39c12' : calcolaMediaPercentuali() >= 66.67 ? '#6fcf97' : calcolaMediaPercentuali() >= 33.34 ? '#8b949e' : '#eb5757'};">${calcolaMediaPercentuali()}%</div>
+                <div style="font-size: 11px; color: #8b949e;">📈 Media %</div>
+                <div style="font-size: 20px; font-weight: bold; color: ${calcolaMediaPercentuali() >= 90 ? '#f39c12' : calcolaMediaPercentuali() >= 66.67 ? '#6fcf97' : calcolaMediaPercentuali() >= 33.34 ? '#8b949e' : '#eb5757'};">${calcolaMediaPercentuali()}%</div>
               </div>
               <div>
-                <div style="font-size: 11px; color: #8b949e;">Vincita</div>
-                <div style="font-size: 18px; font-weight: bold; color: #6fcf97;">€${calcolaVincitaPotenziale().toFixed(2)}</div>
+                <div style="font-size: 11px; color: #8b949e;">🏆 Vincita</div>
+                <div style="font-size: 20px; font-weight: bold; color: #6fcf97;">€${calcolaVincitaPotenziale().toFixed(2)}</div>
               </div>
               <div>
-                <div style="font-size: 11px; color: #8b949e;">Rendimento</div>
-                <div style="font-size: 18px; font-weight: bold; color: ${calcolaPercentualeVincita() > 0 ? '#6fcf97' : '#eb5757'};">+${calcolaPercentualeVincita().toFixed(0)}%</div>
+                <div style="font-size: 11px; color: #8b949e;">📈 Rendimento</div>
+                <div style="font-size: 20px; font-weight: bold; color: ${calcolaPercentualeVincita() > 0 ? '#6fcf97' : '#eb5757'};">+${calcolaPercentualeVincita().toFixed(0)}%</div>
               </div>
             </div>
           </div>
@@ -339,7 +334,7 @@
       try {
         const canvas = await html2canvas(tempDiv, {
           backgroundColor: '#0f1419',
-          scale: 1.5,
+          scale: 2.5,
           useCORS: true,
           logging: false,
           width: tempDiv.scrollWidth,
@@ -354,7 +349,7 @@
       }
     };
 
-    // Funzione di condivisione unificata
+    // Funzione di condivisione
     const condividi = async (piattaforma) => {
       if (partiteSelezionate.length === 0) {
         if (showAlert) showAlert('error', '⚠️ Nessuna partita selezionata');
@@ -364,14 +359,12 @@
       setMostraOpzioniCondivisione(false);
 
       if (tipoCondivisione === 'testo') {
-        // Condivisione testo
         const testo = generaTestoSchedina();
         const url = piattaforma === 'whatsapp' 
           ? `https://wa.me/?text=${encodeURIComponent(testo)}`
           : `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(testo)}`;
         window.open(url, '_blank');
       } else {
-        // Condivisione screenshot
         if (showAlert) showAlert('info', '⏳ Generazione screenshot in corso...');
         
         const screenshotDataUrl = await generaScreenshot();
@@ -381,35 +374,25 @@
           return;
         }
 
+        // Scarica il PNG
+        const link = document.createElement('a');
+        const nomeFile = `schedina_${new Date().toISOString().slice(0,10)}.png`;
+        link.download = nomeFile;
+        link.href = screenshotDataUrl;
+        link.click();
+
+        const testo = generaTestoSchedina();
+        const msg = `📸 Screenshot generato: ${nomeFile}\n\n${testo}`;
+        
         if (piattaforma === 'whatsapp') {
-          // WhatsApp con screenshot - apro con testo + immagine (non supportato direttamente)
-          const testo = generaTestoSchedina();
-          const url = `https://wa.me/?text=${encodeURIComponent(testo + '\n\n📸 Screenshot allegato (salva e invia manualmente)')}`;
+          const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
           window.open(url, '_blank');
-          
-          // Scarica l'immagine come fallback
-          const link = document.createElement('a');
-          link.download = `schedina_${new Date().toISOString().slice(0,10)}.png`;
-          link.href = screenshotDataUrl;
-          link.click();
-          
-          if (showAlert) showAlert('success', '✅ Screenshot scaricato! Puoi allegarlo manualmente su WhatsApp.');
         } else {
-          // Telegram - supporta l'invio di immagini via link
-          const testo = generaTestoSchedina();
-          // Creo un blob dall'immagine per caricarla
-          const response = await fetch(screenshotDataUrl);
-          const blob = await response.blob();
-          
-          // Creo un URL per l'immagine (solo per visualizzazione, non per invio diretto)
-          const imageUrl = URL.createObjectURL(blob);
-          
-          // Apro Telegram con il testo + link all'immagine (da salvare manualmente)
-          const url = `https://t.me/share/url?url=${encodeURIComponent(imageUrl)}&text=${encodeURIComponent(testo + '\n\n📸 Screenshot allegato (salva manualmente)')}`;
+          const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(msg)}`;
           window.open(url, '_blank');
-          
-          if (showAlert) showAlert('success', '✅ Screenshot generato! Puoi allegarlo manualmente su Telegram.');
         }
+        
+        if (showAlert) showAlert('success', `✅ Screenshot salvato come ${nomeFile}`);
       }
     };
 
@@ -552,12 +535,11 @@
       if (showAlert) showAlert('info', '🗑️ Lista svuotata!');
     };
 
-    // Effetti
     useEffect(() => {
       calcolaPartite();
     }, [calcolaPartite]);
 
-    // Stili per caratteri grandi
+    // Stili
     const styles = {
       container: { display: 'grid', gap: '20px' },
       card: { padding: '18px 22px' },
@@ -575,7 +557,6 @@
       gridItem: { padding: '8px 12px' }
     };
 
-    // Render
     return (
       <div className="schedina-container" style={styles.container} ref={schedinaRef}>
 
@@ -583,7 +564,6 @@
         <div className="card" style={styles.card}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
             
-            {/* Campionato */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label style={styles.label}>🏆 Campionato</label>
               <select 
@@ -598,7 +578,6 @@
               </select>
             </div>
 
-            {/* Data */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label style={styles.label}>📅 Data</label>
               <select 
@@ -613,7 +592,6 @@
               </select>
             </div>
 
-            {/* Giocata */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label style={styles.label}>🎯 Giocata</label>
               <select 
@@ -628,7 +606,6 @@
               </select>
             </div>
 
-            {/* Numero Partite */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label style={styles.label}>📊 Partite</label>
               <select 
@@ -642,7 +619,6 @@
               </select>
             </div>
 
-            {/* Contatore selezioni */}
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
@@ -665,15 +641,13 @@
         <div className="card" style={styles.card}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
             <h4 style={styles.title}>📋 Partite ({partiteDisponibili.length})</h4>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <button 
-                className="btn btn-secondary" 
-                onClick={svuotaLista} 
-                style={{ ...styles.button, fontSize: '15px', padding: '6px 16px', background: '#eb5757', color: '#fff' }}
-              >
-                🗑️ Svuota Lista
-              </button>
-            </div>
+            <button 
+              className="btn btn-secondary" 
+              onClick={svuotaLista} 
+              style={{ ...styles.button, fontSize: '15px', padding: '6px 16px', background: '#eb5757', color: '#fff', border: 'none' }}
+            >
+              🗑️ Svuota Lista
+            </button>
           </div>
 
           {partiteDisponibili.length === 0 ? (
@@ -723,15 +697,20 @@
                     }}>
                       {m.giocata || 'N/D'}
                     </div>
-                    <div style={{ fontWeight: 'bold', fontSize: '17px', color: m.isBomb ? 'var(--accent)' : 'var(--text)' }}>
+                    {/* QUI IL COLORE DELLA TARGHETTA È LEGATO ALLA PERCENTUALE */}
+                    <div style={{ 
+                      fontWeight: 'bold', 
+                      fontSize: '17px',
+                      background: colorePct.colore,
+                      padding: '4px 12px',
+                      borderRadius: '6px',
+                      color: '#000'
+                    }}>
                       {m.pct}%{m.isBomb && ' 💣'}
                     </div>
                     <div style={{ 
                       fontWeight: 'bold', 
-                      background: colorePct.colore,
-                      padding: '4px 14px',
-                      borderRadius: '6px',
-                      color: '#000',
+                      color: 'var(--accent)',
                       fontSize: '16px'
                     }}>
                       {m.quote.toFixed(2)}
@@ -751,7 +730,7 @@
               <button 
                 className="btn btn-secondary" 
                 onClick={() => setMostraOpzioniCondivisione(!mostraOpzioniCondivisione)}
-                style={{ ...styles.button, fontSize: '15px', padding: '6px 14px', background: 'var(--accent)', color: '#000' }}
+                style={{ ...styles.button, fontSize: '15px', padding: '6px 14px', background: 'var(--accent)', color: '#000', border: 'none' }}
               >
                 📤 Condividi
               </button>
@@ -765,7 +744,6 @@
             </div>
           </div>
 
-          {/* Opzioni di condivisione */}
           {mostraOpzioniCondivisione && (
             <div style={{ 
               background: 'var(--surface)', 
@@ -798,20 +776,20 @@
                     onChange={() => setTipoCondivisione('screenshot')}
                     style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                   />
-                  📸 Screenshot
+                  📸 Screenshot PNG
                 </label>
                 <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
                   <button 
                     className="btn btn-secondary" 
                     onClick={() => condividi('whatsapp')}
-                    style={{ fontSize: '14px', padding: '6px 14px', background: '#25D366', color: '#fff', border: 'none' }}
+                    style={{ fontSize: '14px', padding: '6px 14px', background: '#25D366', color: '#fff', border: 'none', borderRadius: '6px' }}
                   >
                     💬 WhatsApp
                   </button>
                   <button 
                     className="btn btn-secondary" 
                     onClick={() => condividi('telegram')}
-                    style={{ fontSize: '14px', padding: '6px 14px', background: '#0088cc', color: '#fff', border: 'none' }}
+                    style={{ fontSize: '14px', padding: '6px 14px', background: '#0088cc', color: '#fff', border: 'none', borderRadius: '6px' }}
                   >
                     📨 Telegram
                   </button>
@@ -826,8 +804,8 @@
               </div>
               <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>
                 {tipoCondivisione === 'testo' 
-                  ? '📝 Invia il testo della schedina' 
-                  : '📸 Genera e invia uno screenshot della schedina'}
+                  ? '📝 Invia il testo della schedina con emoji' 
+                  : '📸 Genera e invia uno screenshot PNG della schedina'}
               </div>
             </div>
           )}
@@ -906,7 +884,6 @@
                 })}
               </div>
 
-              {/* Riepilogo con MEDIA PERCENTUALI */}
               <div style={{ 
                 display: 'grid', 
                 gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', 
@@ -1025,7 +1002,7 @@
                     <button 
                       className="btn btn-danger" 
                       onClick={() => eliminaSchedina(s.id)} 
-                      style={{ fontSize: '15px', padding: '4px 12px', background: 'var(--lose)' }}
+                      style={{ fontSize: '15px', padding: '4px 12px', background: 'var(--lose)', border: 'none', color: '#fff' }}
                     >
                       🗑️
                     </button>
