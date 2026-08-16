@@ -4735,15 +4735,29 @@ const FileImporter = ({ matches, setMatches, championships, setChampionships, lo
   );
 };
 
-// TeamMatchesHistory
+// ============================================================
+// COMPONENTE TeamMatchesHistory - VERSIONE MODIFICATA
+// ============================================================
+
 const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
-  const teamMatches = allMatches.filter(m => m.campionato === championship && m.stato === 'Giocata' && (m.casa === teamName || m.ospiti === teamName))
-    .sort((a, b) => { 
-      const dateA = parseDate(a.data, a.ora); 
-      const dateB = parseDate(b.data, b.ora); 
-      return dateB - dateA; 
-    });
-  if (teamMatches.length === 0) return <div className="card" style={{padding: '12px', textAlign:'center'}}><p style={{color:'var(--text-muted)'}}>Nessuna partita giocata per {teamName} in questo campionato.</p></div>;
+  const teamMatches = allMatches.filter(m => 
+    m.campionato === championship && 
+    m.stato === 'Giocata' && 
+    (m.casa === teamName || m.ospiti === teamName)
+  ).sort((a, b) => { 
+    const dateA = parseDate(a.data, a.ora); 
+    const dateB = parseDate(b.data, b.ora); 
+    return dateB - dateA; 
+  });
+  
+  if (teamMatches.length === 0) {
+    return (
+      <div className="card" style={{padding: '12px', textAlign:'center'}}>
+        <p style={{color:'var(--text-muted)'}}>Nessuna partita giocata per {teamName} in questo campionato.</p>
+      </div>
+    );
+  }
+  
   const getResult = (match, team) => {
     const isHome = match.casa === team;
     const teamGoals = isHome ? match.golCasa : match.golOspite;
@@ -4752,23 +4766,160 @@ const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
     if (teamGoals === oppGoals) return 'draw';
     return 'loss';
   };
+  
   const getOpponent = (match, team) => match.casa === team ? match.ospiti : match.casa;
   const getResultColor = (result) => result === 'win' ? 'var(--win)' : (result === 'draw' ? 'var(--draw)' : 'var(--lose)');
+  
   return (
     <div className="card" style={{padding: '12px'}}>
-      <h4 style={{color: getChampColor(teamName), marginBottom:'12px'}}>📋 {teamName}</h4>
-      <div className="standings-table-wrap">
-        <table className="standings-table history-table">
-          <thead><tr><th>Data</th><th>Avversario</th><th style={{textAlign:'center'}}>Risultato</th></tr></thead>
-          <tbody>
-            {teamMatches.map(m => {
-              const result = getResult(m, teamName);
-              const opponent = getOpponent(m, teamName);
-              const resultColor = getResultColor(result);
-              return <tr key={m.id}><td style={{color: 'var(--text)'}}>{formatDateEU(m.data)}</td><td style={{color: 'var(--text)'}}>{opponent}</td><td style={{textAlign: 'center'}}><span style={{display: 'inline-block', backgroundColor: resultColor, color: '#000', fontWeight: 'bold', padding: '2px 12px', borderRadius: '4px', minWidth: '60px', textAlign: 'center', fontSize: '14px'}}>{m.golCasa} - {m.golOspite}</span></td></tr>;
-            })}
-          </tbody>
-        </table>
+      <h4 style={{color: getChampColor(teamName), marginBottom:'12px', display: 'flex', alignItems: 'center', gap: '8px'}}>
+        <TeamLogo teamName={teamName} championship={championship} size={28} />
+        {teamName}
+        <span style={{fontSize: '12px', color: 'var(--text-muted)', fontWeight: 'normal', marginLeft: 'auto'}}>
+          {teamMatches.length} partite
+        </span>
+      </h4>
+      <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
+        {teamMatches.map(m => {
+          const result = getResult(m, teamName);
+          const opponent = getOpponent(m, teamName);
+          const resultColor = getResultColor(result);
+          const isHome = m.casa === teamName;
+          const isWin = result === 'win';
+          const isDraw = result === 'draw';
+          const isLoss = result === 'loss';
+          
+          // Determina l'emoji in base al risultato e a casa/ospite
+          let emoji = '';
+          let resultLabel = '';
+          if (isWin) {
+            emoji = '✅';
+            resultLabel = 'V';
+          } else if (isDraw) {
+            emoji = '➖';
+            resultLabel = 'P';
+          } else {
+            emoji = '❌';
+            resultLabel = 'S';
+          }
+          
+          const homeEmoji = isHome ? '🏠' : '✈️';
+          
+          return (
+            <div 
+              key={m.id} 
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '6px 12px',
+                background: 'var(--surface)',
+                borderRadius: '6px',
+                border: `2px solid ${resultColor}`,
+                borderLeft: `6px solid ${resultColor}`,
+                transition: 'all 0.15s',
+                cursor: 'default',
+                gap: '8px',
+                flexWrap: 'wrap'
+              }}
+            >
+              {/* Colonna sinistra: data e squadre */}
+              <div style={{display: 'flex', alignItems: 'center', gap: '8px', flex: '1', minWidth: '180px'}}>
+                <span style={{fontSize: '11px', color: 'var(--text-muted)', minWidth: '70px'}}>
+                  {formatDateEU(m.data)}
+                </span>
+                <span style={{fontSize: '13px', fontWeight: 'bold', color: 'var(--text)'}}>
+                  {isHome ? (
+                    <>
+                      <span style={{color: 'var(--accent)'}}>{teamName}</span>
+                      <span style={{color: 'var(--text-muted)', margin: '0 4px'}}>-</span>
+                      <span style={{color: 'var(--text)'}}>{opponent}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{color: 'var(--text)'}}>{opponent}</span>
+                      <span style={{color: 'var(--text-muted)', margin: '0 4px'}}>-</span>
+                      <span style={{color: 'var(--accent)'}}>{teamName}</span>
+                    </>
+                  )}
+                </span>
+                <span style={{fontSize: '10px', color: 'var(--text-muted)'}}>
+                  {homeEmoji} {isHome ? 'Casa' : 'Trasferta'}
+                </span>
+              </div>
+              
+              {/* Colonna destra: risultato con badge */}
+              <div style={{display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0}}>
+                <span 
+                  style={{
+                    display: 'inline-block',
+                    backgroundColor: resultColor,
+                    color: '#000',
+                    fontWeight: 'bold',
+                    padding: '2px 14px',
+                    borderRadius: '6px',
+                    minWidth: '50px',
+                    textAlign: 'center',
+                    fontSize: '16px',
+                    border: `1px solid ${resultColor}`
+                  }}
+                >
+                  {m.golCasa} - {m.golOspite}
+                </span>
+                <span 
+                  style={{
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    background: resultColor,
+                    color: '#000',
+                    minWidth: '24px',
+                    textAlign: 'center'
+                  }}
+                >
+                  {resultLabel}
+                </span>
+                <span style={{fontSize: '16px'}}>{emoji}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* Riepilogo statistiche */}
+      <div style={{
+        marginTop: '12px',
+        padding: '8px 12px',
+        background: 'var(--card)',
+        borderRadius: '6px',
+        border: '1px solid var(--border)',
+        display: 'flex',
+        justifyContent: 'space-around',
+        flexWrap: 'wrap',
+        gap: '8px',
+        fontSize: '12px'
+      }}>
+        {(() => {
+          const wins = teamMatches.filter(m => getResult(m, teamName) === 'win').length;
+          const draws = teamMatches.filter(m => getResult(m, teamName) === 'draw').length;
+          const losses = teamMatches.filter(m => getResult(m, teamName) === 'loss').length;
+          const homeMatches = teamMatches.filter(m => m.casa === teamName).length;
+          const awayMatches = teamMatches.filter(m => m.ospiti === teamName).length;
+          const homeWins = teamMatches.filter(m => m.casa === teamName && getResult(m, teamName) === 'win').length;
+          const awayWins = teamMatches.filter(m => m.ospiti === teamName && getResult(m, teamName) === 'win').length;
+          
+          return (
+            <>
+              <span>✅ V: <b style={{color: 'var(--win)'}}>{wins}</b></span>
+              <span>➖ P: <b style={{color: 'var(--draw)'}}>{draws}</b></span>
+              <span>❌ S: <b style={{color: 'var(--lose)'}}>{losses}</b></span>
+              <span>🏠 Casa: <b style={{color: 'var(--accent)'}}>{homeMatches}</b> ({homeWins} V)</span>
+              <span>✈️ Trasferta: <b style={{color: 'var(--text-muted)'}}>{awayMatches}</b> ({awayWins} V)</span>
+              <span style={{color: 'var(--text-muted)'}}>📊 {Math.round((wins / teamMatches.length) * 100)}% Vittorie</span>
+            </>
+          );
+        })()}
       </div>
     </div>
   );
