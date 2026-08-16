@@ -4,7 +4,7 @@ App di trading scommesse con analisi statistiche automatiche.
 
 ## 🚀 Caratteristiche
 
-- 📊 Analisi statistica di **13 campionati** di calcio
+- 📊 Analisi statistica di **18 campionati** di calcio
 - 🤖 Giocate calcolate automaticamente con percentuali
 - 💣 Identificazione delle "Bombe" (giocate con ≥ 90% di probabilità)
 - 🌤️ Integrazione meteo
