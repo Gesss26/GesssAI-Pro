@@ -381,7 +381,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
   };
   
   // ============================================================
-  // FUNZIONI DI CONDIVISIONE CORRETTE (da schedina.js)
+  // FUNZIONI DI CONDIVISIONE CON CONTROLLO APP INSTALLATA
   // ============================================================
   
   // Condividi su WhatsApp
@@ -394,32 +394,58 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isAndroid = /Android/i.test(navigator.userAgent);
+    const isWindows = /Win/i.test(navigator.userAgent);
+    const isMac = /Mac/i.test(navigator.userAgent);
     
-    if (isMobile) {
-      if (isIOS) {
-        // iOS: usa il link che apre WhatsApp
-        window.location.href = `whatsapp://send?text=${testoEncoded}`;
-        // Fallback per iOS se WhatsApp non è installato
-        setTimeout(() => {
-          window.location.href = `https://api.whatsapp.com/send?text=${testoEncoded}`;
-        }, 1000);
-      } else if (isAndroid) {
-        // Android: usa intent
-        window.location.href = `intent://send?text=${testoEncoded}#Intent;package=com.whatsapp;scheme=whatsapp;end;`;
-        // Fallback per Android
-        setTimeout(() => {
-          window.location.href = `https://api.whatsapp.com/send?text=${testoEncoded}`;
-        }, 1500);
-      } else {
-        // Altri mobile
-        window.location.href = `whatsapp://send?text=${testoEncoded}`;
-        setTimeout(() => {
-          window.location.href = `https://api.whatsapp.com/send?text=${testoEncoded}`;
-        }, 1000);
-      }
+    // Determina l'URL per tentare di aprire l'app
+    let appUrl = '';
+    let webUrl = '';
+    
+    if (isIOS) {
+      appUrl = `whatsapp://send?text=${testoEncoded}`;
+      webUrl = `https://api.whatsapp.com/send?text=${testoEncoded}`;
+    } else if (isAndroid) {
+      appUrl = `intent://send?text=${testoEncoded}#Intent;package=com.whatsapp;scheme=whatsapp;end;`;
+      webUrl = `https://api.whatsapp.com/send?text=${testoEncoded}`;
+    } else if (isWindows) {
+      // Windows: prova ad aprire l'app WhatsApp (se installata dallo store)
+      // usa il protocollo whatsapp:// che funziona anche su Windows con l'app installata
+      appUrl = `whatsapp://send?text=${testoEncoded}`;
+      webUrl = `https://web.whatsapp.com/send?text=${testoEncoded}`;
+    } else if (isMac) {
+      // Mac: prova l'app WhatsApp Desktop
+      appUrl = `whatsapp://send?text=${testoEncoded}`;
+      webUrl = `https://web.whatsapp.com/send?text=${testoEncoded}`;
     } else {
-      // Desktop: usa WhatsApp Web
-      window.open(`https://web.whatsapp.com/send?text=${testoEncoded}`, '_blank');
+      // Altri desktop
+      appUrl = `whatsapp://send?text=${testoEncoded}`;
+      webUrl = `https://web.whatsapp.com/send?text=${testoEncoded}`;
+    }
+    
+    // Tentativo di aprire l'app
+    try {
+      // Apri l'app con un timeout per il fallback
+      const win = window.open(appUrl, '_blank');
+      
+      // Se la finestra non si apre o viene chiusa subito, usa il fallback web
+      if (!win || win.closed) {
+        window.open(webUrl, '_blank');
+      } else {
+        // Dopo 2 secondi, se la finestra è ancora aperta, significa che l'app non c'è
+        setTimeout(() => {
+          try {
+            if (win && !win.closed) {
+              win.close();
+              window.open(webUrl, '_blank');
+            }
+          } catch (e) {
+            window.open(webUrl, '_blank');
+          }
+        }, 2000);
+      }
+    } catch (e) {
+      // Se qualcosa va storto, usa il web
+      window.open(webUrl, '_blank');
     }
   };
   
@@ -433,32 +459,53 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isAndroid = /Android/i.test(navigator.userAgent);
+    const isWindows = /Win/i.test(navigator.userAgent);
+    const isMac = /Mac/i.test(navigator.userAgent);
     
-    if (isMobile) {
-      if (isIOS) {
-        // iOS: usa il link che apre l'app Telegram
-        window.location.href = `tg://msg?text=${testoEncoded}`;
-        // Fallback per iOS se Telegram non è installato
-        setTimeout(() => {
-          window.location.href = `https://t.me/share/url?url=&text=${testoEncoded}`;
-        }, 1000);
-      } else if (isAndroid) {
-        // Android: usa intent per Telegram
-        window.location.href = `intent://share/url?url=&text=${testoEncoded}#Intent;package=org.telegram.messenger;scheme=tg;end;`;
-        // Fallback per Android
-        setTimeout(() => {
-          window.location.href = `https://t.me/share/url?url=&text=${testoEncoded}`;
-        }, 1500);
-      } else {
-        // Altri mobile
-        window.location.href = `tg://msg?text=${testoEncoded}`;
-        setTimeout(() => {
-          window.location.href = `https://t.me/share/url?url=&text=${testoEncoded}`;
-        }, 1000);
-      }
+    // Determina l'URL per tentare di aprire l'app
+    let appUrl = '';
+    let webUrl = '';
+    
+    if (isIOS) {
+      appUrl = `tg://msg?text=${testoEncoded}`;
+      webUrl = `https://t.me/share/url?url=&text=${testoEncoded}`;
+    } else if (isAndroid) {
+      appUrl = `intent://share/url?url=&text=${testoEncoded}#Intent;package=org.telegram.messenger;scheme=tg;end;`;
+      webUrl = `https://t.me/share/url?url=&text=${testoEncoded}`;
+    } else if (isWindows) {
+      // Windows: prova ad aprire l'app Telegram (se installata)
+      appUrl = `tg://msg?text=${testoEncoded}`;
+      webUrl = `https://web.telegram.org/k/#?tgaddr=tg://msg?text=${testoEncoded}`;
+    } else if (isMac) {
+      // Mac: prova l'app Telegram
+      appUrl = `tg://msg?text=${testoEncoded}`;
+      webUrl = `https://web.telegram.org/k/#?tgaddr=tg://msg?text=${testoEncoded}`;
     } else {
-      // Desktop: usa Telegram Web
-      window.open(`https://t.me/share/url?url=&text=${testoEncoded}`, '_blank');
+      // Altri desktop
+      appUrl = `tg://msg?text=${testoEncoded}`;
+      webUrl = `https://web.telegram.org/k/#?tgaddr=tg://msg?text=${testoEncoded}`;
+    }
+    
+    // Tentativo di aprire l'app
+    try {
+      const win = window.open(appUrl, '_blank');
+      
+      if (!win || win.closed) {
+        window.open(webUrl, '_blank');
+      } else {
+        setTimeout(() => {
+          try {
+            if (win && !win.closed) {
+              win.close();
+              window.open(webUrl, '_blank');
+            }
+          } catch (e) {
+            window.open(webUrl, '_blank');
+          }
+        }, 2000);
+      }
+    } catch (e) {
+      window.open(webUrl, '_blank');
     }
   };
   
