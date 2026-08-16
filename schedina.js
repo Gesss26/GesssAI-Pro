@@ -108,90 +108,15 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
   const selectBestGiocata = (giocate) => {
     if (!giocate || giocate.length === 0) return null;
     
-    // Trova la percentuale massima
     const maxPct = Math.max(...giocate.map(g => g.pct));
-    
-    // Filtra le giocate con la percentuale massima
     const topGiocate = giocate.filter(g => g.pct === maxPct);
-    
-    // Scegli a caso tra quelle con la stessa percentuale
     const randomIndex = Math.floor(Math.random() * topGiocate.length);
     return topGiocate[randomIndex];
   };
   
   // ============================================================
-  // FUNZIONE PER VERIFICARE SE UNA PARTITA È GIÀ PASSATA
+  // CALCOLA SCHEDINA - CON CONTROLLO ORARIO
   // ============================================================
-  const isMatchPassed = (match) => {
-    if (!match || !match.data) {
-      console.log('⚠️ Partita senza data, esclusa:', match?.casa, 'vs', match?.ospiti);
-      return true;
-    }
-    
-    try {
-      // Normalizza la data
-      const dataNormalizzata = window.normalizeDate(match.data);
-      if (!dataNormalizzata) {
-        console.log('⚠️ Data non normalizzabile per:', match.casa, 'vs', match.ospiti);
-        return true;
-      }
-      
-      // Ottieni l'ora della partita
-      let oraMatch = match.ora || '';
-      
-      // Se l'ora è vuota, considera la partita come NON passata
-      if (!oraMatch || oraMatch === 'TBD' || oraMatch === 'N/D' || oraMatch === '') {
-        console.log(`⏰ Orario non specificato per ${match.casa} vs ${match.ospiti}, non escludo`);
-        return false;
-      }
-      
-      // Pulisci l'ora da caratteri speciali come parentesi (es. "14:30(13:30)" -> "14:30")
-      let oraPulita = oraMatch.replace(/[^0-9:]/g, '');
-      
-      // Se dopo la pulizia è vuota, non escludere
-      if (!oraPulita) {
-        console.log(`⏰ Orario non valido per ${match.casa} vs ${match.ospiti}: "${oraMatch}", non escludo`);
-        return false;
-      }
-      
-      // Estrai ore e minuti
-      let ore = 0, minuti = 0;
-      if (oraPulita.includes(':')) {
-        const parts = oraPulita.split(':');
-        ore = parseInt(parts[0]) || 0;
-        minuti = parseInt(parts[1]) || 0;
-      } else if (oraPulita.length >= 4) {
-        // Formato HHMM
-        ore = parseInt(oraPulita.substring(0, 2)) || 0;
-        minuti = parseInt(oraPulita.substring(2, 4)) || 0;
-      } else {
-        console.log(`⏰ Formato ora non riconosciuto per ${match.casa} vs ${match.ospiti}: "${oraPulita}", non escludo`);
-        return false;
-      }
-      
-      // Crea la data della partita con l'ora
-      const matchDateTime = new Date(`${dataNormalizzata}T${String(ore).padStart(2, '0')}:${String(minuti).padStart(2, '0')}:00`);
-      const now = new Date();
-      
-      // Log per debug
-      console.log(`🔍 ${match.casa} vs ${match.ospiti}: ${dataNormalizzata} ${oraMatch} -> ${matchDateTime.toLocaleString()}, Ora attuale: ${now.toLocaleString()}`);
-      
-      // Se la data/ora è passata, escludi la partita
-      if (matchDateTime < now) {
-        console.log(`❌ PARTITA ESCLUSA (passata): ${match.casa} vs ${match.ospiti} - ${dataNormalizzata} ${oraMatch}`);
-        return true;
-      }
-      
-      console.log(`✅ PARTITA VALIDA: ${match.casa} vs ${match.ospiti} - ${dataNormalizzata} ${oraMatch}`);
-      return false;
-    } catch (e) {
-      console.warn('❌ Errore nel controllo orario per', match.casa, match.ospiti, e);
-      // In caso di errore, escludiamo la partita per sicurezza
-      return true;
-    }
-  };
-  
-  // Calcola la schedina
   const calcolaSchedina = () => {
     if (campionatiSelezionati.length === 0) {
       showAlert('error', '⚠️ Seleziona almeno un campionato!');
@@ -200,92 +125,94 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     
     setIsLoading(true);
     
-    // Ottieni le partite future nei campionati selezionati
     const { today, maxDate } = getDateRange();
     const todayStr = today.toISOString().slice(0, 10);
     const maxDateStr = maxDate.toISOString().slice(0, 10);
     
-    console.log(`📅 Range date: ${todayStr} -> ${maxDateStr}`);
-    console.log(`🔍 Campionati selezionati:`, campionatiSelezionati);
-    console.log(`🔍 Totale partite in matches: ${matches.length}`);
+    // ORA ATTUALE per il confronto
+    const now = new Date();
+    console.log(`🕐 Ora attuale: ${now.toLocaleString()}`);
     
-    // Filtra per data e campionato (senza ancora controllare l'ora)
-    let partiteByDate = matches.filter(m => {
-      // Solo partite FUTURE (non ancora giocate)
+    let partiteDisponibili = matches.filter(m => {
       if (m.stato !== 'Futura') return false;
-      
-      // Filtra per campionati selezionati
       if (!campionatiSelezionati.includes(m.campionato)) return false;
-      
-      // Controlla se ha una data valida
       if (!m.data) return false;
       
       const normalized = window.normalizeDate(m.data);
       if (!normalized) return false;
       
-      // Controlla se la data rientra nel range
       if (normalized < todayStr || normalized > maxDateStr) return false;
+      
+      // ============================================================
+      // CONTROLLO ORARIO - ESCLUDI PARTITE GIÀ PASSATE
+      // ============================================================
+      if (normalized === todayStr) {
+        let oraMatch = m.ora || '';
+        
+        // Se non c'è ora, considerala valida
+        if (!oraMatch || oraMatch === 'TBD' || oraMatch === 'N/D' || oraMatch === '') {
+          return true;
+        }
+        
+        // Pulisci l'ora: "14:30(13:30)" -> "14:30"
+        let oraPulita = oraMatch;
+        if (oraPulita.includes('(')) {
+          oraPulita = oraPulita.substring(0, oraPulita.indexOf('(')).trim();
+        }
+        oraPulita = oraPulita.replace(/[^0-9:]/g, '');
+        
+        if (!oraPulita) return true;
+        
+        let ore = 0, minuti = 0;
+        if (oraPulita.includes(':')) {
+          const parts = oraPulita.split(':');
+          ore = parseInt(parts[0]) || 0;
+          minuti = parseInt(parts[1]) || 0;
+        } else if (oraPulita.length >= 4) {
+          ore = parseInt(oraPulita.substring(0, 2)) || 0;
+          minuti = parseInt(oraPulita.substring(2, 4)) || 0;
+        } else {
+          return true;
+        }
+        
+        const matchDateTime = new Date(`${normalized}T${String(ore).padStart(2, '0')}:${String(minuti).padStart(2, '0')}:00`);
+        
+        console.log(`🔍 ${m.casa} vs ${m.ospiti}: ${matchDateTime.toLocaleString()} | Ora attuale: ${now.toLocaleString()}`);
+        
+        if (matchDateTime < now) {
+          console.log(`❌ ESCLUSA (passata): ${m.casa} vs ${m.ospiti} - ${oraMatch}`);
+          return false;
+        }
+        
+        console.log(`✅ VALIDA: ${m.casa} vs ${m.ospiti} - ${oraMatch}`);
+      }
       
       return true;
     });
     
-    console.log(`📊 Partite trovate per data: ${partiteByDate.length}`);
-    
-    // MOSTRA LE PARTITE TROVATE PER DATA (prima del filtro orario)
-    partiteByDate.forEach(m => {
-      console.log(`   📅 ${m.casa} vs ${m.ospiti} - ${m.data} ${m.ora || 'TBD'} (${m.campionato})`);
-    });
-    
-    // ============================================================
-    // APPLICA IL FILTRO ORARIO - escludi partite già passate
-    // ============================================================
-    const partiteFiltrate = partiteByDate.filter(m => {
-      const passed = isMatchPassed(m);
-      return !passed;
-    });
-    
-    console.log(`⏰ Partite dopo filtro orario: ${partiteFiltrate.length}`);
-    partiteFiltrate.forEach(m => {
-      console.log(`   ✅ ${m.casa} vs ${m.ospiti} - ${m.data} ${m.ora || 'TBD'}`);
-    });
-    
-    if (partiteFiltrate.length === 0) {
-      const totaleEscluse = partiteByDate.length;
-      let msg = `⚠️ Nessuna partita disponibile.`;
-      if (totaleEscluse > 0) {
-        msg += ` ${totaleEscluse} partite trovate ma tutte già passate!`;
-      }
-      showAlert('warning', msg);
+    if (partiteDisponibili.length === 0) {
+      showAlert('warning', '⚠️ Nessuna partita disponibile (escluse quelle già passate).');
       setIsLoading(false);
       setPartiteCalcolate([]);
       return;
     }
     
-    // Ordina le partite per data e ora (crescente)
-    partiteFiltrate.sort((a, b) => {
+    // Ordina per data e ora
+    partiteDisponibili.sort((a, b) => {
       const dateA = window.normalizeDate(a.data);
       const dateB = window.normalizeDate(b.data);
-      if (dateA !== dateB) {
-        return dateA.localeCompare(dateB);
-      }
-      // Se stessa data, ordina per ora
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
       const oraA = a.ora || '00:00';
       const oraB = b.ora || '00:00';
       return oraA.localeCompare(oraB);
     });
     
-    // Calcola le giocate per ogni partita
-    const partiteConGiocate = partiteFiltrate.map(m => {
+    const partiteConGiocate = partiteDisponibili.map(m => {
       const giocate = getBestGiocateForMatch(m);
       const migliorGiocata = selectBestGiocata(giocate);
-      return {
-        ...m,
-        giocate,
-        migliorGiocata
-      };
+      return { ...m, giocate, migliorGiocata };
     });
     
-    // Filtra le partite che hanno almeno una giocata
     const partiteValide = partiteConGiocate.filter(p => p.migliorGiocata !== null);
     
     if (partiteValide.length === 0) {
@@ -295,26 +222,13 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       return;
     }
     
-    // Seleziona le prime N partite (o tutte se meno di N)
     const numDaPrendere = Math.min(numPartite, partiteValide.length);
     const partiteSelezionate = partiteValide.slice(0, numDaPrendere);
     
     setPartiteCalcolate(partiteSelezionate);
     setIsLoading(false);
     
-    // Mostra statistiche
-    const totaliTrovate = partiteByDate.length;
-    const esclusePerOrario = totaliTrovate - partiteFiltrate.length;
-    const esclusePerGiocata = partiteFiltrate.length - partiteValide.length;
-    
-    let messaggio = `✅ Trovate ${partiteSelezionate.length} partite valide!`;
-    if (esclusePerOrario > 0) {
-      messaggio += ` (${esclusePerOrario} escluse perché già passate)`;
-    }
-    if (esclusePerGiocata > 0) {
-      messaggio += ` (${esclusePerGiocata} senza giocate valide)`;
-    }
-    showAlert('success', messaggio);
+    showAlert('success', `✅ Trovate ${partiteSelezionate.length} partite valide!`);
   };
   
   // Resetta la schedina
@@ -323,25 +237,19 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     showAlert('info', '🔄 Schedina resettata.');
   };
   
-  // Rigenera la schedina (ricalcola con le stesse partite ma con nuovo random)
+  // Rigenera la schedina
   const rigeneraSchedina = () => {
     if (partiteCalcolate.length === 0) {
       showAlert('warning', '⚠️ Prima calcola una schedina!');
       return;
     }
     
-    // Rigenera le giocate per le partite attuali con nuovo random
     const partiteRigenerate = partiteCalcolate.map(p => {
       const giocate = getBestGiocateForMatch(p);
       const migliorGiocata = selectBestGiocata(giocate);
-      return {
-        ...p,
-        giocate,
-        migliorGiocata
-      };
+      return { ...p, giocate, migliorGiocata };
     });
     
-    // Filtra le partite che hanno almeno una giocata
     const partiteValide = partiteRigenerate.filter(p => p.migliorGiocata !== null);
     
     if (partiteValide.length === 0) {
@@ -361,28 +269,50 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       return;
     }
     
-    // Verifica che tutte le partite abbiano una giocata
     const senzaGiocata = partiteCalcolate.filter(p => !p.migliorGiocata);
     if (senzaGiocata.length > 0) {
       showAlert('error', `⚠️ ${senzaGiocata.length} partita/e senza giocata selezionata!`);
       return;
     }
     
-    // Verifica che nessuna partita sia già passata
-    const partitePassate = partiteCalcolate.filter(p => isMatchPassed(p));
+    // Verifica che nessuna partita sia già passata (controllo finale)
+    const now = new Date();
+    const partitePassate = partiteCalcolate.filter(p => {
+      const normalized = window.normalizeDate(p.data);
+      if (!normalized) return true;
+      if (normalized !== now.toISOString().slice(0, 10)) return false;
+      
+      let oraMatch = p.ora || '';
+      if (oraMatch.includes('(')) {
+        oraMatch = oraMatch.substring(0, oraMatch.indexOf('(')).trim();
+      }
+      oraMatch = oraMatch.replace(/[^0-9:]/g, '');
+      
+      if (!oraMatch) return false;
+      
+      let ore = 0, minuti = 0;
+      if (oraMatch.includes(':')) {
+        const parts = oraMatch.split(':');
+        ore = parseInt(parts[0]) || 0;
+        minuti = parseInt(parts[1]) || 0;
+      }
+      
+      const matchDateTime = new Date(`${normalized}T${String(ore).padStart(2, '0')}:${String(minuti).padStart(2, '0')}:00`);
+      return matchDateTime < now;
+    });
+    
     if (partitePassate.length > 0) {
       showAlert('error', `⚠️ ${partitePassate.length} partita/e sono già passate! Rigenera la schedina.`);
       return;
     }
     
-    // Crea il nome con data e ora
-    const now = new Date();
-    const nome = `Schedina_${String(now.getDate()).padStart(2, '0')}${String(now.getMonth() + 1).padStart(2, '0')}${now.getFullYear()}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    const nowDate = new Date();
+    const nome = `Schedina_${String(nowDate.getDate()).padStart(2, '0')}${String(nowDate.getMonth() + 1).padStart(2, '0')}${nowDate.getFullYear()}_${String(nowDate.getHours()).padStart(2, '0')}${String(nowDate.getMinutes()).padStart(2, '0')}`;
     
     const nuovaSchedina = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2),
       nome: nome,
-      dataCreazione: now.toISOString(),
+      dataCreazione: nowDate.toISOString(),
       campionati: [...campionatiSelezionati],
       giorniRange: giorniRange,
       partite: partiteCalcolate.map(p => ({
@@ -407,13 +337,11 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     setShowSchedinaModal(true);
   };
   
-  // Chiudi la modal
   const chiudiModal = () => {
     setShowSchedinaModal(false);
     setSchedinaDaVisualizzare(null);
   };
   
-  // Elimina una schedina salvata
   const eliminaSchedina = (id) => {
     if (confirm('🗑️ Eliminare questa schedina?')) {
       setSchedineSalvate(schedineSalvate.filter(s => s.id !== id));
@@ -421,20 +349,17 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     }
   };
   
-  // Calcola il punteggio medio di una schedina
   const calcolaScoreMedio = (schedina) => {
     if (!schedina.partite || schedina.partite.length === 0) return 0;
     const total = schedina.partite.reduce((sum, p) => sum + (p.giocata?.pct || 0), 0);
     return Math.round(total / schedina.partite.length);
   };
   
-  // Conta le bombe in una schedina
   const contaBombe = (schedina) => {
     if (!schedina.partite) return 0;
     return schedina.partite.filter(p => p.giocata?.isBomb).length;
   };
   
-  // Formatta data
   const formatDate = (dateStr) => {
     if (!dateStr) return 'N/D';
     try {
@@ -443,7 +368,6 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     } catch { return dateStr; }
   };
   
-  // Formatta data per visualizzazione
   const formatDateTime = (dateStr) => {
     if (!dateStr) return 'N/D';
     try {
@@ -452,7 +376,6 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     } catch { return dateStr; }
   };
   
-  // Genera il testo per la condivisione
   const generaTestoCondivisione = (schedina) => {
     if (!schedina || !schedina.partite || schedina.partite.length === 0) return '';
     
@@ -478,7 +401,6 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     lines.push(`--- PARTITE ---`);
     lines.push(``);
     
-    // Ordina le partite per data e ora crescente
     const partiteOrdinate = [...schedina.partite].sort((a, b) => {
       const dateA = a.data || '9999-99-99';
       const dateB = b.data || '9999-99-99';
@@ -510,10 +432,9 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
   };
   
   // ============================================================
-  // FUNZIONI DI CONDIVISIONE
+  // CONDIVISIONE WHATSAPP E TELEGRAM
   // ============================================================
   
-  // Condividi su WhatsApp
   const condividiWhatsApp = (schedina) => {
     if (!schedina) return;
     const testo = generaTestoCondivisione(schedina);
@@ -522,11 +443,8 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isAndroid = /Android/i.test(navigator.userAgent);
-    const isWindows = /Win/i.test(navigator.userAgent);
-    const isMac = /Mac/i.test(navigator.userAgent);
     
-    let appUrl = '';
-    let webUrl = '';
+    let appUrl, webUrl;
     
     if (isIOS) {
       appUrl = `whatsapp://send?text=${testoEncoded}`;
@@ -534,9 +452,6 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     } else if (isAndroid) {
       appUrl = `intent://send?text=${testoEncoded}#Intent;package=com.whatsapp;scheme=whatsapp;end;`;
       webUrl = `https://api.whatsapp.com/send?text=${testoEncoded}`;
-    } else if (isWindows || isMac) {
-      appUrl = `whatsapp://send?text=${testoEncoded}`;
-      webUrl = `https://web.whatsapp.com/send?text=${testoEncoded}`;
     } else {
       appUrl = `whatsapp://send?text=${testoEncoded}`;
       webUrl = `https://web.whatsapp.com/send?text=${testoEncoded}`;
@@ -563,7 +478,6 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     }
   };
   
-  // Condividi su Telegram
   const condividiTelegram = (schedina) => {
     if (!schedina) return;
     const testo = generaTestoCondivisione(schedina);
@@ -572,11 +486,8 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isAndroid = /Android/i.test(navigator.userAgent);
-    const isWindows = /Win/i.test(navigator.userAgent);
-    const isMac = /Mac/i.test(navigator.userAgent);
     
-    let appUrl = '';
-    let webUrl = '';
+    let appUrl, webUrl;
     
     if (isIOS) {
       appUrl = `tg://msg?text=${testoEncoded}`;
@@ -584,9 +495,6 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     } else if (isAndroid) {
       appUrl = `intent://share/url?url=&text=${testoEncoded}#Intent;package=org.telegram.messenger;scheme=tg;end;`;
       webUrl = `https://t.me/share/url?url=&text=${testoEncoded}`;
-    } else if (isWindows || isMac) {
-      appUrl = `tg://msg?text=${testoEncoded}`;
-      webUrl = `https://web.telegram.org/k/#?tgaddr=tg://msg?text=${testoEncoded}`;
     } else {
       appUrl = `tg://msg?text=${testoEncoded}`;
       webUrl = `https://web.telegram.org/k/#?tgaddr=tg://msg?text=${testoEncoded}`;
@@ -613,7 +521,10 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     }
   };
   
-  // Render della modal per visualizzare la schedina
+  // ============================================================
+  // RENDER MODAL
+  // ============================================================
+  
   const renderModal = () => {
     if (!showSchedinaModal || !schedinaDaVisualizzare) return null;
     
@@ -732,20 +643,10 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
                   flexWrap: 'wrap'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1', minWidth: '200px' }}>
-                    <span style={{ 
-                      fontSize: '12px', 
-                      fontWeight: 'bold', 
-                      color: 'var(--text-muted)',
-                      minWidth: '35px',
-                      textAlign: 'center'
-                    }}>
-                      #{idx + 1}
-                    </span>
+                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-muted)', minWidth: '35px', textAlign: 'center' }}>#{idx + 1}</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '20px' }}>⚽</span>
-                      <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text)' }}>
-                        {p.casa} 🆚 {p.ospiti}
-                      </span>
+                      <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text)' }}>{p.casa} 🆚 {p.ospiti}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: 'var(--text-muted)', gap: '1px' }}>
                       <span>🏆 {p.campionato || 'N/D'}</span>
@@ -790,32 +691,24 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
             gap: '8px'
           }}>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <button 
-                className="btn btn-secondary" 
-                onClick={() => {
-                  const partiteCaricate = s.partite.map(p => ({
-                    ...p,
-                    giocate: [p.giocata],
-                    migliorGiocata: p.giocata
-                  }));
-                  setPartiteCalcolate(partiteCaricate);
-                  showAlert('success', `📋 Schedina "${s.nome}" caricata!`);
-                  chiudiModal();
-                }}
-                style={{ fontSize: '12px', padding: '6px 14px' }}
-              >
+              <button className="btn btn-secondary" onClick={() => {
+                const partiteCaricate = s.partite.map(p => ({
+                  ...p,
+                  giocate: [p.giocata],
+                  migliorGiocata: p.giocata
+                }));
+                setPartiteCalcolate(partiteCaricate);
+                showAlert('success', `📋 Schedina "${s.nome}" caricata!`);
+                chiudiModal();
+              }} style={{ fontSize: '12px', padding: '6px 14px' }}>
                 📂 Carica
               </button>
-              <button 
-                className="btn btn-danger" 
-                onClick={() => {
-                  if (confirm(`🗑️ Eliminare "${s.nome}"?`)) {
-                    eliminaSchedina(s.id);
-                    chiudiModal();
-                  }
-                }}
-                style={{ fontSize: '12px', padding: '6px 14px' }}
-              >
+              <button className="btn btn-danger" onClick={() => {
+                if (confirm(`🗑️ Eliminare "${s.nome}"?`)) {
+                  eliminaSchedina(s.id);
+                  chiudiModal();
+                }
+              }} style={{ fontSize: '12px', padding: '6px 14px' }}>
                 🗑️ Elimina
               </button>
             </div>
@@ -851,6 +744,10 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       </div>
     );
   };
+  
+  // ============================================================
+  // RENDER PRINCIPALE
+  // ============================================================
   
   return (
     <div className="schedina-container">
