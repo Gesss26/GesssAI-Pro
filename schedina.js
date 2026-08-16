@@ -1,6 +1,6 @@
 // ============================================================
-// SCHEDINA.JS - Modulo Schedina per GesssAI-Pro v3.0
-// VERSIONE CON CONDIVISIONE FUNZIONANTE
+// SCHEDINA.JS - Modulo Schedina per GesssAI-Pro
+// VERSIONE CON EMOJI WHATSAPP-COMPATIBILI + ORARIO E CAMPIONATO
 // ============================================================
 
 (function() {
@@ -33,10 +33,6 @@
       return saved ? JSON.parse(saved) : {};
     });
     const [mostraOpzioniCondivisione, setMostraOpzioniCondivisione] = useState(false);
-    
-    // Stato per la modal di visualizzazione schedina
-    const [schedinaDaVisualizzare, setSchedinaDaVisualizzare] = useState(null);
-    const [showSchedinaModal, setShowSchedinaModal] = useState(false);
 
     const fileInputRef = useRef(null);
     const schedinaRef = useRef(null);
@@ -219,7 +215,8 @@
       return (totale * 100) - 100;
     }, [calcolaTotaleQuote]);
 
-    // Genera il testo della schedina
+    // Genera il testo della schedina con EMOJI WHATSAPP-COMPATIBILI
+    // Usa solo: ✅ ⚪ 🔴 🟢 🟡 💣 📅 ⏰ (tutte supportate)
     const generaTestoSchedina = () => {
       let testo = `🎯 SCHEDINA GesssAI-Pro\n`;
       testo += `📅 ${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}\n`;
@@ -227,6 +224,7 @@
 
       partiteSelezionate.forEach((m, i) => {
         const emoji = m.isBomb ? '💣 ' : '';
+        // Emoji colore compatibili
         let coloreEmoji = '⚪';
         if (m.pct >= 90) coloreEmoji = '🟡';
         else if (m.pct >= 66.67) coloreEmoji = '🟢';
@@ -255,7 +253,9 @@
       return testo;
     };
 
-    // Funzione di condivisione CORRETTA
+    // ============================================================
+    // FUNZIONI DI CONDIVISIONE CORRETTE (WhatsApp e Telegram)
+    // ============================================================
     const condividi = (piattaforma) => {
       if (partiteSelezionate.length === 0) {
         if (showAlert) showAlert('error', '⚠️ Nessuna partita selezionata');
@@ -330,7 +330,6 @@
       }
     };
 
-    // Salva schedina
     const salvaSchedina = () => {
       if (partiteSelezionate.length < 2) {
         if (showAlert) showAlert('error', '⚠️ Seleziona almeno 2 partite!');
@@ -378,7 +377,6 @@
       if (showAlert) showAlert('success', `✅ Schedina "${nuovaSchedina.nome}" salvata!`);
     };
 
-    // Elimina schedina
     const eliminaSchedina = (id) => {
       if (!confirm('🗑️ Eliminare questa schedina?')) return;
       const nuove = schedineSalvate.filter(s => s.id !== id);
@@ -387,19 +385,6 @@
       if (showAlert) showAlert('info', '🗑️ Schedina eliminata');
     };
 
-    // Apri schedina in modal
-    const apriSchedina = (schedina) => {
-      setSchedinaDaVisualizzare(schedina);
-      setShowSchedinaModal(true);
-    };
-
-    // Chiudi modal
-    const chiudiModal = () => {
-      setShowSchedinaModal(false);
-      setSchedinaDaVisualizzare(null);
-    };
-
-    // Carica schedina
     const caricaSchedina = (schedina) => {
       const partiteDaCaricare = schedina.partite.map(p => {
         const matchOriginale = matches.find(m => m.id === p.id);
@@ -424,13 +409,11 @@
           dataCreazione: schedina.dataCreazione
         });
         if (showAlert) showAlert('success', `📂 Schedina "${schedina.nome}" caricata!`);
-        chiudiModal();
       } else {
         if (showAlert) showAlert('error', '⚠️ Alcune partite non sono più disponibili');
       }
     };
 
-    // Importa quote Excel
     const importaQuoteExcel = (file) => {
       if (!file) return;
       
@@ -476,7 +459,7 @@
       reader.readAsArrayBuffer(file);
     };
 
-    // Svuota lista
+    // Funzione per svuotare la lista
     const svuotaLista = () => {
       if (partiteDisponibili.length === 0) {
         if (showAlert) showAlert('info', 'ℹ️ La lista è già vuota');
@@ -487,172 +470,9 @@
       if (showAlert) showAlert('info', '🗑️ Lista svuotata!');
     };
 
-    // Formatta data
-    const formatDate = (dateStr) => {
-      if (!dateStr) return 'N/D';
-      try {
-        const d = new Date(dateStr);
-        return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-      } catch { return dateStr; }
-    };
-
-    const formatDateTime = (dateStr) => {
-      if (!dateStr) return 'N/D';
-      try {
-        const d = new Date(dateStr);
-        return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-      } catch { return dateStr; }
-    };
-
     useEffect(() => {
       calcolaPartite();
     }, [calcolaPartite]);
-
-    // Render della modal per visualizzare la schedina
-    const renderModal = () => {
-      if (!showSchedinaModal || !schedinaDaVisualizzare) return null;
-      
-      const s = schedinaDaVisualizzare;
-      
-      return (
-        <div className="heatmap-detail-overlay" onClick={chiudiModal}>
-          <div className="heatmap-detail-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '850px' }}>
-            <button className="close-btn" onClick={chiudiModal} style={{
-              position: 'absolute',
-              top: '12px',
-              right: '16px',
-              background: 'none',
-              border: 'none',
-              color: 'var(--text)',
-              fontSize: '28px',
-              cursor: 'pointer',
-              zIndex: 10,
-              padding: '4px 12px',
-              borderRadius: '6px',
-              transition: 'all 0.2s'
-            }}>✖</button>
-            
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
-                <div>
-                  <h2 style={{ color: 'var(--accent)', margin: '0 0 4px 0' }}>📋 {s.nome}</h2>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '13px', color: 'var(--text-muted)' }}>
-                    <span>🕒 {formatDateTime(s.dataCreazione)}</span>
-                    <span>📊 {s.partite?.length || 0} partite</span>
-                    <span>⭐ Score medio: <b style={{ color: (s.mediaPercentuali || 0) >= 70 ? 'var(--win)' : (s.mediaPercentuali || 0) >= 50 ? 'var(--draw)' : 'var(--lose)' }}>{(s.mediaPercentuali || 0)}%</b></span>
-                    {s.partite && s.partite.some(p => p.isBomb) && <span>💣 {s.partite.filter(p => p.isBomb).length} bombe</span>}
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '4px' }}>
-              {s.partite && s.partite.map((p, idx) => {
-                const pct = p.pct || 0;
-                const isBomb = pct >= 90;
-                const color = isBomb ? '#f39c12' : (pct >= 66.67 ? '#6fcf97' : (pct >= 33.34 ? '#8b949e' : '#eb5757'));
-                const dataFormattata = formatDate(p.data);
-                const ora = p.ora || 'TBD';
-                
-                return (
-                  <div key={idx} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 12px',
-                    marginBottom: '4px',
-                    background: isBomb ? 'rgba(243, 156, 18, 0.12)' : 'var(--surface)',
-                    borderRadius: '6px',
-                    border: isBomb ? '2px solid #f39c12' : '1px solid var(--border)',
-                    borderLeft: `4px solid ${color}`,
-                    gap: '8px',
-                    flexWrap: 'wrap'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1', minWidth: '150px' }}>
-                      <span style={{ fontSize: '11px', color: 'var(--text-muted)', minWidth: '30px' }}>#{idx + 1}</span>
-                      <span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--text)' }}>
-                        {p.casa} vs {p.ospiti}
-                      </span>
-                      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{p.campionato}</span>
-                      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>📅 {dataFormattata} {ora}</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <span style={{
-                        background: isBomb ? '#f39c12' : 'var(--card)',
-                        color: isBomb ? '#000' : 'var(--text)',
-                        padding: '2px 12px',
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        border: isBomb ? '1px solid #f39c12' : 'none'
-                      }}>
-                        {p.giocata || 'N/D'}
-                      </span>
-                      <span style={{
-                        fontWeight: 'bold',
-                        fontSize: '18px',
-                        color: color,
-                        minWidth: '50px',
-                        textAlign: 'center'
-                      }}>
-                        {pct}% {isBomb && '💣'}
-                      </span>
-                      <span style={{
-                        fontWeight: 'bold',
-                        fontSize: '15px',
-                        color: 'var(--accent)',
-                        minWidth: '50px',
-                        textAlign: 'center'
-                      }}>
-                        {p.quote?.toFixed(2) || '0.00'}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            
-            <div style={{
-              marginTop: '16px',
-              paddingTop: '12px',
-              borderTop: '2px solid var(--border)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '8px'
-            }}>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <button 
-                  className="btn btn-secondary" 
-                  onClick={() => caricaSchedina(s)}
-                  style={{ fontSize: '12px', padding: '6px 14px' }}
-                >
-                  📂 Carica
-                </button>
-                <button 
-                  className="btn btn-danger" 
-                  onClick={() => {
-                    if (confirm(`🗑️ Eliminare "${s.nome}"?`)) {
-                      eliminaSchedina(s.id);
-                      chiudiModal();
-                    }
-                  }}
-                  style={{ fontSize: '12px', padding: '6px 14px' }}
-                >
-                  🗑️ Elimina
-                </button>
-              </div>
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', fontSize: '12px', color: 'var(--text-muted)' }}>
-                <span>📊 {s.partite?.length || 0} partite</span>
-                <span>💰 Quote: {s.totaleQuote?.toFixed(2) || '0.00'}</span>
-                <span>🏆 Vincita: €{(s.vincitaPotenziale || 0).toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    };
 
     // Stili
     const styles = {
@@ -1060,11 +880,8 @@
                   background: 'var(--surface)', 
                   borderRadius: '6px', 
                   border: '1px solid var(--border)', 
-                  fontSize: '15px',
-                  cursor: 'pointer'
-                }}
-                onClick={() => apriSchedina(s)}
-                >
+                  fontSize: '15px' 
+                }}>
                   <div>
                     <div style={{ fontWeight: 'bold', fontSize: '17px' }}>{s.nome}</div>
                     <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
@@ -1094,14 +911,14 @@
                   <div style={{ display: 'flex', gap: '4px' }}>
                     <button 
                       className="btn btn-secondary" 
-                      onClick={(e) => { e.stopPropagation(); caricaSchedina(s); }} 
+                      onClick={() => caricaSchedina(s)} 
                       style={{ fontSize: '15px', padding: '4px 12px' }}
                     >
                       📂
                     </button>
                     <button 
                       className="btn btn-danger" 
-                      onClick={(e) => { e.stopPropagation(); eliminaSchedina(s.id); }} 
+                      onClick={() => eliminaSchedina(s.id)} 
                       style={{ fontSize: '15px', padding: '4px 12px', background: 'var(--lose)', border: 'none', color: '#fff' }}
                     >
                       🗑️
@@ -1132,17 +949,13 @@
           <span style={{ color: '#eb5757', fontWeight: 'bold', fontSize: '16px' }}>🔴 Rosso (0-33,33%)</span>
           <span style={{ fontSize: '15px' }}>📊 Media %: media aritmetica delle percentuali selezionate</span>
           <span style={{ fontSize: '15px' }}>💡 Clicca su una partita per selezionarla/deselezionarla</span>
-          <span style={{ fontSize: '15px' }}>👆 Clicca su una schedina salvata per visualizzarla</span>
         </div>
-
-        {/* MODAL PER VISUALIZZARE SCHEDINA SALVATA */}
-        {renderModal()}
       </div>
     );
   };
 
   // Registra il componente globalmente
   window.SchedinaComponent = SchedinaComponent;
-  console.log('✅ Modulo Schedina caricato correttamente!');
+  console.log('✅ Modulo Schedina caricato!');
 
 })();
