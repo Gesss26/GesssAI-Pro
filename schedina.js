@@ -120,56 +120,72 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
   };
   
   // ============================================================
-  // FUNZIONE PER VERIFICARE SE UNA PARTITA È GIÀ PASSATA (CORRETTA)
+  // FUNZIONE PER VERIFICARE SE UNA PARTITA È GIÀ PASSATA
   // ============================================================
   const isMatchPassed = (match) => {
-    if (!match || !match.data) return true; // Se non ha data, la escludiamo
+    if (!match || !match.data) {
+      console.log('⚠️ Partita senza data, esclusa:', match?.casa, 'vs', match?.ospiti);
+      return true;
+    }
     
     try {
       // Normalizza la data
       const dataNormalizzata = window.normalizeDate(match.data);
-      if (!dataNormalizzata) return true;
+      if (!dataNormalizzata) {
+        console.log('⚠️ Data non normalizzabile per:', match.casa, 'vs', match.ospiti);
+        return true;
+      }
       
       // Ottieni l'ora della partita
-      let oraMatch = match.ora || '00:00';
-      // Rimuovi eventuali caratteri speciali dall'ora (es. "(13:30)" diventa "13:30")
-      const oraMatchPulita = oraMatch.replace(/[^0-9:]/g, '');
+      let oraMatch = match.ora || '';
       
-      // Se l'ora è vuota o non valida, considera la partita come valida (non passata)
-      // perché potrebbe essere una partita di cui non conosciamo l'orario
-      if (!oraMatchPulita || oraMatchPulita === 'TBD' || oraMatchPulita === 'ND' || oraMatchPulita === '') {
+      // Se l'ora è vuota, considera la partita come NON passata
+      if (!oraMatch || oraMatch === 'TBD' || oraMatch === 'N/D' || oraMatch === '') {
+        console.log(`⏰ Orario non specificato per ${match.casa} vs ${match.ospiti}, non escludo`);
         return false;
       }
       
-      // Assicurati che l'ora sia nel formato HH:MM
+      // Pulisci l'ora da caratteri speciali come parentesi (es. "14:30(13:30)" -> "14:30")
+      let oraPulita = oraMatch.replace(/[^0-9:]/g, '');
+      
+      // Se dopo la pulizia è vuota, non escludere
+      if (!oraPulita) {
+        console.log(`⏰ Orario non valido per ${match.casa} vs ${match.ospiti}: "${oraMatch}", non escludo`);
+        return false;
+      }
+      
+      // Estrai ore e minuti
       let ore = 0, minuti = 0;
-      if (oraMatchPulita.includes(':')) {
-        const parts = oraMatchPulita.split(':');
+      if (oraPulita.includes(':')) {
+        const parts = oraPulita.split(':');
         ore = parseInt(parts[0]) || 0;
         minuti = parseInt(parts[1]) || 0;
+      } else if (oraPulita.length >= 4) {
+        // Formato HHMM
+        ore = parseInt(oraPulita.substring(0, 2)) || 0;
+        minuti = parseInt(oraPulita.substring(2, 4)) || 0;
       } else {
-        // Se non ha i due punti, prova a interpretare come HHMM
-        if (oraMatchPulita.length >= 4) {
-          ore = parseInt(oraMatchPulita.substring(0, 2)) || 0;
-          minuti = parseInt(oraMatchPulita.substring(2, 4)) || 0;
-        } else {
-          return false; // Formato ora non riconosciuto, considerala non passata
-        }
+        console.log(`⏰ Formato ora non riconosciuto per ${match.casa} vs ${match.ospiti}: "${oraPulita}", non escludo`);
+        return false;
       }
       
       // Crea la data della partita con l'ora
       const matchDateTime = new Date(`${dataNormalizzata}T${String(ore).padStart(2, '0')}:${String(minuti).padStart(2, '0')}:00`);
       const now = new Date();
       
+      // Log per debug
+      console.log(`🔍 ${match.casa} vs ${match.ospiti}: ${dataNormalizzata} ${oraMatch} -> ${matchDateTime.toLocaleString()}, Ora attuale: ${now.toLocaleString()}`);
+      
       // Se la data/ora è passata, escludi la partita
       if (matchDateTime < now) {
-        console.log(`⏰ Partita esclusa: ${match.casa} vs ${match.ospiti} - ${dataNormalizzata} ${oraMatch} (passata)`);
+        console.log(`❌ PARTITA ESCLUSA (passata): ${match.casa} vs ${match.ospiti} - ${dataNormalizzata} ${oraMatch}`);
         return true;
       }
       
+      console.log(`✅ PARTITA VALIDA: ${match.casa} vs ${match.ospiti} - ${dataNormalizzata} ${oraMatch}`);
       return false;
     } catch (e) {
-      console.warn('Errore nel controllo orario per', match.casa, match.ospiti, e);
+      console.warn('❌ Errore nel controllo orario per', match.casa, match.ospiti, e);
       // In caso di errore, escludiamo la partita per sicurezza
       return true;
     }
@@ -189,8 +205,12 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const todayStr = today.toISOString().slice(0, 10);
     const maxDateStr = maxDate.toISOString().slice(0, 10);
     
-    // Prima filtro: data e campionato
-    let partiteDisponibili = matches.filter(m => {
+    console.log(`📅 Range date: ${todayStr} -> ${maxDateStr}`);
+    console.log(`🔍 Campionati selezionati:`, campionatiSelezionati);
+    console.log(`🔍 Totale partite in matches: ${matches.length}`);
+    
+    // Filtra per data e campionato (senza ancora controllare l'ora)
+    let partiteByDate = matches.filter(m => {
       // Solo partite FUTURE (non ancora giocate)
       if (m.stato !== 'Futura') return false;
       
@@ -209,12 +229,33 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       return true;
     });
     
-    // Secondo filtro: controllo orario (escludi partite già passate)
-    const partiteFiltrate = partiteDisponibili.filter(m => !isMatchPassed(m));
+    console.log(`📊 Partite trovate per data: ${partiteByDate.length}`);
+    
+    // MOSTRA LE PARTITE TROVATE PER DATA (prima del filtro orario)
+    partiteByDate.forEach(m => {
+      console.log(`   📅 ${m.casa} vs ${m.ospiti} - ${m.data} ${m.ora || 'TBD'} (${m.campionato})`);
+    });
+    
+    // ============================================================
+    // APPLICA IL FILTRO ORARIO - escludi partite già passate
+    // ============================================================
+    const partiteFiltrate = partiteByDate.filter(m => {
+      const passed = isMatchPassed(m);
+      return !passed;
+    });
+    
+    console.log(`⏰ Partite dopo filtro orario: ${partiteFiltrate.length}`);
+    partiteFiltrate.forEach(m => {
+      console.log(`   ✅ ${m.casa} vs ${m.ospiti} - ${m.data} ${m.ora || 'TBD'}`);
+    });
     
     if (partiteFiltrate.length === 0) {
-      const totaleEscluse = partiteDisponibili.length;
-      showAlert('warning', `⚠️ Nessuna partita disponibile. ${totaleEscluse > 0 ? `(${totaleEscluse} partite escluse perché già passate)` : ''}`);
+      const totaleEscluse = partiteByDate.length;
+      let msg = `⚠️ Nessuna partita disponibile.`;
+      if (totaleEscluse > 0) {
+        msg += ` ${totaleEscluse} partite trovate ma tutte già passate!`;
+      }
+      showAlert('warning', msg);
       setIsLoading(false);
       setPartiteCalcolate([]);
       return;
@@ -261,8 +302,8 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     setPartiteCalcolate(partiteSelezionate);
     setIsLoading(false);
     
-    // Mostra quante partite sono state escluse per orario passato
-    const totaliTrovate = partiteDisponibili.length;
+    // Mostra statistiche
+    const totaliTrovate = partiteByDate.length;
     const esclusePerOrario = totaliTrovate - partiteFiltrate.length;
     const esclusePerGiocata = partiteFiltrate.length - partiteValide.length;
     
@@ -469,7 +510,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
   };
   
   // ============================================================
-  // FUNZIONI DI CONDIVISIONE CON CONTROLLO APP INSTALLATA
+  // FUNZIONI DI CONDIVISIONE
   // ============================================================
   
   // Condividi su WhatsApp
@@ -478,14 +519,12 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const testo = generaTestoCondivisione(schedina);
     const testoEncoded = encodeURIComponent(testo);
     
-    // Rileva il dispositivo
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isAndroid = /Android/i.test(navigator.userAgent);
     const isWindows = /Win/i.test(navigator.userAgent);
     const isMac = /Mac/i.test(navigator.userAgent);
     
-    // Determina l'URL per tentare di aprire l'app
     let appUrl = '';
     let webUrl = '';
     
@@ -495,10 +534,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     } else if (isAndroid) {
       appUrl = `intent://send?text=${testoEncoded}#Intent;package=com.whatsapp;scheme=whatsapp;end;`;
       webUrl = `https://api.whatsapp.com/send?text=${testoEncoded}`;
-    } else if (isWindows) {
-      appUrl = `whatsapp://send?text=${testoEncoded}`;
-      webUrl = `https://web.whatsapp.com/send?text=${testoEncoded}`;
-    } else if (isMac) {
+    } else if (isWindows || isMac) {
       appUrl = `whatsapp://send?text=${testoEncoded}`;
       webUrl = `https://web.whatsapp.com/send?text=${testoEncoded}`;
     } else {
@@ -506,10 +542,8 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       webUrl = `https://web.whatsapp.com/send?text=${testoEncoded}`;
     }
     
-    // Tentativo di aprire l'app
     try {
       const win = window.open(appUrl, '_blank');
-      
       if (!win || win.closed) {
         window.open(webUrl, '_blank');
       } else {
@@ -535,14 +569,12 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const testo = generaTestoCondivisione(schedina);
     const testoEncoded = encodeURIComponent(testo);
     
-    // Rileva il dispositivo
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isAndroid = /Android/i.test(navigator.userAgent);
     const isWindows = /Win/i.test(navigator.userAgent);
     const isMac = /Mac/i.test(navigator.userAgent);
     
-    // Determina l'URL per tentare di aprire l'app
     let appUrl = '';
     let webUrl = '';
     
@@ -552,10 +584,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     } else if (isAndroid) {
       appUrl = `intent://share/url?url=&text=${testoEncoded}#Intent;package=org.telegram.messenger;scheme=tg;end;`;
       webUrl = `https://t.me/share/url?url=&text=${testoEncoded}`;
-    } else if (isWindows) {
-      appUrl = `tg://msg?text=${testoEncoded}`;
-      webUrl = `https://web.telegram.org/k/#?tgaddr=tg://msg?text=${testoEncoded}`;
-    } else if (isMac) {
+    } else if (isWindows || isMac) {
       appUrl = `tg://msg?text=${testoEncoded}`;
       webUrl = `https://web.telegram.org/k/#?tgaddr=tg://msg?text=${testoEncoded}`;
     } else {
@@ -563,10 +592,8 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       webUrl = `https://web.telegram.org/k/#?tgaddr=tg://msg?text=${testoEncoded}`;
     }
     
-    // Tentativo di aprire l'app
     try {
       const win = window.open(appUrl, '_blank');
-      
       if (!win || win.closed) {
         window.open(webUrl, '_blank');
       } else {
@@ -594,7 +621,6 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const scoreMedio = calcolaScoreMedio(s);
     const numBombe = contaBombe(s);
     
-    // Ordina le partite per data e ora crescente
     const partiteOrdinate = [...s.partite].sort((a, b) => {
       const dateA = a.data || '9999-99-99';
       const dateB = b.data || '9999-99-99';
@@ -636,7 +662,6 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
                 </div>
               </div>
               
-              {/* Pulsanti di condivisione */}
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button 
                   onClick={() => condividiWhatsApp(s)}
@@ -768,7 +793,6 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
               <button 
                 className="btn btn-secondary" 
                 onClick={() => {
-                  // Carica questa schedina come schedina corrente
                   const partiteCaricate = s.partite.map(p => ({
                     ...p,
                     giocate: [p.giocata],
@@ -800,7 +824,6 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
             </div>
           </div>
           
-          {/* Anteprima testo condivisione */}
           <div style={{
             marginTop: '12px',
             padding: '10px 14px',
