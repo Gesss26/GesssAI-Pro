@@ -120,42 +120,58 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
   };
   
   // ============================================================
-  // FUNZIONE PER VERIFICARE SE UNA PARTITA È GIÀ PASSATA
+  // FUNZIONE PER VERIFICARE SE UNA PARTITA È GIÀ PASSATA (CORRETTA)
   // ============================================================
   const isMatchPassed = (match) => {
-    if (!match || !match.data) return false;
+    if (!match || !match.data) return true; // Se non ha data, la escludiamo
     
     try {
       // Normalizza la data
       const dataNormalizzata = window.normalizeDate(match.data);
-      if (!dataNormalizzata) return false;
+      if (!dataNormalizzata) return true;
+      
+      // Ottieni l'ora della partita
+      let oraMatch = match.ora || '00:00';
+      // Rimuovi eventuali caratteri speciali dall'ora (es. "(13:30)" diventa "13:30")
+      const oraMatchPulita = oraMatch.replace(/[^0-9:]/g, '');
+      
+      // Se l'ora è vuota o non valida, considera la partita come valida (non passata)
+      // perché potrebbe essere una partita di cui non conosciamo l'orario
+      if (!oraMatchPulita || oraMatchPulita === 'TBD' || oraMatchPulita === 'ND' || oraMatchPulita === '') {
+        return false;
+      }
+      
+      // Assicurati che l'ora sia nel formato HH:MM
+      let ore = 0, minuti = 0;
+      if (oraMatchPulita.includes(':')) {
+        const parts = oraMatchPulita.split(':');
+        ore = parseInt(parts[0]) || 0;
+        minuti = parseInt(parts[1]) || 0;
+      } else {
+        // Se non ha i due punti, prova a interpretare come HHMM
+        if (oraMatchPulita.length >= 4) {
+          ore = parseInt(oraMatchPulita.substring(0, 2)) || 0;
+          minuti = parseInt(oraMatchPulita.substring(2, 4)) || 0;
+        } else {
+          return false; // Formato ora non riconosciuto, considerala non passata
+        }
+      }
       
       // Crea la data della partita con l'ora
-      let oraMatch = match.ora || '00:00';
-      // Rimuovi eventuali caratteri speciali dall'ora
-      oraMatch = oraMatch.replace(/[^0-9:]/g, '');
-      // Se l'ora è vuota o non valida, usa 00:00
-      if (!oraMatch || oraMatch === 'TBD' || oraMatch === 'N/D') {
-        oraMatch = '00:00';
-      }
-      // Assicurati che l'ora sia nel formato HH:MM
-      if (!oraMatch.includes(':')) {
-        oraMatch = '00:00';
-      }
-      
-      const matchDateTime = new Date(`${dataNormalizzata}T${oraMatch}:00`);
+      const matchDateTime = new Date(`${dataNormalizzata}T${String(ore).padStart(2, '0')}:${String(minuti).padStart(2, '0')}:00`);
       const now = new Date();
       
-      // Se la data è passata, escludi la partita
+      // Se la data/ora è passata, escludi la partita
       if (matchDateTime < now) {
+        console.log(`⏰ Partita esclusa: ${match.casa} vs ${match.ospiti} - ${dataNormalizzata} ${oraMatch} (passata)`);
         return true;
       }
       
       return false;
     } catch (e) {
       console.warn('Errore nel controllo orario per', match.casa, match.ospiti, e);
-      // In caso di errore, assumiamo che la partita non sia passata per sicurezza
-      return false;
+      // In caso di errore, escludiamo la partita per sicurezza
+      return true;
     }
   };
   
@@ -173,6 +189,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const todayStr = today.toISOString().slice(0, 10);
     const maxDateStr = maxDate.toISOString().slice(0, 10);
     
+    // Prima filtro: data e campionato
     let partiteDisponibili = matches.filter(m => {
       // Solo partite FUTURE (non ancora giocate)
       if (m.stato !== 'Futura') return false;
@@ -189,25 +206,22 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       // Controlla se la data rientra nel range
       if (normalized < todayStr || normalized > maxDateStr) return false;
       
-      // ============================================================
-      // CONTROLLO ORARIO: escludi partite già passate
-      // ============================================================
-      if (isMatchPassed(m)) {
-        return false;
-      }
-      
       return true;
     });
     
-    if (partiteDisponibili.length === 0) {
-      showAlert('warning', '⚠️ Nessuna partita disponibile nei campionati selezionati per il range di date scelto (sono state escluse quelle già passate).');
+    // Secondo filtro: controllo orario (escludi partite già passate)
+    const partiteFiltrate = partiteDisponibili.filter(m => !isMatchPassed(m));
+    
+    if (partiteFiltrate.length === 0) {
+      const totaleEscluse = partiteDisponibili.length;
+      showAlert('warning', `⚠️ Nessuna partita disponibile. ${totaleEscluse > 0 ? `(${totaleEscluse} partite escluse perché già passate)` : ''}`);
       setIsLoading(false);
       setPartiteCalcolate([]);
       return;
     }
     
     // Ordina le partite per data e ora (crescente)
-    partiteDisponibili.sort((a, b) => {
+    partiteFiltrate.sort((a, b) => {
       const dateA = window.normalizeDate(a.data);
       const dateB = window.normalizeDate(b.data);
       if (dateA !== dateB) {
@@ -220,7 +234,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     });
     
     // Calcola le giocate per ogni partita
-    const partiteConGiocate = partiteDisponibili.map(m => {
+    const partiteConGiocate = partiteFiltrate.map(m => {
       const giocate = getBestGiocateForMatch(m);
       const migliorGiocata = selectBestGiocata(giocate);
       return {
@@ -249,10 +263,15 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     
     // Mostra quante partite sono state escluse per orario passato
     const totaliTrovate = partiteDisponibili.length;
-    const esclusePerOrario = partiteDisponibili.length - partiteValide.length;
+    const esclusePerOrario = totaliTrovate - partiteFiltrate.length;
+    const esclusePerGiocata = partiteFiltrate.length - partiteValide.length;
+    
     let messaggio = `✅ Trovate ${partiteSelezionate.length} partite valide!`;
     if (esclusePerOrario > 0) {
       messaggio += ` (${esclusePerOrario} escluse perché già passate)`;
+    }
+    if (esclusePerGiocata > 0) {
+      messaggio += ` (${esclusePerGiocata} senza giocate valide)`;
     }
     showAlert('success', messaggio);
   };
