@@ -874,7 +874,6 @@ const CHAMPIONSHIP_COUNTRY = {
 
 // MAPPA SQUADRE → CITTÀ (VERSIONE COMPLETA)
 const TEAM_CITY_MAP = {
-  // Serie A
   'Juventus': 'Torino', 'Milan': 'Milano', 'Inter': 'Milano', 'Roma': 'Roma',
   'Lazio': 'Roma', 'Napoli': 'Napoli', 'Fiorentina': 'Firenze', 'Atalanta': 'Bergamo',
   'Bologna': 'Bologna', 'Torino': 'Torino', 'Udinese': 'Udine', 'Sassuolo': 'Reggio Emilia',
@@ -882,14 +881,12 @@ const TEAM_CITY_MAP = {
   'Genoa': 'Genova', 'Sampdoria': 'Genova', 'Cagliari': 'Cagliari', 'Monza': 'Monza',
   'Parma': 'Parma', 'Como': 'Como', 'Venezia': 'Venezia', 'Frosinone': 'Frosinone',
   'Cremonese': 'Cremona', 'Spezia': 'La Spezia',
-  // Serie B (aggiunte)
   'Bari': 'Bari', 'Brescia': 'Brescia', 'Carrarese': 'Carrara',
   'Catanzaro': 'Catanzaro', 'Cesena': 'Cesena', 'Cittadella': 'Cittadella',
   'Cosenza': 'Cosenza', 'Juve Stabia': 'Castellammare di Stabia',
   'Mantova': 'Mantova', 'Modena': 'Modena', 'Palermo': 'Palermo',
   'Pisa': 'Pisa', 'Reggiana': 'Reggio Emilia', 'Südtirol': 'Bolzano',
   'Città di Palermo': 'Palermo',
-  // Premier League
   'Arsenal': 'Londra', 'Chelsea': 'Londra', 'Tottenham': 'Londra', 'West Ham': 'Londra',
   'Crystal Palace': 'Londra', 'Fulham': 'Londra', 'Brentford': 'Londra',
   'Manchester City': 'Manchester', 'Manchester United': 'Manchester',
@@ -899,7 +896,6 @@ const TEAM_CITY_MAP = {
   'Brighton': 'Brighton', 'Bournemouth': 'Bournemouth', 'Nottingham Forest': 'Nottingham',
   'Sheffield United': 'Sheffield', 'Burnley': 'Burnley', 'Luton': 'Luton',
   'Ipswich Town': 'Ipswich', 'Norwich City': 'Norwich',
-  // Bundesliga
   'Bayern Munich': 'Monaco', 'Borussia Dortmund': 'Dortmund', 'RB Leipzig': 'Lipsia',
   'Bayer Leverkusen': 'Leverkusen', 'Eintracht Frankfurt': 'Francoforte',
   'Wolfsburg': 'Wolfsburg', 'Mainz': 'Magonza', 'Borussia Mönchengladbach': 'Mönchengladbach',
@@ -909,21 +905,18 @@ const TEAM_CITY_MAP = {
   'Bochum': 'Bochum', 'Hamburger SV': 'Amburgo', 'Nürnberg': 'Norimberga',
   'Fortuna Düsseldorf': 'Düsseldorf', 'Hannover 96': 'Hannover', 'Karlsruher SC': 'Karlsruhe',
   'Holstein Kiel': 'Kiel', 'SC Paderborn': 'Paderborn', 'Darmstadt 98': 'Darmstadt',
-  // La Liga
   'Real Madrid': 'Madrid', 'Barcelona': 'Barcellona', 'Atletico Madrid': 'Madrid',
   'Sevilla': 'Siviglia', 'Real Betis': 'Siviglia', 'Athletic Bilbao': 'Bilbao',
   'Real Sociedad': 'San Sebastián', 'Valencia': 'Valencia', 'Villarreal': 'Villarreal',
   'Osasuna': 'Pamplona', 'Celta Vigo': 'Vigo', 'Rayo Vallecano': 'Madrid',
   'Getafe': 'Getafe', 'Mallorca': 'Palma di Maiorca', 'Granada': 'Granada',
   'Málaga': 'Málaga', 'Real Zaragoza': 'Zaragoza', 'Sporting Gijón': 'Gijón',
-  // Ligue 1
   'PSG': 'Parigi', 'Marseille': 'Marsiglia', 'Lyon': 'Lione', 'Lille': 'Lilla',
   'AS Monaco': 'Monaco', 'Nice': 'Nizza', 'Rennes': 'Rennes', 'Strasbourg': 'Strasburgo',
   'Nantes': 'Nantes', 'Montpellier': 'Montpellier', 'Reims': 'Reims',
   'Toulouse': 'Tolosa', 'Bordeaux': 'Bordeaux', 'Saint-Étienne': 'Saint-Étienne',
   'RC Lens': 'Lens', 'Brest': 'Brest', 'Auxerre': 'Auxerre', 'AC Ajaccio': 'Ajaccio',
   'SC Bastia': 'Bastia', 'FC Metz': 'Metz', 'AS Nancy': 'Nancy', 'Le Havre': 'Le Havre',
-  // Altri campionati
   'AIK': 'Stoccolma', 'Djurgården': 'Stoccolma', 'Hammarby': 'Stoccolma',
   'Malmö FF': 'Malmö', 'IFK Göteborg': 'Göteborg', 'Helsingborg': 'Helsingborg',
   'Elfsborg': 'Borås', 'Norrköping': 'Norrköping', 'Kalmar FF': 'Kalmar',
@@ -1021,63 +1014,27 @@ const getCityForTeam = (teamName) => {
 // Funzione per ottenere la città da squadra o campionato
 const getCityForMatch = (teamName, championship) => {
   if (!teamName) return null;
-  
-  // Prima cerca tramite squadra
   const cityFromTeam = getCityForTeam(teamName);
   if (cityFromTeam) return cityFromTeam;
-  
-  // Se non trovata, cerca tramite campionato
   const cityFromChamp = CITTÀ_PER_CAMPIONATO[championship];
   if (cityFromChamp) return cityFromChamp;
-  
-  // Cerca tramite campionato con match parziale
   for (const [key, city] of Object.entries(CITTÀ_PER_CAMPIONATO)) {
     if (championship && (championship.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(championship.toLowerCase()))) {
       return city;
     }
   }
-  
-  // Se il campionato è europeo, usa una città di default
   const europeanLeagues = ['Premier League', 'Serie A', 'Serie B', 'Bundesliga', 'Ligue 1', 
     'La Liga', 'Eredivisie', 'Primeira Liga', 'Allsvenskan', 'Eliteserien', 
     'Danish Superliga', 'Pro League', 'Championship', 'Swiss Super League', 
     'Austrian Bundesliga', 'Premier Division', 'Besta deild', 'Liga Portugal Betclic', 
     'Veikkausliiga', 'Russian Premier League'];
-    
-  if (championship && europeanLeagues.some(l => championship.includes(l))) {
-    return 'Londra';
-  }
-  
-  // Se il campionato contiene "Brasil", usa San Paolo
-  if (championship && championship.includes('Brasil')) {
-    return 'San Paolo';
-  }
-  
-  // Se il campionato contiene "J1", usa Tokyo
-  if (championship && championship.includes('J1')) {
-    return 'Tokyo';
-  }
-  
-  // Se il campionato contiene "K League", usa Seul
-  if (championship && championship.includes('K League')) {
-    return 'Seul';
-  }
-  
-  // Se il campionato contiene "Liga MX", usa Città del Messico
-  if (championship && championship.includes('Liga MX')) {
-    return 'Città del Messico';
-  }
-  
-  // Se il campionato contiene "Chinese", usa Pechino
-  if (championship && championship.includes('Chinese')) {
-    return 'Pechino';
-  }
-  
-  // Se il campionato contiene "MLS", usa New York
-  if (championship && championship.includes('MLS')) {
-    return 'New York';
-  }
-  
+  if (championship && europeanLeagues.some(l => championship.includes(l))) return 'Londra';
+  if (championship && championship.includes('Brasil')) return 'San Paolo';
+  if (championship && championship.includes('J1')) return 'Tokyo';
+  if (championship && championship.includes('K League')) return 'Seul';
+  if (championship && championship.includes('Liga MX')) return 'Città del Messico';
+  if (championship && championship.includes('Chinese')) return 'Pechino';
+  if (championship && championship.includes('MLS')) return 'New York';
   return null;
 };
 
@@ -1099,12 +1056,11 @@ const getWeatherDescription = (code) => {
 };
 
 // ============================================================
-// FUNZIONE FETCH METEO
+// FUNZIONE FETCH METEO (CORRETTA)
 // ============================================================
 
 const fetchWeatherForMatch = async (match) => {
   if (!match) return null;
-  
   const city = getCityForMatch(match.casa, match.campionato);
   if (!city) {
     console.warn('⚠️ Città non trovata per:', match.casa, match.campionato);
@@ -1112,260 +1068,134 @@ const fetchWeatherForMatch = async (match) => {
   }
   
   const coords = {
-    'Torino': { lat: 45.0703, lon: 7.6869 },
-    'Milano': { lat: 45.4642, lon: 9.1900 },
-    'Roma': { lat: 41.9028, lon: 12.4964 },
-    'Napoli': { lat: 40.8518, lon: 14.2681 },
-    'Firenze': { lat: 43.7696, lon: 11.2558 },
-    'Bergamo': { lat: 45.6980, lon: 9.6773 },
-    'Bologna': { lat: 44.4949, lon: 11.3426 },
-    'Genova': { lat: 44.4056, lon: 8.9463 },
-    'Reggio Emilia': { lat: 44.6988, lon: 10.6324 },
-    'Empoli': { lat: 43.7188, lon: 10.9455 },
-    'Salerno': { lat: 40.6823, lon: 14.7700 },
-    'Lecce': { lat: 40.3547, lon: 18.1724 },
-    'Verona': { lat: 45.4384, lon: 10.9916 },
-    'Cagliari': { lat: 39.2238, lon: 9.1217 },
-    'Monza': { lat: 45.5883, lon: 9.2738 },
-    'Parma': { lat: 44.8015, lon: 10.3280 },
-    'Como': { lat: 45.8080, lon: 9.0852 },
-    'Venezia': { lat: 45.4408, lon: 12.3155 },
-    'Frosinone': { lat: 41.6415, lon: 13.3548 },
-    'Cremona': { lat: 45.1363, lon: 10.0191 },
-    'La Spezia': { lat: 44.1025, lon: 9.8241 },
-    'Udine': { lat: 46.0642, lon: 13.2341 },
-    'Bari': { lat: 41.1171, lon: 16.8719 },
-    'Brescia': { lat: 45.5415, lon: 10.2117 },
-    'Carrara': { lat: 44.0794, lon: 10.0986 },
-    'Catanzaro': { lat: 38.9100, lon: 16.5876 },
-    'Cesena': { lat: 44.1392, lon: 12.2423 },
-    'Cittadella': { lat: 45.6483, lon: 11.7864 },
-    'Cosenza': { lat: 39.3070, lon: 16.2518 },
-    'Castellammare di Stabia': { lat: 40.6947, lon: 14.4806 },
-    'Mantova': { lat: 45.1604, lon: 10.7975 },
-    'Modena': { lat: 44.6471, lon: 10.9252 },
-    'Palermo': { lat: 38.1157, lon: 13.3615 },
-    'Pisa': { lat: 43.7228, lon: 10.4017 },
-    'Bolzano': { lat: 46.4983, lon: 11.3548 },
-    'Londra': { lat: 51.5074, lon: -0.1278 },
-    'Manchester': { lat: 53.4808, lon: -2.2426 },
-    'Liverpool': { lat: 53.4084, lon: -2.9916 },
-    'Newcastle upon Tyne': { lat: 54.9783, lon: -1.6174 },
-    'Birmingham': { lat: 52.4862, lon: -1.8904 },
-    'Wolverhampton': { lat: 52.5870, lon: -2.1311 },
-    'Leeds': { lat: 53.8008, lon: -1.5491 },
-    'Leicester': { lat: 52.6369, lon: -1.1398 },
-    'Southampton': { lat: 50.9097, lon: -1.4044 },
-    'Brighton': { lat: 50.8225, lon: -0.1372 },
-    'Bournemouth': { lat: 50.7192, lon: -1.8808 },
-    'Nottingham': { lat: 52.9548, lon: -1.1581 },
-    'Sheffield': { lat: 53.3811, lon: -1.4701 },
-    'Burnley': { lat: 53.7893, lon: -2.2408 },
-    'Luton': { lat: 51.8787, lon: -0.4200 },
-    'Ipswich': { lat: 52.0592, lon: 1.1555 },
-    'Norwich': { lat: 52.6309, lon: 1.2974 },
-    'Madrid': { lat: 40.4168, lon: -3.7038 },
-    'Barcellona': { lat: 41.3851, lon: 2.1734 },
-    'Siviglia': { lat: 37.3891, lon: -5.9845 },
-    'Bilbao': { lat: 43.2630, lon: -2.9350 },
-    'San Sebastián': { lat: 43.3183, lon: -1.9812 },
-    'Valencia': { lat: 39.4699, lon: -0.3763 },
-    'Villarreal': { lat: 39.9383, lon: -0.1005 },
-    'Pamplona': { lat: 42.8125, lon: -1.6458 },
-    'Vigo': { lat: 42.2406, lon: -8.7207 },
-    'Getafe': { lat: 40.3100, lon: -3.7300 },
-    'Palma di Maiorca': { lat: 39.5696, lon: 2.6502 },
-    'Granada': { lat: 37.1765, lon: -3.5970 },
-    'Málaga': { lat: 36.7202, lon: -4.4203 },
-    'Zaragoza': { lat: 41.6488, lon: -0.8891 },
-    'Gijón': { lat: 43.5357, lon: -5.6615 },
-    'Monaco': { lat: 48.1351, lon: 11.5820 },
-    'Berlino': { lat: 52.5200, lon: 13.4050 },
-    'Dortmund': { lat: 51.5136, lon: 7.4653 },
-    'Lipsia': { lat: 51.3397, lon: 12.3731 },
-    'Leverkusen': { lat: 51.0458, lon: 6.9746 },
-    'Francoforte': { lat: 50.1109, lon: 8.6821 },
-    'Wolfsburg': { lat: 52.4226, lon: 10.7866 },
-    'Magonza': { lat: 49.9929, lon: 8.2473 },
-    'Mönchengladbach': { lat: 51.1805, lon: 6.4428 },
-    'Friburgo': { lat: 47.9990, lon: 7.8421 },
-    'Stoccarda': { lat: 48.7758, lon: 9.1829 },
-    'Brema': { lat: 53.0793, lon: 8.8017 },
-    'Sinsheim': { lat: 49.2538, lon: 8.8779 },
-    'Augusta': { lat: 48.3705, lon: 10.8978 },
-    'Colonia': { lat: 50.9375, lon: 6.9603 },
-    'Gelsenkirchen': { lat: 51.5177, lon: 7.0840 },
-    'Bochum': { lat: 51.4818, lon: 7.2192 },
-    'Amburgo': { lat: 53.5511, lon: 9.9937 },
-    'Norimberga': { lat: 49.4521, lon: 11.0767 },
-    'Düsseldorf': { lat: 51.2277, lon: 6.7735 },
-    'Hannover': { lat: 52.3759, lon: 9.7320 },
-    'Parigi': { lat: 48.8566, lon: 2.3522 },
-    'Marsiglia': { lat: 43.2965, lon: 5.3698 },
-    'Lione': { lat: 45.7640, lon: 4.8357 },
-    'Lilla': { lat: 50.6292, lon: 3.0573 },
-    'Nizza': { lat: 43.7102, lon: 7.2620 },
-    'Rennes': { lat: 48.1173, lon: -1.6778 },
-    'Strasburgo': { lat: 48.5734, lon: 7.7521 },
-    'Nantes': { lat: 47.2184, lon: -1.5536 },
-    'Montpellier': { lat: 43.6108, lon: 3.8767 },
-    'Reims': { lat: 49.2583, lon: 4.0317 },
-    'Tolosa': { lat: 43.6047, lon: 1.4442 },
-    'Bordeaux': { lat: 44.8378, lon: -0.5792 },
-    'Saint-Étienne': { lat: 45.4397, lon: 4.3872 },
-    'Lens': { lat: 50.4319, lon: 2.8318 },
-    'Brest': { lat: 48.3904, lon: -4.4868 },
-    'Amsterdam': { lat: 52.3676, lon: 4.9041 },
-    'Rotterdam': { lat: 51.9244, lon: 4.4777 },
-    'Eindhoven': { lat: 51.4416, lon: 5.4697 },
-    'Alkmaar': { lat: 52.6324, lon: 4.7534 },
-    'Utrecht': { lat: 52.0907, lon: 5.1214 },
-    'Enschede': { lat: 52.2215, lon: 6.8937 },
-    'Heerenveen': { lat: 52.9597, lon: 5.9403 },
-    'Arnhem': { lat: 51.9851, lon: 5.8987 },
-    'Groningen': { lat: 53.2194, lon: 6.5665 },
-    'Nijmegen': { lat: 51.8425, lon: 5.8528 },
-    'Tilburg': { lat: 51.5555, lon: 5.0913 },
-    'Breda': { lat: 51.5719, lon: 4.7683 },
-    'Lisbona': { lat: 38.7223, lon: -9.1393 },
-    'Porto': { lat: 41.1579, lon: -8.6291 },
-    'Braga': { lat: 41.5454, lon: -8.4265 },
-    'Guimarães': { lat: 41.4426, lon: -8.2918 },
-    'Vila do Conde': { lat: 41.3545, lon: -8.7440 },
-    'Faro': { lat: 37.0162, lon: -7.9328 },
-    'Funchal': { lat: 32.6509, lon: -16.9080 },
-    'Coimbra': { lat: 40.2033, lon: -8.4103 },
-    'Setúbal': { lat: 38.5244, lon: -8.8882 },
-    'Stoccolma': { lat: 59.3293, lon: 18.0686 },
-    'Göteborg': { lat: 57.7089, lon: 11.9746 },
-    'Malmö': { lat: 55.6050, lon: 13.0038 },
-    'Borås': { lat: 57.7210, lon: 12.9401 },
-    'Norrköping': { lat: 58.5877, lon: 16.1924 },
-    'Kalmar': { lat: 56.6616, lon: 16.3616 },
-    'Helsingborg': { lat: 56.0465, lon: 12.6945 },
-    'Oslo': { lat: 59.9139, lon: 10.7522 },
-    'Bergen': { lat: 60.3913, lon: 5.3221 },
-    'Trondheim': { lat: 63.4305, lon: 10.3951 },
-    'Stavanger': { lat: 58.9700, lon: 5.7331 },
-    'Tromsø': { lat: 69.6492, lon: 18.9553 },
-    'Bodø': { lat: 67.2831, lon: 14.3834 },
-    'Molde': { lat: 62.7337, lon: 7.1591 },
-    'Copenaghen': { lat: 55.6761, lon: 12.5683 },
-    'Herning': { lat: 56.1360, lon: 8.9766 },
-    'Aarhus': { lat: 56.1629, lon: 10.2039 },
-    'Odense': { lat: 55.4038, lon: 10.4024 },
-    'Aalborg': { lat: 57.0488, lon: 9.9217 },
-    'Randers': { lat: 56.4610, lon: 10.0362 },
-    'Bruxelles': { lat: 50.8503, lon: 4.3517 },
-    'Bruges': { lat: 51.2093, lon: 3.2247 },
-    'Genk': { lat: 50.9660, lon: 5.5026 },
-    'Liegi': { lat: 50.6326, lon: 5.5797 },
-    'Gand': { lat: 51.0543, lon: 3.7174 },
-    'Charleroi': { lat: 50.4108, lon: 4.4446 },
-    'Anversa': { lat: 51.2194, lon: 4.4025 },
-    'Mechelen': { lat: 51.0259, lon: 4.4775 },
-    'Vienna': { lat: 48.2082, lon: 16.3738 },
-    'Salisburgo': { lat: 47.8095, lon: 13.0550 },
-    'Graz': { lat: 47.0707, lon: 15.4395 },
-    'Linz': { lat: 48.3069, lon: 14.2858 },
-    'Wolfsberg': { lat: 46.8407, lon: 14.8449 },
-    'Innsbruck': { lat: 47.2692, lon: 11.4041 },
-    'Klagenfurt': { lat: 46.6245, lon: 14.3054 },
-    'Berna': { lat: 46.9480, lon: 7.4474 },
-    'Basilea': { lat: 47.5596, lon: 7.5886 },
-    'Zurigo': { lat: 47.3769, lon: 8.5417 },
-    'Lugano': { lat: 46.0050, lon: 8.9528 },
-    'Ginevra': { lat: 46.2044, lon: 6.1432 },
-    'San Gallo': { lat: 47.4245, lon: 9.3767 },
-    'Lucerna': { lat: 47.0500, lon: 8.3064 },
-    'Losanna': { lat: 46.5210, lon: 6.6327 },
-    'Helsinki': { lat: 60.1699, lon: 24.9384 },
-    'Turku': { lat: 60.4518, lon: 22.2666 },
-    'Tampere': { lat: 61.4978, lon: 23.7610 },
-    'Kuopio': { lat: 62.8924, lon: 27.6778 },
-    'Reykjavik': { lat: 64.1466, lon: -21.9426 },
-    'Kópavogur': { lat: 64.1032, lon: -21.9059 },
-    'Akureyri': { lat: 65.6885, lon: -18.1266 },
-    'Dublino': { lat: 53.3498, lon: -6.2603 },
-    'Derry': { lat: 54.9966, lon: -7.3086 },
-    'Dundalk': { lat: 54.0000, lon: -6.4167 },
-    'Cork': { lat: 51.8985, lon: -8.4756 },
-    'Galway': { lat: 53.2707, lon: -9.0568 },
-    'Tokyo': { lat: 35.6762, lon: 139.6503 },
-    'Osaka': { lat: 34.6937, lon: 135.5023 },
-    'Kawasaki': { lat: 35.5305, lon: 139.7025 },
-    'Yokohama': { lat: 35.4437, lon: 139.6380 },
-    'Saitama': { lat: 35.8575, lon: 139.6489 },
-    'Kashima': { lat: 35.9656, lon: 140.6462 },
-    'Nagoya': { lat: 35.1815, lon: 136.9066 },
-    'Kobe': { lat: 34.6901, lon: 135.1955 },
-    'Hiroshima': { lat: 34.3853, lon: 132.4553 },
-    'Seul': { lat: 37.5665, lon: 126.9780 },
-    'Ulsan': { lat: 35.5384, lon: 129.3114 },
-    'Jeonju': { lat: 35.8242, lon: 127.1480 },
-    'Suwon': { lat: 37.2636, lon: 127.0286 },
-    'Pohang': { lat: 36.0190, lon: 129.3435 },
-    'Daegu': { lat: 35.8714, lon: 128.6014 },
-    'Incheon': { lat: 37.4563, lon: 126.7052 },
-    'Pechino': { lat: 39.9042, lon: 116.4074 },
-    'Shanghai': { lat: 31.2304, lon: 121.4737 },
-    'Tianjin': { lat: 39.0841, lon: 117.2009 },
-    'Wuhan': { lat: 30.5928, lon: 114.3055 },
-    'Hangzhou': { lat: 30.2741, lon: 120.1551 },
-    'Canton': { lat: 23.1291, lon: 113.2644 },
-    'Jinan': { lat: 36.6512, lon: 117.1200 },
-    'Dalian': { lat: 38.9140, lon: 121.6147 },
-    'Chengdu': { lat: 30.5728, lon: 104.0668 },
-    'Changchun': { lat: 43.8868, lon: 125.3245 },
-    'Shenzhen': { lat: 22.5431, lon: 114.0579 },
-    'Rio de Janeiro': { lat: -22.9068, lon: -43.1729 },
-    'San Paolo': { lat: -23.5505, lon: -46.6333 },
-    'Belo Horizonte': { lat: -19.9167, lon: -43.9346 },
-    'Porto Alegre': { lat: -30.0346, lon: -51.2177 },
-    'Santos': { lat: -23.9608, lon: -46.3322 },
-    'Curitiba': { lat: -25.4290, lon: -49.2671 },
-    'Salvador': { lat: -12.9777, lon: -38.5016 },
-    'Fortaleza': { lat: -3.7172, lon: -38.5433 },
-    'Brasilia': { lat: -15.7975, lon: -47.8919 },
-    'Recife': { lat: -8.0476, lon: -34.8770 },
-    'Città del Messico': { lat: 19.4326, lon: -99.1332 },
-    'Guadalajara': { lat: 20.6597, lon: -103.3496 },
-    'Monterrey': { lat: 25.6866, lon: -100.3161 },
-    'San Nicolás de los Garza': { lat: 25.7412, lon: -100.3029 },
-    'Torreón': { lat: 25.5428, lon: -103.4068 },
-    'Tijuana': { lat: 32.5149, lon: -117.0382 },
-    'Pachuca': { lat: 20.1224, lon: -98.7358 },
-    'Toluca': { lat: 19.2826, lon: -99.6557 },
-    'New York': { lat: 40.7128, lon: -74.0060 },
-    'Los Angeles': { lat: 34.0522, lon: -118.2437 },
-    'Chicago': { lat: 41.8781, lon: -87.6298 },
-    'Houston': { lat: 29.7604, lon: -95.3698 },
-    'Phoenix': { lat: 33.4484, lon: -112.0740 },
-    'Philadelphia': { lat: 39.9526, lon: -75.1652 },
-    'San Diego': { lat: 32.7157, lon: -117.1611 },
-    'Dallas': { lat: 32.7767, lon: -96.7970 },
-    'San Francisco': { lat: 37.7749, lon: -122.4194 },
-    'Seattle': { lat: 47.6062, lon: -122.3321 },
-    'Denver': { lat: 39.7392, lon: -104.9903 },
-    'Washington': { lat: 38.9072, lon: -77.0369 },
-    'Boston': { lat: 42.3601, lon: -71.0589 },
-    'Las Vegas': { lat: 36.1699, lon: -115.1398 },
-    'Miami': { lat: 25.7617, lon: -80.1918 },
-    'Atlanta': { lat: 33.7490, lon: -84.3880 },
-    'Orlando': { lat: 28.5383, lon: -81.3792 },
-    'Minneapolis': { lat: 44.9778, lon: -93.2650 },
-    'Cleveland': { lat: 41.4993, lon: -81.6944 },
-    'Pittsburgh': { lat: 40.4406, lon: -79.9959 },
-    'St. Louis': { lat: 38.6270, lon: -90.1994 },
-    'Cincinnati': { lat: 39.1031, lon: -84.5120 },
-    'Salt Lake City': { lat: 40.7608, lon: -111.8910 },
-    'Raleigh': { lat: 35.7796, lon: -78.6382 },
-    'Buffalo': { lat: 42.8864, lon: -78.8784 },
-    'Oakland': { lat: 37.8044, lon: -122.2711 },
+    'Torino': { lat: 45.0703, lon: 7.6869 }, 'Milano': { lat: 45.4642, lon: 9.1900 },
+    'Roma': { lat: 41.9028, lon: 12.4964 }, 'Napoli': { lat: 40.8518, lon: 14.2681 },
+    'Firenze': { lat: 43.7696, lon: 11.2558 }, 'Bergamo': { lat: 45.6980, lon: 9.6773 },
+    'Bologna': { lat: 44.4949, lon: 11.3426 }, 'Genova': { lat: 44.4056, lon: 8.9463 },
+    'Reggio Emilia': { lat: 44.6988, lon: 10.6324 }, 'Empoli': { lat: 43.7188, lon: 10.9455 },
+    'Salerno': { lat: 40.6823, lon: 14.7700 }, 'Lecce': { lat: 40.3547, lon: 18.1724 },
+    'Verona': { lat: 45.4384, lon: 10.9916 }, 'Cagliari': { lat: 39.2238, lon: 9.1217 },
+    'Monza': { lat: 45.5883, lon: 9.2738 }, 'Parma': { lat: 44.8015, lon: 10.3280 },
+    'Como': { lat: 45.8080, lon: 9.0852 }, 'Venezia': { lat: 45.4408, lon: 12.3155 },
+    'Frosinone': { lat: 41.6415, lon: 13.3548 }, 'Cremona': { lat: 45.1363, lon: 10.0191 },
+    'La Spezia': { lat: 44.1025, lon: 9.8241 }, 'Udine': { lat: 46.0642, lon: 13.2341 },
+    'Bari': { lat: 41.1171, lon: 16.8719 }, 'Brescia': { lat: 45.5415, lon: 10.2117 },
+    'Carrara': { lat: 44.0794, lon: 10.0986 }, 'Catanzaro': { lat: 38.9100, lon: 16.5876 },
+    'Cesena': { lat: 44.1392, lon: 12.2423 }, 'Cittadella': { lat: 45.6483, lon: 11.7864 },
+    'Cosenza': { lat: 39.3070, lon: 16.2518 }, 'Castellammare di Stabia': { lat: 40.6947, lon: 14.4806 },
+    'Mantova': { lat: 45.1604, lon: 10.7975 }, 'Modena': { lat: 44.6471, lon: 10.9252 },
+    'Palermo': { lat: 38.1157, lon: 13.3615 }, 'Pisa': { lat: 43.7228, lon: 10.4017 },
+    'Bolzano': { lat: 46.4983, lon: 11.3548 }, 'Londra': { lat: 51.5074, lon: -0.1278 },
+    'Manchester': { lat: 53.4808, lon: -2.2426 }, 'Liverpool': { lat: 53.4084, lon: -2.9916 },
+    'Newcastle upon Tyne': { lat: 54.9783, lon: -1.6174 }, 'Birmingham': { lat: 52.4862, lon: -1.8904 },
+    'Wolverhampton': { lat: 52.5870, lon: -2.1311 }, 'Leeds': { lat: 53.8008, lon: -1.5491 },
+    'Leicester': { lat: 52.6369, lon: -1.1398 }, 'Southampton': { lat: 50.9097, lon: -1.4044 },
+    'Brighton': { lat: 50.8225, lon: -0.1372 }, 'Bournemouth': { lat: 50.7192, lon: -1.8808 },
+    'Nottingham': { lat: 52.9548, lon: -1.1581 }, 'Sheffield': { lat: 53.3811, lon: -1.4701 },
+    'Burnley': { lat: 53.7893, lon: -2.2408 }, 'Luton': { lat: 51.8787, lon: -0.4200 },
+    'Ipswich': { lat: 52.0592, lon: 1.1555 }, 'Norwich': { lat: 52.6309, lon: 1.2974 },
+    'Madrid': { lat: 40.4168, lon: -3.7038 }, 'Barcellona': { lat: 41.3851, lon: 2.1734 },
+    'Siviglia': { lat: 37.3891, lon: -5.9845 }, 'Bilbao': { lat: 43.2630, lon: -2.9350 },
+    'San Sebastián': { lat: 43.3183, lon: -1.9812 }, 'Valencia': { lat: 39.4699, lon: -0.3763 },
+    'Villarreal': { lat: 39.9383, lon: -0.1005 }, 'Pamplona': { lat: 42.8125, lon: -1.6458 },
+    'Vigo': { lat: 42.2406, lon: -8.7207 }, 'Getafe': { lat: 40.3100, lon: -3.7300 },
+    'Palma di Maiorca': { lat: 39.5696, lon: 2.6502 }, 'Granada': { lat: 37.1765, lon: -3.5970 },
+    'Málaga': { lat: 36.7202, lon: -4.4203 }, 'Zaragoza': { lat: 41.6488, lon: -0.8891 },
+    'Gijón': { lat: 43.5357, lon: -5.6615 }, 'Monaco': { lat: 48.1351, lon: 11.5820 },
+    'Berlino': { lat: 52.5200, lon: 13.4050 }, 'Dortmund': { lat: 51.5136, lon: 7.4653 },
+    'Lipsia': { lat: 51.3397, lon: 12.3731 }, 'Leverkusen': { lat: 51.0458, lon: 6.9746 },
+    'Francoforte': { lat: 50.1109, lon: 8.6821 }, 'Wolfsburg': { lat: 52.4226, lon: 10.7866 },
+    'Magonza': { lat: 49.9929, lon: 8.2473 }, 'Mönchengladbach': { lat: 51.1805, lon: 6.4428 },
+    'Friburgo': { lat: 47.9990, lon: 7.8421 }, 'Stoccarda': { lat: 48.7758, lon: 9.1829 },
+    'Brema': { lat: 53.0793, lon: 8.8017 }, 'Sinsheim': { lat: 49.2538, lon: 8.8779 },
+    'Augusta': { lat: 48.3705, lon: 10.8978 }, 'Colonia': { lat: 50.9375, lon: 6.9603 },
+    'Gelsenkirchen': { lat: 51.5177, lon: 7.0840 }, 'Bochum': { lat: 51.4818, lon: 7.2192 },
+    'Amburgo': { lat: 53.5511, lon: 9.9937 }, 'Norimberga': { lat: 49.4521, lon: 11.0767 },
+    'Düsseldorf': { lat: 51.2277, lon: 6.7735 }, 'Hannover': { lat: 52.3759, lon: 9.7320 },
+    'Parigi': { lat: 48.8566, lon: 2.3522 }, 'Marsiglia': { lat: 43.2965, lon: 5.3698 },
+    'Lione': { lat: 45.7640, lon: 4.8357 }, 'Lilla': { lat: 50.6292, lon: 3.0573 },
+    'Nizza': { lat: 43.7102, lon: 7.2620 }, 'Rennes': { lat: 48.1173, lon: -1.6778 },
+    'Strasburgo': { lat: 48.5734, lon: 7.7521 }, 'Nantes': { lat: 47.2184, lon: -1.5536 },
+    'Montpellier': { lat: 43.6108, lon: 3.8767 }, 'Reims': { lat: 49.2583, lon: 4.0317 },
+    'Tolosa': { lat: 43.6047, lon: 1.4442 }, 'Bordeaux': { lat: 44.8378, lon: -0.5792 },
+    'Saint-Étienne': { lat: 45.4397, lon: 4.3872 }, 'Lens': { lat: 50.4319, lon: 2.8318 },
+    'Brest': { lat: 48.3904, lon: -4.4868 }, 'Amsterdam': { lat: 52.3676, lon: 4.9041 },
+    'Rotterdam': { lat: 51.9244, lon: 4.4777 }, 'Eindhoven': { lat: 51.4416, lon: 5.4697 },
+    'Alkmaar': { lat: 52.6324, lon: 4.7534 }, 'Utrecht': { lat: 52.0907, lon: 5.1214 },
+    'Enschede': { lat: 52.2215, lon: 6.8937 }, 'Heerenveen': { lat: 52.9597, lon: 5.9403 },
+    'Arnhem': { lat: 51.9851, lon: 5.8987 }, 'Groningen': { lat: 53.2194, lon: 6.5665 },
+    'Nijmegen': { lat: 51.8425, lon: 5.8528 }, 'Tilburg': { lat: 51.5555, lon: 5.0913 },
+    'Breda': { lat: 51.5719, lon: 4.7683 }, 'Lisbona': { lat: 38.7223, lon: -9.1393 },
+    'Porto': { lat: 41.1579, lon: -8.6291 }, 'Braga': { lat: 41.5454, lon: -8.4265 },
+    'Guimarães': { lat: 41.4426, lon: -8.2918 }, 'Vila do Conde': { lat: 41.3545, lon: -8.7440 },
+    'Faro': { lat: 37.0162, lon: -7.9328 }, 'Funchal': { lat: 32.6509, lon: -16.9080 },
+    'Coimbra': { lat: 40.2033, lon: -8.4103 }, 'Setúbal': { lat: 38.5244, lon: -8.8882 },
+    'Stoccolma': { lat: 59.3293, lon: 18.0686 }, 'Göteborg': { lat: 57.7089, lon: 11.9746 },
+    'Malmö': { lat: 55.6050, lon: 13.0038 }, 'Borås': { lat: 57.7210, lon: 12.9401 },
+    'Norrköping': { lat: 58.5877, lon: 16.1924 }, 'Kalmar': { lat: 56.6616, lon: 16.3616 },
+    'Helsingborg': { lat: 56.0465, lon: 12.6945 }, 'Oslo': { lat: 59.9139, lon: 10.7522 },
+    'Bergen': { lat: 60.3913, lon: 5.3221 }, 'Trondheim': { lat: 63.4305, lon: 10.3951 },
+    'Stavanger': { lat: 58.9700, lon: 5.7331 }, 'Tromsø': { lat: 69.6492, lon: 18.9553 },
+    'Bodø': { lat: 67.2831, lon: 14.3834 }, 'Molde': { lat: 62.7337, lon: 7.1591 },
+    'Copenaghen': { lat: 55.6761, lon: 12.5683 }, 'Herning': { lat: 56.1360, lon: 8.9766 },
+    'Aarhus': { lat: 56.1629, lon: 10.2039 }, 'Odense': { lat: 55.4038, lon: 10.4024 },
+    'Aalborg': { lat: 57.0488, lon: 9.9217 }, 'Randers': { lat: 56.4610, lon: 10.0362 },
+    'Bruxelles': { lat: 50.8503, lon: 4.3517 }, 'Bruges': { lat: 51.2093, lon: 3.2247 },
+    'Genk': { lat: 50.9660, lon: 5.5026 }, 'Liegi': { lat: 50.6326, lon: 5.5797 },
+    'Gand': { lat: 51.0543, lon: 3.7174 }, 'Charleroi': { lat: 50.4108, lon: 4.4446 },
+    'Anversa': { lat: 51.2194, lon: 4.4025 }, 'Mechelen': { lat: 51.0259, lon: 4.4775 },
+    'Vienna': { lat: 48.2082, lon: 16.3738 }, 'Salisburgo': { lat: 47.8095, lon: 13.0550 },
+    'Graz': { lat: 47.0707, lon: 15.4395 }, 'Linz': { lat: 48.3069, lon: 14.2858 },
+    'Wolfsberg': { lat: 46.8407, lon: 14.8449 }, 'Innsbruck': { lat: 47.2692, lon: 11.4041 },
+    'Klagenfurt': { lat: 46.6245, lon: 14.3054 }, 'Berna': { lat: 46.9480, lon: 7.4474 },
+    'Basilea': { lat: 47.5596, lon: 7.5886 }, 'Zurigo': { lat: 47.3769, lon: 8.5417 },
+    'Lugano': { lat: 46.0050, lon: 8.9528 }, 'Ginevra': { lat: 46.2044, lon: 6.1432 },
+    'San Gallo': { lat: 47.4245, lon: 9.3767 }, 'Lucerna': { lat: 47.0500, lon: 8.3064 },
+    'Losanna': { lat: 46.5210, lon: 6.6327 }, 'Helsinki': { lat: 60.1699, lon: 24.9384 },
+    'Turku': { lat: 60.4518, lon: 22.2666 }, 'Tampere': { lat: 61.4978, lon: 23.7610 },
+    'Kuopio': { lat: 62.8924, lon: 27.6778 }, 'Reykjavik': { lat: 64.1466, lon: -21.9426 },
+    'Kópavogur': { lat: 64.1032, lon: -21.9059 }, 'Akureyri': { lat: 65.6885, lon: -18.1266 },
+    'Dublino': { lat: 53.3498, lon: -6.2603 }, 'Derry': { lat: 54.9966, lon: -7.3086 },
+    'Dundalk': { lat: 54.0000, lon: -6.4167 }, 'Cork': { lat: 51.8985, lon: -8.4756 },
+    'Galway': { lat: 53.2707, lon: -9.0568 }, 'Tokyo': { lat: 35.6762, lon: 139.6503 },
+    'Osaka': { lat: 34.6937, lon: 135.5023 }, 'Kawasaki': { lat: 35.5305, lon: 139.7025 },
+    'Yokohama': { lat: 35.4437, lon: 139.6380 }, 'Saitama': { lat: 35.8575, lon: 139.6489 },
+    'Kashima': { lat: 35.9656, lon: 140.6462 }, 'Nagoya': { lat: 35.1815, lon: 136.9066 },
+    'Kobe': { lat: 34.6901, lon: 135.1955 }, 'Hiroshima': { lat: 34.3853, lon: 132.4553 },
+    'Seul': { lat: 37.5665, lon: 126.9780 }, 'Ulsan': { lat: 35.5384, lon: 129.3114 },
+    'Jeonju': { lat: 35.8242, lon: 127.1480 }, 'Suwon': { lat: 37.2636, lon: 127.0286 },
+    'Pohang': { lat: 36.0190, lon: 129.3435 }, 'Daegu': { lat: 35.8714, lon: 128.6014 },
+    'Incheon': { lat: 37.4563, lon: 126.7052 }, 'Pechino': { lat: 39.9042, lon: 116.4074 },
+    'Shanghai': { lat: 31.2304, lon: 121.4737 }, 'Tianjin': { lat: 39.0841, lon: 117.2009 },
+    'Wuhan': { lat: 30.5928, lon: 114.3055 }, 'Hangzhou': { lat: 30.2741, lon: 120.1551 },
+    'Canton': { lat: 23.1291, lon: 113.2644 }, 'Jinan': { lat: 36.6512, lon: 117.1200 },
+    'Dalian': { lat: 38.9140, lon: 121.6147 }, 'Chengdu': { lat: 30.5728, lon: 104.0668 },
+    'Changchun': { lat: 43.8868, lon: 125.3245 }, 'Shenzhen': { lat: 22.5431, lon: 114.0579 },
+    'Rio de Janeiro': { lat: -22.9068, lon: -43.1729 }, 'San Paolo': { lat: -23.5505, lon: -46.6333 },
+    'Belo Horizonte': { lat: -19.9167, lon: -43.9346 }, 'Porto Alegre': { lat: -30.0346, lon: -51.2177 },
+    'Santos': { lat: -23.9608, lon: -46.3322 }, 'Curitiba': { lat: -25.4290, lon: -49.2671 },
+    'Salvador': { lat: -12.9777, lon: -38.5016 }, 'Fortaleza': { lat: -3.7172, lon: -38.5433 },
+    'Brasilia': { lat: -15.7975, lon: -47.8919 }, 'Recife': { lat: -8.0476, lon: -34.8770 },
+    'Città del Messico': { lat: 19.4326, lon: -99.1332 }, 'Guadalajara': { lat: 20.6597, lon: -103.3496 },
+    'Monterrey': { lat: 25.6866, lon: -100.3161 }, 'San Nicolás de los Garza': { lat: 25.7412, lon: -100.3029 },
+    'Torreón': { lat: 25.5428, lon: -103.4068 }, 'Tijuana': { lat: 32.5149, lon: -117.0382 },
+    'Pachuca': { lat: 20.1224, lon: -98.7358 }, 'Toluca': { lat: 19.2826, lon: -99.6557 },
+    'New York': { lat: 40.7128, lon: -74.0060 }, 'Los Angeles': { lat: 34.0522, lon: -118.2437 },
+    'Chicago': { lat: 41.8781, lon: -87.6298 }, 'Houston': { lat: 29.7604, lon: -95.3698 },
+    'Phoenix': { lat: 33.4484, lon: -112.0740 }, 'Philadelphia': { lat: 39.9526, lon: -75.1652 },
+    'San Diego': { lat: 32.7157, lon: -117.1611 }, 'Dallas': { lat: 32.7767, lon: -96.7970 },
+    'San Francisco': { lat: 37.7749, lon: -122.4194 }, 'Seattle': { lat: 47.6062, lon: -122.3321 },
+    'Denver': { lat: 39.7392, lon: -104.9903 }, 'Washington': { lat: 38.9072, lon: -77.0369 },
+    'Boston': { lat: 42.3601, lon: -71.0589 }, 'Las Vegas': { lat: 36.1699, lon: -115.1398 },
+    'Miami': { lat: 25.7617, lon: -80.1918 }, 'Atlanta': { lat: 33.7490, lon: -84.3880 },
+    'Orlando': { lat: 28.5383, lon: -81.3792 }, 'Minneapolis': { lat: 44.9778, lon: -93.2650 },
+    'Cleveland': { lat: 41.4993, lon: -81.6944 }, 'Pittsburgh': { lat: 40.4406, lon: -79.9959 },
+    'St. Louis': { lat: 38.6270, lon: -90.1994 }, 'Cincinnati': { lat: 39.1031, lon: -84.5120 },
+    'Salt Lake City': { lat: 40.7608, lon: -111.8910 }, 'Raleigh': { lat: 35.7796, lon: -78.6382 },
+    'Buffalo': { lat: 42.8864, lon: -78.8784 }, 'Oakland': { lat: 37.8044, lon: -122.2711 },
   };
   
   let coord = coords[city];
-  
   if (!coord) {
     try {
       const geoRes = await fetch(
@@ -1374,22 +1204,13 @@ const fetchWeatherForMatch = async (match) => {
       if (geoRes.ok) {
         const geoData = await geoRes.json();
         if (geoData.results && geoData.results.length > 0) {
-          coord = {
-            lat: geoData.results[0].latitude,
-            lon: geoData.results[0].longitude
-          };
+          coord = { lat: geoData.results[0].latitude, lon: geoData.results[0].longitude };
           console.log(`🌍 Geocodificata ${city} -> ${coord.lat}, ${coord.lon}`);
         }
       }
-    } catch (e) {
-      console.warn('Geocoding fallito per', city);
-    }
+    } catch (e) { console.warn('Geocoding fallito per', city); }
   }
-  
-  if (!coord) {
-    coord = { lat: 48.8566, lon: 2.3522 };
-    console.warn(`⚠️ Coordinate non trovate per ${city}, usando Parigi come default`);
-  }
+  if (!coord) { coord = { lat: 48.8566, lon: 2.3522 }; console.warn(`⚠️ Coordinate non trovate per ${city}, usando Parigi come default`); }
   
   let dateToUse;
   if (match.data && match.data.match(/^\d{2}\/\d{2}\/\d{4}/)) {
@@ -1398,46 +1219,27 @@ const fetchWeatherForMatch = async (match) => {
   } else if (match.data && match.data.match(/^\d{4}-\d{2}-\d{2}/)) {
     dateToUse = match.data;
   } else {
-    const today = new Date();
-    dateToUse = today.toISOString().slice(0, 10);
+    dateToUse = new Date().toISOString().slice(0, 10);
   }
   
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?` +
-      `latitude=${coord.lat}&longitude=${coord.lon}` +
-      `&current_weather=true` +
-      `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode` +
-      `&timezone=auto` +
-      `&start_date=${dateToUse}&end_date=${dateToUse}`;
-    
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coord.lat}&longitude=${coord.lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=auto&start_date=${dateToUse}&end_date=${dateToUse}`;
     console.log(`🌤️ Richiesta meteo per ${city} (${dateToUse}): ${url}`);
-    
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    
     const data = await response.json();
-    if (!data.daily) {
-      console.warn('⚠️ Nessun dato daily per', city);
-      return null;
-    }
-    
+    if (!data.daily) { console.warn('⚠️ Nessun dato daily per', city); return null; }
     const weatherCode = data.daily.weathercode?.[0] || 0;
-    const weatherDesc = getWeatherDescription(weatherCode);
-    
-    const result = {
+    return {
       temp: data.current_weather?.temperature || 0,
       temp_min: data.daily.temperature_2m_min?.[0] || 0,
       temp_max: data.daily.temperature_2m_max?.[0] || 0,
-      weather: weatherDesc,
+      weather: getWeatherDescription(weatherCode),
       wind_speed: data.current_weather?.windspeed || 0,
       rain: data.daily.precipitation_sum?.[0] || 0,
       forecast_date: dateToUse,
       city: city
     };
-    
-    console.log(`✅ Meteo per ${city}: ${result.temp}°C, ${result.weather}`);
-    return result;
-    
   } catch (error) {
     console.warn('❌ Errore meteo per', city, error.message);
     return null;
@@ -1639,34 +1441,18 @@ const getHeatmapColorClass = (pct) => {
 
 const getChampFolderName = (champName) => {
   if (!champName) return '';
-  let folderName = champName
-    .replace(/ /g, '_')
-    .replace(/[^a-zA-Z0-9_]/g, '');
+  let folderName = champName.replace(/ /g, '_').replace(/[^a-zA-Z0-9_]/g, '');
   const specialCases = {
-    'Ireland_Premier': 'Ireland_Premier',
-    'Russian_PL': 'Russian_PL',
-    'Swiss_Super_League': 'Swiss_Super_League',
-    'Chinese_Super_League': 'Chinese_Super_League',
-    'Danish_Superliga': 'Danish_Superliga',
-    'Austrian_Bundesliga': 'Austrian_Bundesliga',
-    'J1_League': 'J1_League',
-    'K_League_1': 'K_League_1',
-    'Allsvenskan': 'Allsvenskan',
-    'Eliteserien': 'Eliteserien',
-    'Veikkausliiga': 'Veikkausliiga',
-    'Eredivisie': 'Eredivisie',
-    'La_Liga': 'La_Liga',
-    'Serie_B': 'Serie_B',
-    'Premier_League': 'Premier_League',
-    'Bundesliga': 'Bundesliga',
-    'Ligue_1': 'Ligue_1',
-    'Liga_Portugal_Betclic': 'Liga_Portugal_Betclic',
-    'Besta_deild': 'Besta_deild',
-    'Premier_Division': 'Premier_Division',
-    'Russian_Premier_League': 'Russian_Premier_League',
-    'Pro_League': 'Pro_League',
-    'Liga_MX': 'Liga_MX',
-    'Brasileirão': 'Brasileirão',
+    'Ireland_Premier': 'Ireland_Premier', 'Russian_PL': 'Russian_PL',
+    'Swiss_Super_League': 'Swiss_Super_League', 'Chinese_Super_League': 'Chinese_Super_League',
+    'Danish_Superliga': 'Danish_Superliga', 'Austrian_Bundesliga': 'Austrian_Bundesliga',
+    'J1_League': 'J1_League', 'K_League_1': 'K_League_1',
+    'Allsvenskan': 'Allsvenskan', 'Eliteserien': 'Eliteserien', 'Veikkausliiga': 'Veikkausliiga',
+    'Eredivisie': 'Eredivisie', 'La_Liga': 'La_Liga', 'Serie_B': 'Serie_B',
+    'Premier_League': 'Premier_League', 'Bundesliga': 'Bundesliga', 'Ligue_1': 'Ligue_1',
+    'Liga_Portugal_Betclic': 'Liga_Portugal_Betclic', 'Besta_deild': 'Besta_deild',
+    'Premier_Division': 'Premier_Division', 'Russian_Premier_League': 'Russian_Premier_League',
+    'Pro_League': 'Pro_League', 'Liga_MX': 'Liga_MX', 'Brasileirão': 'Brasileirão',
   };
   if (specialCases[folderName]) return specialCases[folderName];
   return folderName;
@@ -3178,10 +2964,8 @@ const AIAnalysis = ({ match, allMatches }) => {
     try {
       const result = simulateMatches(homeTeam, awayTeam, allMatches, 1000);
       setMonteCarloResult(result);
-      
       const storageKey = `ft_mc_${match.id}`;
       localStorage.setItem(storageKey, JSON.stringify(result));
-      
       return result;
     } catch (e) {
       console.warn('Errore simulazione Monte Carlo:', e);
@@ -3198,8 +2982,7 @@ const AIAnalysis = ({ match, allMatches }) => {
     const saved = localStorage.getItem(storageKey);
     if (saved) {
       try { 
-        const parsed = JSON.parse(saved); 
-        setMonteCarloResult(parsed);
+        setMonteCarloResult(JSON.parse(saved));
         setError(null);
         return; 
       } catch (e) {}
@@ -3221,7 +3004,7 @@ const AIAnalysis = ({ match, allMatches }) => {
   if (!match) return null;
 
   if (simulationLoading) { 
-    return <div className="ai-analysis-loading">⏳ Simulazione Monte Carlo in corso... ({Math.floor(Math.random() * 300 + 700)} partite simulate)</div>; 
+    return <div className="ai-analysis-loading">⏳ Simulazione Monte Carlo in corso... (1000 partite simulate)</div>; 
   }
 
   if (error) {
@@ -3248,13 +3031,8 @@ const AIAnalysis = ({ match, allMatches }) => {
 
   const renderPctBox = (value, label, icon = '') => {
     const rounded = Math.round(value);
-    let cls = 'flag-white';
-    let isBomb = false;
-    if (rounded >= 90) { cls = 'flag-bomb'; isBomb = true; }
-    else if (rounded >= 66.67) cls = 'flag-green';
-    else if (rounded >= 33.34) cls = 'flag-white';
-    else cls = 'flag-red';
-    
+    const cls = getPercentualeClasse(rounded);
+    const isBomb = rounded >= 90;
     return (
       <div style={{
         background: 'var(--card)',
@@ -3363,10 +3141,8 @@ const WeatherProfessionale = ({ weatherData, city, matchDate }) => {
   const getWeatherIcon = (desc, rain) => {
     if (!desc) return '🌤️';
     const d = desc.toLowerCase();
-    
     if (rain > 5) return '🌧️';
     if (rain > 1) return '🌦️';
-    
     if (d.includes('sereno')) return '☀️';
     if (d.includes('nuvoloso') || d.includes('coperto')) return '☁️';
     if (d.includes('nebbia')) return '🌫️';
@@ -3539,6 +3315,7 @@ function App() {
   });
   const [selectedFamiglie, setSelectedFamiglie] = useState(initial.selectedFamiglie || ['dc_under','mg_casa_ospite','over']);
 
+  // Effetto per caricare il meteo
   useEffect(() => {
     if (!selectedMatchId) return;
     const match = matches.find(m => m.id === selectedMatchId);
@@ -3580,17 +3357,11 @@ function App() {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    
     const now = new Date();
-    const day = String(now.getDate()).padStart(2, '0');
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const year = now.getFullYear();
-    const filename = `GesssAi-${day}${month}${year}.json`;
-    
     a.href = url;
-    a.download = filename;
+    a.download = `GesssAi-${String(now.getDate()).padStart(2,'0')}${String(now.getMonth()+1).padStart(2,'0')}${now.getFullYear()}.json`;
     a.click();
-    showAlert('success', `💾 Backup scaricato come ${filename}!`);
+    showAlert('success', '💾 Backup scaricato!');
   };
 
   const loadLocal = (file) => {
@@ -4012,6 +3783,7 @@ function App() {
           )}
         </div>
 
+        {/* DISCLAIMER COMMERCIALE */}
         <div className="disclaimer-footer">
           <div style={{display: 'flex', gap: '12px', alignItems: 'flex-start', flexWrap: 'wrap'}}>
             <span style={{fontSize: '24px'}}>⚠️</span>
@@ -4048,6 +3820,7 @@ function App() {
     );
   };
 
+  // Se la modalità è mobile, mostriamo l'app dentro il simulatore
   if (viewMode === 'mobile') {
     return (
       <div style={{display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '20px', minHeight: '100vh', background: '#0a0a1a'}}>
@@ -4067,8 +3840,1005 @@ function App() {
     );
   }
 
+  // Modalità PC - rendering normale
   return renderAppContent();
 }
+
+// ============================================================
+// COMPONENTI MANCANTI
+// ============================================================
+
+// HeatmapGiocate
+const HeatmapGiocate = ({ matches, onSelectChampionship, championships = [] }) => {
+  const [filterChamp, setFilterChamp] = useState('Tutti');
+  
+  const analyzeChampionships = () => {
+    const champs = {};
+    try {
+      if (championships && championships.length > 0) {
+        championships.forEach(c => {
+          if (c && c.name) {
+            champs[c.name] = { 
+              over15: { total: 0, successi: 0 }, 
+              '12under45': { total: 0, successi: 0 }, 
+              multigolCasa13: { total: 0, successi: 0 }, 
+              multigolOspite13: { total: 0, successi: 0 },
+              multigolCasa02: { total: 0, successi: 0 },
+              multigolOspite02: { total: 0, successi: 0 }
+            };
+          }
+        });
+      }
+      
+      if (matches && matches.length > 0) {
+        matches.filter(m => m && m.stato === 'Giocata').forEach(m => {
+          if (!m.campionato) return;
+          if (!champs[m.campionato]) {
+            champs[m.campionato] = { 
+              over15: { total: 0, successi: 0 }, 
+              '12under45': { total: 0, successi: 0 }, 
+              multigolCasa13: { total: 0, successi: 0 }, 
+              multigolOspite13: { total: 0, successi: 0 },
+              multigolCasa02: { total: 0, successi: 0 },
+              multigolOspite02: { total: 0, successi: 0 }
+            };
+          }
+          const total = (m.golCasa || 0) + (m.golOspite || 0);
+          const ch = champs[m.campionato];
+          ch.over15.total++; 
+          if (total > 1.5) ch.over15.successi++;
+          ch['12under45'].total++; 
+          if (m.golCasa !== m.golOspite && total < 4.5) ch['12under45'].successi++;
+          ch.multigolCasa13.total++; 
+          if (m.golCasa >= 1 && m.golCasa <= 3) ch.multigolCasa13.successi++;
+          ch.multigolOspite13.total++; 
+          if (m.golOspite >= 1 && m.golOspite <= 3) ch.multigolOspite13.successi++;
+          ch.multigolCasa02.total++; 
+          if (m.golCasa <= 2) ch.multigolCasa02.successi++;
+          ch.multigolOspite02.total++; 
+          if (m.golOspite <= 2) ch.multigolOspite02.successi++;
+        });
+      }
+    } catch (e) {
+      console.warn('Errore in analyzeChampionships:', e);
+    }
+    return champs;
+  };
+  
+  const data = analyzeChampionships();
+  let entries = Object.entries(data);
+  entries.sort((a, b) => {
+    const totalA = a[1]?.over15?.total || 0;
+    const totalB = b[1]?.over15?.total || 0;
+    return totalB - totalA;
+  });
+  if (filterChamp !== 'Tutti') entries = entries.filter(([champ]) => champ === filterChamp);
+  const allChamps = Object.keys(data).sort();
+  
+  if (entries.length === 0) {
+    return (
+      <div className="card">
+        <h4 style={{fontSize: '20px'}}>🔥 Heatmap Giocate per Campionato</h4>
+        <div className="empty-state" style={{padding: '20px', fontSize: '18px'}}>
+          <p>Nessun campionato importato. Vai su <b>Impostazioni → Importa Campionato</b></p>
+        </div>
+      </div>
+    );
+  }
+  
+  const getPct = (stat) => stat && stat.total ? Math.round((stat.successi / stat.total) * 100) : 0;
+  const totalEntries = entries.length;
+  const withMatches = entries.filter(([_, stats]) => stats && stats.over15 && stats.over15.total > 0).length;
+  const withoutMatches = totalEntries - withMatches;
+  
+  const getTextColorClass = (pct, hasMatches) => {
+    if (!hasMatches) return 'heatmap-pct-white';
+    if (pct > 90) return 'heatmap-pct-bomb';
+    if (pct >= 61) return 'heatmap-pct-green';
+    if (pct >= 31) return 'heatmap-pct-white';
+    return 'heatmap-pct-red';
+  };
+  
+  return (
+    <div className="card" style={{padding: '14px 16px'}}>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '8px'}}>
+        <h4 style={{margin: 0, fontSize: '18px'}}>🔥 Heatmap Giocate per Campionato</h4>
+        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+          <span style={{fontSize: '13px', color: 'var(--text-muted)'}}>Filtra:</span>
+          <select value={filterChamp} onChange={e => setFilterChamp(e.target.value)} style={{padding: '4px 10px', fontSize: '14px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', minWidth: '140px', maxWidth: '200px'}}>
+            <option value="Tutti">📊 Tutti ({totalEntries})</option>
+            {allChamps.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+      </div>
+      
+      <div style={{fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px', display: 'flex', gap: '16px', flexWrap: 'wrap'}}>
+        <span>📊 {totalEntries} campionati totali</span>
+        <span>🟢 {withMatches} con partite giocate</span>
+        {withoutMatches > 0 && <span>⚪ {withoutMatches} senza partite</span>}
+      </div>
+      
+      <div style={{display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '10px', padding: '8px 12px', background: 'var(--surface)', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '12px'}}>
+        <span style={{color: '#f39c12'}}>🟡 &gt;90%</span>
+        <span style={{color: '#6fcf97'}}>🟢 61-90%</span>
+        <span style={{color: '#8b949e'}}>⚪ 31-60%</span>
+        <span style={{color: '#eb5757'}}>🔴 0-30%</span>
+        <span style={{color: 'var(--text-muted)', marginLeft: 'auto'}}>💡 Clicca su un campionato per i dettagli</span>
+      </div>
+      
+      <div className="standings-table-wrap" style={{maxHeight: 'none', overflow: 'visible'}}>
+        <table className="heatmap-table" style={{fontSize: '14px', width: '100%', borderCollapse: 'collapse'}}>
+          <thead>
+            <tr>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'left', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>Campionato</th>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>Over 1.5</th>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>12+U4.5</th>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Casa 1-3</th>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Ospite 1-3</th>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Casa 0-2</th>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>MG Ospite 0-2</th>
+              <th style={{padding: '6px 8px', fontSize: '12px', textAlign: 'center', background: 'var(--surface)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap'}}>📊</th>
+            </tr>
+          </thead>
+          <tbody>
+            {entries.map(([champ, stats]) => {
+              const pctOver15 = getPct(stats?.over15);
+              const pct12under45 = getPct(stats?.['12under45']);
+              const pctMGHome = getPct(stats?.multigolCasa13);
+              const pctMGAway = getPct(stats?.multigolOspite13);
+              const pctMGHome02 = getPct(stats?.multigolCasa02);
+              const pctMGAway02 = getPct(stats?.multigolOspite02);
+              const totalGames = stats?.over15?.total || 0;
+              
+              const color = getChampColor(champ);
+              const champShort = champ && champ.length > 22 ? champ.substring(0, 20) + '…' : champ || 'Sconosciuto';
+              const hasMatches = totalGames > 0;
+              
+              const formatPct = (pct) => hasMatches ? `${pct}%` : '-';
+              
+              return (
+                <tr key={champ} className="clickable" onClick={() => hasMatches && onSelectChampionship && onSelectChampionship(champ)} style={{cursor: hasMatches ? 'pointer' : 'default', opacity: hasMatches ? 1 : 0.5}}>
+                  <td style={{color: color, fontWeight: 'bold', fontSize: '14px', padding: '4px 8px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis'}} title={champ}>
+                    {champShort}
+                    {!hasMatches && <span style={{fontSize: '11px', color: 'var(--text-muted)', marginLeft: '6px'}}>⏳</span>}
+                  </td>
+                  <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
+                    <span className={getTextColorClass(pctOver15, hasMatches)}>{formatPct(pctOver15)}</span>
+                  </td>
+                  <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
+                    <span className={getTextColorClass(pct12under45, hasMatches)}>{formatPct(pct12under45)}</span>
+                  </td>
+                  <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
+                    <span className={getTextColorClass(pctMGHome, hasMatches)}>{formatPct(pctMGHome)}</span>
+                  </td>
+                  <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
+                    <span className={getTextColorClass(pctMGAway, hasMatches)}>{formatPct(pctMGAway)}</span>
+                  </td>
+                  <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
+                    <span className={getTextColorClass(pctMGHome02, hasMatches)}>{formatPct(pctMGHome02)}</span>
+                  </td>
+                  <td style={{textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)', fontSize: '16px', fontWeight: 'bold'}}>
+                    <span className={getTextColorClass(pctMGAway02, hasMatches)}>{formatPct(pctMGAway02)}</span>
+                  </td>
+                  <td style={{fontSize: '13px', color: 'var(--text-muted)', textAlign: 'center', padding: '4px 6px', borderBottom: '1px solid var(--border)'}}>
+                    {totalGames > 0 ? totalGames : '-'}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      
+      <div style={{fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '8px'}}>
+        <span>💡 Clicca su un campionato con partite per i dettagli</span>
+        <span style={{marginLeft: 'auto'}}>📊 {totalEntries} campionati</span>
+      </div>
+    </div>
+  );
+};
+
+// HeatmapDetailModal
+const HeatmapDetailModal = ({ championship, matches, onClose }) => {
+  if (!championship) return null;
+  const champMatches = matches.filter(m => m.campionato === championship && m.stato === 'Giocata');
+  const stats = { 
+    over15: { total: 0, successi: 0 }, 
+    '12under45': { total: 0, successi: 0 }, 
+    multigolCasa13: { total: 0, successi: 0 }, 
+    multigolOspite13: { total: 0, successi: 0 },
+    multigolCasa02: { total: 0, successi: 0 },
+    multigolOspite02: { total: 0, successi: 0 }
+  };
+  champMatches.forEach(m => {
+    const total = m.golCasa + m.golOspite;
+    stats.over15.total++; if (total > 1.5) stats.over15.successi++;
+    stats['12under45'].total++; if (m.golCasa !== m.golOspite && total < 4.5) stats['12under45'].successi++;
+    stats.multigolCasa13.total++; if (m.golCasa >= 1 && m.golCasa <= 3) stats.multigolCasa13.successi++;
+    stats.multigolOspite13.total++; if (m.golOspite >= 1 && m.golOspite <= 3) stats.multigolOspite13.successi++;
+    stats.multigolCasa02.total++; if (m.golCasa <= 2) stats.multigolCasa02.successi++;
+    stats.multigolOspite02.total++; if (m.golOspite <= 2) stats.multigolOspite02.successi++;
+  });
+  const getPct = (stat) => stat.total ? Math.round((stat.successi / stat.total) * 100) : 0;
+  const getColor = (pct) => { if (pct >= 70) return 'var(--win)'; if (pct >= 50) return 'var(--draw)'; return 'var(--lose)'; };
+  return (
+    <div className="heatmap-detail-overlay" onClick={onClose}>
+      <div className="heatmap-detail-modal" onClick={e => e.stopPropagation()}>
+        <button className="close-btn" onClick={onClose}>✖</button>
+        <h2 style={{color: getChampColor(championship)}}>📊 {championship}</h2>
+        <p style={{color: 'var(--text-muted)', marginBottom: '12px'}}>{champMatches.length} partite giocate analizzate</p>
+        <div className="perf-grid" style={{gridTemplateColumns: '1fr 1fr 1fr'}}>
+          <div className="perf-card"><div className="perf-value" style={{color: getColor(getPct(stats.over15))}}>{getPct(stats.over15)}%</div><div className="perf-label">Over 1.5</div><div className="form-bar"><div className="form-bar-fill" style={{width: `${getPct(stats.over15)}%`, background: getColor(getPct(stats.over15))}} /></div></div>
+          <div className="perf-card"><div className="perf-value" style={{color: getColor(getPct(stats['12under45']))}}>{getPct(stats['12under45'])}%</div><div className="perf-label">12+Under 4.5</div><div className="form-bar"><div className="form-bar-fill" style={{width: `${getPct(stats['12under45'])}%`, background: getColor(getPct(stats['12under45']))}} /></div></div>
+          <div className="perf-card"><div className="perf-value" style={{color: getColor(getPct(stats.multigolCasa13))}}>{getPct(stats.multigolCasa13)}%</div><div className="perf-label">MG Casa 1-3</div><div className="form-bar"><div className="form-bar-fill" style={{width: `${getPct(stats.multigolCasa13)}%`, background: getColor(getPct(stats.multigolCasa13))}} /></div></div>
+          <div className="perf-card"><div className="perf-value" style={{color: getColor(getPct(stats.multigolOspite13))}}>{getPct(stats.multigolOspite13)}%</div><div className="perf-label">MG Ospite 1-3</div><div className="form-bar"><div className="form-bar-fill" style={{width: `${getPct(stats.multigolOspite13)}%`, background: getColor(getPct(stats.multigolOspite13))}} /></div></div>
+          <div className="perf-card"><div className="perf-value" style={{color: getColor(getPct(stats.multigolCasa02))}}>{getPct(stats.multigolCasa02)}%</div><div className="perf-label">MG Casa 0-2</div><div className="form-bar"><div className="form-bar-fill" style={{width: `${getPct(stats.multigolCasa02)}%`, background: getColor(getPct(stats.multigolCasa02))}} /></div></div>
+          <div className="perf-card"><div className="perf-value" style={{color: getColor(getPct(stats.multigolOspite02))}}>{getPct(stats.multigolOspite02)}%</div><div className="perf-label">MG Ospite 0-2</div><div className="form-bar"><div className="form-bar-fill" style={{width: `${getPct(stats.multigolOspite02)}%`, background: getColor(getPct(stats.multigolOspite02))}} /></div></div>
+        </div>
+        <div style={{marginTop: '12px'}}><h4 style={{color: 'var(--accent)', marginBottom: '8px'}}>📋 Ultime partite</h4><div style={{maxHeight: '200px', overflowY: 'auto'}}>{champMatches.slice(-10).reverse().map(m => (<div key={m.id} style={{display: 'flex', justifyContent: 'space-between', padding: '4px 8px', borderBottom: '1px solid var(--border)', fontSize: '13px'}}><span>{m.casa} vs {m.ospiti}</span><span style={{fontWeight: 'bold'}}>{m.golCasa}-{m.golOspite}</span><span style={{fontSize: '11px', color: 'var(--text-muted)'}}>{formatDateEU(m.data)}</span></div>))}</div></div>
+      </div>
+    </div>
+  );
+};
+
+// FileImporter
+const FileImporter = ({ matches, setMatches, championships, setChampionships, loading, setLoading, showAlert }) => {
+  const [file, setFile] = useState(null);
+  const [parsedData, setParsedData] = useState([]);
+  const [columns, setColumns] = useState([]);
+  const [mapping, setMapping] = useState({
+    campionato: '',
+    giornata: '',
+    data: '',
+    ora: '',
+    squadraCasa: '',
+    squadraOspite: '',
+    golCasa: '',
+    golOspite: '',
+    stato: '',
+    risultato: ''
+  });
+  const [previewRows, setPreviewRows] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const requiredFields = ['campionato', 'data', 'squadraCasa', 'squadraOspite'];
+
+  const handleFileDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      processFile(files[0]);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const files = e.target.files;
+    if (files.length > 0) {
+      processFile(files[0]);
+    }
+  };
+
+  const processFile = (file) => {
+    const validTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel', 'text/csv'];
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!validTypes.includes(file.type) && !['xlsx', 'xls', 'csv'].includes(ext)) {
+      showAlert('error', '❌ Formato non supportato. Usa .xlsx, .xls o .csv');
+      return;
+    }
+
+    setFile(file);
+    setImporting(true);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+
+        if (jsonData.length === 0) {
+          showAlert('error', '❌ Il file è vuoto o non contiene dati leggibili.');
+          setImporting(false);
+          return;
+        }
+
+        const cols = Object.keys(jsonData[0]);
+        setColumns(cols);
+        setParsedData(jsonData);
+        setPreviewRows(jsonData.slice(0, 10));
+
+        const autoMapping = {};
+        const colLower = cols.map(c => c.toLowerCase().trim());
+        
+        const findCol = (keywords) => {
+          for (const keyword of keywords) {
+            const index = colLower.findIndex(c => c.includes(keyword));
+            if (index !== -1) return cols[index];
+          }
+          return '';
+        };
+
+        autoMapping.campionato = findCol(['campionato', 'league', 'camp', 'campionato']);
+        autoMapping.giornata = findCol(['giornata', 'round', 'giorn', 'wk']);
+        autoMapping.data = findCol(['data', 'date', 'giorno']);
+        autoMapping.ora = findCol(['ora', 'time', 'orario', 'hour']);
+        autoMapping.squadraCasa = findCol(['squadra casa', 'home', 'casa', 'home team', 'home_team']);
+        autoMapping.squadraOspite = findCol(['squadra ospite', 'away', 'ospite', 'away team', 'away_team']);
+        autoMapping.golCasa = findCol(['gol casa', 'home goals', 'goal casa', 'home_goals']);
+        autoMapping.golOspite = findCol(['gol ospite', 'away goals', 'goal ospite', 'away_goals']);
+        autoMapping.stato = findCol(['stato', 'status', 'risultato', 'result']);
+        autoMapping.risultato = findCol(['risultato', 'result', 'score', 'ris']);
+
+        setMapping(autoMapping);
+        
+        const previewWithStatus = getPreviewWithStatus(jsonData.slice(0, 10));
+        setPreviewRows(previewWithStatus);
+        
+        const giocateCount = previewWithStatus.filter(r => r['Stato (calcolato)'] === 'Giocata').length;
+        const futureCount = previewWithStatus.filter(r => r['Stato (calcolato)'] === 'Futura').length;
+        
+        showAlert('info', 
+          `📊 Caricate ${jsonData.length} righe. ` +
+          `🟢 ${giocateCount} partite con risultato (Giocate), ` +
+          `🔵 ${futureCount} partite senza risultato (Future). ` +
+          `Verifica il mapping delle colonne.`
+        );
+      } catch (err) {
+        console.error(err);
+        showAlert('error', '❌ Errore nella lettura del file: ' + err.message);
+      }
+      setImporting(false);
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const getPreviewWithStatus = (rows) => {
+    return rows.map(row => {
+      let risultato = '';
+      const colonneRisultato = ['Risultato', 'Result', 'Score', 'Ris', 'risultato'];
+      for (const col of colonneRisultato) {
+        if (row[col]) {
+          const val = row[col].toString().trim();
+          if (val && val !== '') {
+            risultato = val;
+            break;
+          }
+        }
+      }
+      
+      if (!risultato) {
+        for (const key of Object.keys(row)) {
+          const val = row[key].toString().trim();
+          if (val && /^\d+[-–:.]\d+$/.test(val)) {
+            risultato = val;
+            break;
+          }
+        }
+      }
+      
+      const stato = (risultato && risultato !== '') ? 'Giocata' : 'Futura';
+      
+      return { 
+        ...row, 
+        'Stato (calcolato)': stato,
+        'Risultato trovato': risultato || '-'
+      };
+    });
+  };
+
+  const handleMappingChange = (field, value) => {
+    setMapping(prev => ({ ...prev, [field]: value }));
+    
+    if (parsedData.length > 0) {
+      const previewWithStatus = getPreviewWithStatus(parsedData.slice(0, 10));
+      setPreviewRows(previewWithStatus);
+    }
+  };
+
+  const isMappingValid = () => {
+    return requiredFields.every(f => mapping[f] && mapping[f].trim() !== '');
+  };
+
+  const importFromFile = () => {
+    if (!isMappingValid()) {
+      showAlert('error', '❌ Devi mappare almeno: Campionato, Data, Squadra Casa, Squadra Ospite.');
+      return;
+    }
+
+    if (parsedData.length === 0) {
+      showAlert('error', '❌ Nessun dato da importare.');
+      return;
+    }
+
+    setImporting(true);
+    setLoading(true);
+
+    try {
+      const existingKeys = new Set(matches.map(m => `${m.campionato}|${m.data}|${m.ora}|${m.casa}|${m.ospiti}`));
+      const newMatches = [];
+      const championshipsSet = new Set(championships.map(c => c.name));
+      let importedCount = 0;
+      let skippedCount = 0;
+      let giocateCount = 0;
+      let futureCount = 0;
+
+      for (const row of parsedData) {
+        const campionato = row[mapping.campionato]?.toString().trim() || 'Sconosciuto';
+        const giornata = row[mapping.giornata]?.toString().trim() || 'N/A';
+        const dataRaw = row[mapping.data]?.toString().trim() || '';
+        const oraRaw = row[mapping.ora]?.toString().trim() || '';
+        const squadraCasa = row[mapping.squadraCasa]?.toString().trim() || '';
+        const squadraOspite = row[mapping.squadraOspite]?.toString().trim() || '';
+        const risultatoRaw = row[mapping.risultato]?.toString().trim() || '';
+        const golCasaRaw = row[mapping.golCasa]?.toString().trim();
+        const golOspiteRaw = row[mapping.golOspite]?.toString().trim();
+        const statoRaw = row[mapping.stato]?.toString().trim().toLowerCase() || '';
+
+        if (!squadraCasa || !squadraOspite) {
+          skippedCount++;
+          continue;
+        }
+
+        let dataNormalizzata = normalizeDate(dataRaw);
+        if (!dataNormalizzata) {
+          skippedCount++;
+          continue;
+        }
+
+        let stato = 'Futura';
+        let golCasa = 0;
+        let golOspite = 0;
+        let risultato = '';
+
+        if (risultatoRaw && risultatoRaw !== '') {
+          const matchResult = risultatoRaw.match(/(\d+)\s*[-–:.]\s*(\d+)/);
+          if (matchResult) {
+            golCasa = parseInt(matchResult[1], 10);
+            golOspite = parseInt(matchResult[2], 10);
+            risultato = `${golCasa}-${golOspite}`;
+          }
+        }
+
+        if (golCasaRaw && golCasaRaw !== '' && !isNaN(parseFloat(golCasaRaw))) {
+          golCasa = parseFloat(golCasaRaw);
+        }
+        if (golOspiteRaw && golOspiteRaw !== '' && !isNaN(parseFloat(golOspiteRaw))) {
+          golOspite = parseFloat(golOspiteRaw);
+        }
+
+        if (statoRaw === 'giocata' || statoRaw === 'played' || statoRaw === 'finished') {
+          stato = 'Giocata';
+        }
+
+        if (risultato && risultato !== '') {
+          stato = 'Giocata';
+        }
+
+        if (!risultato || risultato === '') {
+          stato = 'Futura';
+          golCasa = 0;
+          golOspite = 0;
+        }
+
+        const key = `${campionato}|${dataNormalizzata}|${oraRaw}|${squadraCasa}|${squadraOspite}`;
+        if (existingKeys.has(key)) {
+          skippedCount++;
+          continue;
+        }
+        existingKeys.add(key);
+
+        const newMatch = {
+          id: Math.random().toString(36).slice(2) + Date.now().toString(36),
+          campionato: campionato,
+          round: giornata,
+          data: dataNormalizzata,
+          ora: oraRaw || 'TBD',
+          casa: squadraCasa,
+          ospiti: squadraOspite,
+          stato: stato,
+          golCasa: stato === 'Giocata' ? golCasa : 0,
+          golOspite: stato === 'Giocata' ? golOspite : 0,
+          risultato: stato === 'Giocata' ? `${golCasa}-${golOspite}` : '',
+          citta: 'N/D',
+          _fromFile: true
+        };
+
+        newMatches.push(newMatch);
+        
+        if (stato === 'Giocata') {
+          giocateCount++;
+        } else {
+          futureCount++;
+        }
+
+        if (!championshipsSet.has(campionato)) {
+          championshipsSet.add(campionato);
+        }
+        importedCount++;
+      }
+
+      const allMatches = [...matches, ...newMatches];
+      const uniqueMatches = deduplicateMatches(allMatches);
+      
+      const newChampionships = Array.from(championshipsSet).map(name => ({ 
+        name, 
+        importedAt: new Date().toISOString() 
+      }));
+      setChampionships(newChampionships);
+      setMatches(uniqueMatches);
+
+      const duplicatesRemoved = (matches.length + newMatches.length) - uniqueMatches.length;
+      
+      showAlert('success', 
+        `✅ Importate ${importedCount} partite! ` +
+        `🟢 ${giocateCount} Giocate, 🔵 ${futureCount} Future. ` +
+        `${skippedCount > 0 ? `(${skippedCount} righe saltate)` : ''}` +
+        `${duplicatesRemoved > 0 ? ` (${duplicatesRemoved} duplicati rimossi)` : ''}`
+      );
+      
+      setFile(null);
+      setParsedData([]);
+      setPreviewRows([]);
+      setColumns([]);
+      setMapping({
+        campionato: '',
+        giornata: '',
+        data: '',
+        ora: '',
+        squadraCasa: '',
+        squadraOspite: '',
+        golCasa: '',
+        golOspite: '',
+        stato: '',
+        risultato: ''
+      });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+
+    } catch (err) {
+      console.error(err);
+      showAlert('error', '❌ Errore durante l\'importazione: ' + err.message);
+    }
+
+    setImporting(false);
+    setLoading(false);
+  };
+
+  const resetFile = () => {
+    setFile(null);
+    setParsedData([]);
+    setPreviewRows([]);
+    setColumns([]);
+    setMapping({
+      campionato: '',
+      giornata: '',
+      data: '',
+      ora: '',
+      squadraCasa: '',
+      squadraOspite: '',
+      golCasa: '',
+      golOspite: '',
+      stato: '',
+      risultato: ''
+    });
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  return (
+    <div className="card">
+      <h4 style={{marginBottom:'8px'}}>📁 Importa da File (XLSX / CSV)</h4>
+      <p style={{fontSize:'12px', color:'var(--text-muted)', marginBottom:'12px'}}>
+        Carica un file Excel o CSV con le partite. Le colonne supportate sono: 
+        <b> Campionato, Giornata, Data, Ora, Squadra Casa, Squadra Ospite, Gol Casa, Gol Ospite, Stato, Risultato</b>
+      </p>
+      <p style={{fontSize:'11px', color:'var(--text-muted)', marginBottom:'12px', background:'var(--surface)', padding:'8px', borderRadius:'6px'}}>
+        💡 <b>Come funziona:</b> Se la colonna <b>Risultato</b> (es. "2-1") contiene un valore, la partita viene automaticamente marcata come <b>"Giocata"</b> e finisce nello <b>Storico</b>. 
+        Se è vuota, rimane <b>"Futura"</b> nel <b>Palinsesto</b>.
+      </p>
+
+      <div 
+        className={`file-drop-area ${isDragging ? 'dragging' : ''}`}
+        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={handleFileDrop}
+        onClick={() => fileInputRef.current?.click()}
+      >
+        <div style={{fontSize:'48px'}}>📂</div>
+        <p style={{margin:'8px 0', fontWeight:'bold'}}>
+          {file ? file.name : 'Trascina qui il file o clicca per selezionare'}
+        </p>
+        <p style={{fontSize:'12px', color:'var(--text-muted)'}}>
+          Supporta .xlsx, .xls, .csv
+        </p>
+        <input 
+          ref={fileInputRef}
+          type="file" 
+          accept=".xlsx,.xls,.csv" 
+          onChange={handleFileSelect} 
+          style={{display:'none'}}
+        />
+      </div>
+
+      {file && parsedData.length > 0 && (
+        <div>
+          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px', flexWrap:'wrap', gap:'8px'}}>
+            <span style={{fontSize:'13px', color:'var(--text)'}}>
+              📊 {parsedData.length} righe trovate • {previewRows.length} in anteprima
+            </span>
+            <div style={{display:'flex', gap:'8px'}}>
+              <button className="btn btn-secondary" onClick={resetFile} disabled={importing}>🗑️ Rimuovi</button>
+              <button className="btn" onClick={importFromFile} disabled={!isMappingValid() || importing || loading}>
+                {importing || loading ? '⏳ Importazione...' : '📥 Importa'}
+              </button>
+            </div>
+          </div>
+
+          <div className="column-mapping">
+            <div className="mapping-item">
+              <label><b>Campionato *</b></label>
+              <select value={mapping.campionato} onChange={e => handleMappingChange('campionato', e.target.value)}>
+                <option value="">-- Seleziona colonna --</option>
+                {columns.map(col => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </div>
+            <div className="mapping-item">
+              <label>Giornata</label>
+              <select value={mapping.giornata} onChange={e => handleMappingChange('giornata', e.target.value)}>
+                <option value="">-- Seleziona colonna --</option>
+                {columns.map(col => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </div>
+            <div className="mapping-item">
+              <label><b>Data *</b></label>
+              <select value={mapping.data} onChange={e => handleMappingChange('data', e.target.value)}>
+                <option value="">-- Seleziona colonna --</option>
+                {columns.map(col => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </div>
+            <div className="mapping-item">
+              <label>Ora</label>
+              <select value={mapping.ora} onChange={e => handleMappingChange('ora', e.target.value)}>
+                <option value="">-- Seleziona colonna --</option>
+                {columns.map(col => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </div>
+            <div className="mapping-item">
+              <label><b>Squadra Casa *</b></label>
+              <select value={mapping.squadraCasa} onChange={e => handleMappingChange('squadraCasa', e.target.value)}>
+                <option value="">-- Seleziona colonna --</option>
+                {columns.map(col => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </div>
+            <div className="mapping-item">
+              <label><b>Squadra Ospite *</b></label>
+              <select value={mapping.squadraOspite} onChange={e => handleMappingChange('squadraOspite', e.target.value)}>
+                <option value="">-- Seleziona colonna --</option>
+                {columns.map(col => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </div>
+            <div className="mapping-item">
+              <label>Gol Casa</label>
+              <select value={mapping.golCasa} onChange={e => handleMappingChange('golCasa', e.target.value)}>
+                <option value="">-- Seleziona colonna --</option>
+                {columns.map(col => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </div>
+            <div className="mapping-item">
+              <label>Gol Ospite</label>
+              <select value={mapping.golOspite} onChange={e => handleMappingChange('golOspite', e.target.value)}>
+                <option value="">-- Seleziona colonna --</option>
+                {columns.map(col => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </div>
+            <div className="mapping-item" style={{gridColumn: '1 / -1'}}>
+              <label>Stato (Giocata/Futura)</label>
+              <select value={mapping.stato} onChange={e => handleMappingChange('stato', e.target.value)}>
+                <option value="">-- Seleziona colonna --</option>
+                {columns.map(col => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </div>
+            <div className="mapping-item" style={{gridColumn: '1 / -1'}}>
+              <label style={{color: 'var(--accent)', fontWeight: 'bold'}}>🎯 Risultato (es. 2-1)</label>
+              <select value={mapping.risultato} onChange={e => handleMappingChange('risultato', e.target.value)} style={{borderColor: 'var(--accent)'}}>
+                <option value="">-- Seleziona colonna --</option>
+                {columns.map(col => <option key={col} value={col}>{col}</option>)}
+              </select>
+              <span style={{fontSize:'10px', color:'var(--text-muted)', marginTop:'4px', display:'block'}}>
+                💡 Se questa colonna contiene un risultato (es. "2-1"), la partita sarà marcata come <b style={{color:'var(--win)'}}>Giocata</b>
+              </span>
+            </div>
+          </div>
+
+          {previewRows.length > 0 && (
+            <div className="file-preview">
+              <table>
+                <thead>
+                  <tr>
+                    {['#', ...Object.keys(previewRows[0])].map(col => (
+                      <th key={col} style={{
+                        color: col === 'Stato (calcolato)' ? 'var(--accent)' : 
+                               col === 'Risultato trovato' ? 'var(--accent2)' : 'inherit'
+                      }}>
+                        {col === '#' ? '#' : col}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {previewRows.map((row, idx) => (
+                    <tr key={idx} style={{
+                      background: row['Stato (calcolato)'] === 'Giocata' ? 'rgba(111, 207, 151, 0.1)' : 'transparent'
+                    }}>
+                      {['#', ...Object.keys(row)].map((col, colIdx) => {
+                        if (col === '#') {
+                          return <td key={col} style={{color: 'var(--text-muted)', fontSize:'11px'}}>{idx + 1}</td>;
+                        }
+                        const value = row[col]?.toString() || '';
+                        if (col === 'Stato (calcolato)') {
+                          const isGiocata = value === 'Giocata';
+                          return (
+                            <td key={col} style={{
+                              color: isGiocata ? 'var(--win)' : 'var(--text-muted)',
+                              fontWeight: isGiocata ? 'bold' : 'normal',
+                              background: isGiocata ? 'rgba(111, 207, 151, 0.2)' : 'transparent'
+                            }}>
+                              {isGiocata ? '🟢 Giocata' : '🔵 Futura'}
+                            </td>
+                          );
+                        }
+                        if (col === 'Risultato trovato' && value && value !== '-') {
+                          return (
+                            <td key={col} style={{
+                              color: 'var(--accent)',
+                              fontWeight: 'bold'
+                            }}>
+                              {value}
+                            </td>
+                          );
+                        }
+                        return <td key={col}>{value}</td>;
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {parsedData.length > 10 && (
+                <div style={{padding:'8px', textAlign:'center', color:'var(--text-muted)', fontSize:'12px'}}>
+                  ... e altre {parsedData.length - 10} righe
+                </div>
+              )}
+            </div>
+          )}
+          
+          {previewRows.length > 0 && (
+            <div style={{marginTop:'12px', padding:'10px 14px', background:'var(--surface)', borderRadius:'8px', border:'1px solid var(--border)', display:'flex', gap:'20px', flexWrap:'wrap', fontSize:'13px'}}>
+              <span>📊 Totale: <b>{parsedData.length}</b> righe</span>
+              <span>🟢 Giocate: <b style={{color:'var(--win)'}}>
+                {previewRows.filter(r => r['Stato (calcolato)'] === 'Giocata').length}
+              </b></span>
+              <span>🔵 Future: <b style={{color:'var(--text-muted)'}}>
+                {previewRows.filter(r => r['Stato (calcolato)'] === 'Futura').length}
+              </b></span>
+              <span>🏆 Campionati: <b>
+                {new Set(previewRows.map(r => r[mapping.campionato]?.toString().trim() || '')).size}
+              </b></span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// TeamMatchesHistory
+const TeamMatchesHistory = ({ teamName, championship, allMatches }) => {
+  const teamMatches = allMatches.filter(m => m.campionato === championship && m.stato === 'Giocata' && (m.casa === teamName || m.ospiti === teamName))
+    .sort((a, b) => { 
+      const dateA = parseDate(a.data, a.ora); 
+      const dateB = parseDate(b.data, b.ora); 
+      return dateB - dateA; 
+    });
+  if (teamMatches.length === 0) return <div className="card" style={{padding: '12px', textAlign:'center'}}><p style={{color:'var(--text-muted)'}}>Nessuna partita giocata per {teamName} in questo campionato.</p></div>;
+  const getResult = (match, team) => {
+    const isHome = match.casa === team;
+    const teamGoals = isHome ? match.golCasa : match.golOspite;
+    const oppGoals = isHome ? match.golOspite : match.golCasa;
+    if (teamGoals > oppGoals) return 'win';
+    if (teamGoals === oppGoals) return 'draw';
+    return 'loss';
+  };
+  const getOpponent = (match, team) => match.casa === team ? match.ospiti : match.casa;
+  const getResultColor = (result) => result === 'win' ? 'var(--win)' : (result === 'draw' ? 'var(--draw)' : 'var(--lose)');
+  return (
+    <div className="card" style={{padding: '12px'}}>
+      <h4 style={{color: getChampColor(teamName), marginBottom:'12px'}}>📋 {teamName}</h4>
+      <div className="standings-table-wrap">
+        <table className="standings-table history-table">
+          <thead><tr><th>Data</th><th>Avversario</th><th style={{textAlign:'center'}}>Risultato</th></tr></thead>
+          <tbody>
+            {teamMatches.map(m => {
+              const result = getResult(m, teamName);
+              const opponent = getOpponent(m, teamName);
+              const resultColor = getResultColor(result);
+              return <tr key={m.id}><td style={{color: 'var(--text)'}}>{formatDateEU(m.data)}</td><td style={{color: 'var(--text)'}}>{opponent}</td><td style={{textAlign: 'center'}}><span style={{display: 'inline-block', backgroundColor: resultColor, color: '#000', fontWeight: 'bold', padding: '2px 12px', borderRadius: '4px', minWidth: '60px', textAlign: 'center', fontSize: '14px'}}>{m.golCasa} - {m.golOspite}</span></td></tr>;
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// HomeWidget
+const HomeWidget = ({ matches, onSelectMatch, setTab, selectedFamiglie }) => {
+  const [selectedDay, setSelectedDay] = useState('oggi');
+  const [expanded, setExpanded] = useState(true);
+  
+  const renderPct = (value) => {
+    const rounded = Math.round(value);
+    const cls = getPercentualeClasse(rounded);
+    return <span className={`giocata-pct ${cls}`}>{rounded}%</span>;
+  };
+  
+  const getGiocateDelGiorno = () => {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+    const weekend = new Date(today); weekend.setDate(weekend.getDate() + 2);
+    let targetMatches = matches.filter(m => {
+      if (m.stato !== 'Futura') return false;
+      const matchDate = parseDate(m.data);
+      matchDate.setHours(0,0,0,0);
+      if (selectedDay === 'oggi') return matchDate.getTime() === today.getTime();
+      if (selectedDay === 'domani') return matchDate.getTime() === tomorrow.getTime();
+      return matchDate >= today && matchDate <= weekend;
+    });
+    return targetMatches.map(m => {
+      const stats = computeMatchStats(m, matches);
+      if (stats.error) return { ...m, score: 0, giocate: [] };
+      
+      stats._allMatches = matches;
+      stats._homeTeam = m.casa;
+      stats._awayTeam = m.ospiti;
+      
+      const homeMG = stats.homeMG || {};
+      const awayMG = stats.awayMG || {};
+      const mgTot = stats.mgTot || {};
+      const homeRange = getMultigolRange(m.casa, matches);
+      const awayRange = getMultigolRange(m.ospiti, matches);
+      
+      const giocate = [];
+      
+      selectedFamiglie.forEach(familyId => {
+        const best = getBestBetForFamily(familyId, stats, homeRange, awayRange, homeMG, awayMG, mgTot);
+        if (best && best.pct > 0) {
+          giocate.push({
+            familyId,
+            label: best.label,
+            pct: best.pct,
+            isBomb: best.pct >= 90
+          });
+        }
+      });
+      
+      giocate.sort((a, b) => b.pct - a.pct);
+      const score = giocate.length > 0 ? Math.round(giocate.reduce((s, g) => s + g.pct, 0) / giocate.length) : 0;
+      
+      return { ...m, score, giocate: giocate.slice(0, 3) };
+    }).filter(m => m.score > 0 && m.giocate.length > 0).sort((a,b) => b.score - a.score).slice(0, 5);
+  };
+  
+  const giocateDelGiorno = getGiocateDelGiorno();
+  if (giocateDelGiorno.length === 0) {
+    return (
+      <div className="home-widget">
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px'}}>
+          <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}><span style={{fontSize: '24px'}}>🏠</span><h3 style={{margin: 0}}>💣 Giocate Bomba del Giorno</h3></div>
+          <div className="day-selector"><button className={selectedDay === 'oggi' ? 'active' : ''} onClick={() => setSelectedDay('oggi')}>Oggi</button><button className={selectedDay === 'domani' ? 'active' : ''} onClick={() => setSelectedDay('domani')}>Domani</button><button className={selectedDay === 'weekend' ? 'active' : ''} onClick={() => setSelectedDay('weekend')}>Weekend</button></div>
+        </div>
+        <div className="empty-state" style={{padding: '20px'}}><span style={{fontSize: '24px'}}>💣</span><p>Nessuna giocata con 💣 disponibile per {selectedDay === 'weekend' ? 'il weekend' : selectedDay}</p></div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="home-widget">
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', cursor: 'pointer'}} onClick={() => setExpanded(!expanded)}>
+        <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+          <span style={{fontSize: '24px'}}>💣</span>
+          <h3 style={{margin: 0}}>Giocate Bomba del Giorno</h3>
+          <span className="badge" style={{background: 'var(--accent)', color: '#000', padding: '2px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold'}}>{giocateDelGiorno.length} Top 💣</span>
+        </div>
+        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+          <div className="day-selector" onClick={e => e.stopPropagation()}>
+            <button className={selectedDay === 'oggi' ? 'active' : ''} onClick={() => setSelectedDay('oggi')}>Oggi</button>
+            <button className={selectedDay === 'domani' ? 'active' : ''} onClick={() => setSelectedDay('domani')}>Domani</button>
+            <button className={selectedDay === 'weekend' ? 'active' : ''} onClick={() => setSelectedDay('weekend')}>Weekend</button>
+          </div>
+          <span style={{fontSize: '18px'}}>{expanded ? '▼' : '▶'}</span>
+        </div>
+      </div>
+      {expanded && (
+        <>
+          {giocateDelGiorno[0] && (
+            <div className="top-pick" style={{borderLeftColor: 'var(--accent)'}}>
+              <div style={{display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap'}}>
+                <span style={{background: 'var(--accent)', color: '#000', padding: '2px 12px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold'}}>⭐ TOP PICK 💣</span>
+                <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                  <TeamLogo teamName={giocateDelGiorno[0].casa} championship={giocateDelGiorno[0].campionato} size={24} />
+                  <span style={{fontWeight: 'bold', color: 'var(--text)'}}>{giocateDelGiorno[0].casa}</span>
+                  <span style={{color: 'var(--text-muted)'}}>vs</span>
+                  <TeamLogo teamName={giocateDelGiorno[0].ospiti} championship={giocateDelGiorno[0].campionato} size={24} />
+                  <span style={{fontWeight: 'bold', color: 'var(--text)'}}>{giocateDelGiorno[0].ospiti}</span>
+                </div>
+                <span style={{color: 'var(--text-muted)', fontSize: '13px'}}>{formatDateEU(giocateDelGiorno[0].data)}</span>
+                <span style={{marginLeft: 'auto', fontSize: '20px', fontWeight: 'bold', color: 'var(--accent)'}}>Score: {renderPct(giocateDelGiorno[0].score)}</span>
+              </div>
+              <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px'}}>
+                {giocateDelGiorno[0].giocate.map((g, idx) => {
+                  const isMax = g.pct === Math.max(...giocateDelGiorno[0].giocate.map(x => x.pct));
+                  const family = FAMIGLIE_GIOCATE[g.familyId];
+                  return (
+                    <div key={idx} style={{background: 'var(--surface)', padding: '4px 10px', borderRadius: '4px', textAlign: 'center', border: isMax && g.isBomb ? '2px solid var(--accent)' : '1px solid var(--border)', flex: '1', minWidth: '80px'}}>
+                      <div style={{fontWeight: 'bold', color: 'var(--text)', fontSize: '10px'}}>{family ? family.label : g.familyId}</div>
+                      <div style={{fontWeight: 'bold', fontSize: '14px'}}>{renderPct(g.pct)}</div>
+                      <div style={{fontSize: '9px', color: 'var(--text-muted)'}}>{g.label}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          <div className="giocate-list">
+            {giocateDelGiorno.slice(1).map((match, idx) => {
+              const champColor = getChampColor(match.campionato);
+              const maxPct = Math.max(...match.giocate.map(g => g.pct));
+              return (
+                <div key={idx} className="giocata-item" onClick={() => onSelectMatch(match.id)} style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderBottom: '1px solid var(--border)', cursor: 'pointer', transition: 'background 0.2s', borderRadius: '6px', flexWrap: 'wrap'}}>
+                  <div style={{flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    <span style={{fontSize: '14px', fontWeight: 'bold', color: champColor, minWidth: '30px'}}>#{idx + 2}</span>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+                      <TeamLogo teamName={match.casa} championship={match.campionato} size={20} />
+                      <div><div style={{fontWeight: 'bold', fontSize: '13px', color: 'var(--text)'}}>{match.casa} vs {match.ospiti}</div><div style={{fontSize: '10px', color: 'var(--text-muted)'}}>{match.campionato} • {formatDateEU(match.data)}</div></div>
+                      <TeamLogo teamName={match.ospiti} championship={match.campionato} size={20} />
+                    </div>
+                  </div>
+                  <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px', flex: '1', minWidth: '180px'}}>
+                    {match.giocate.map((g, gi) => {
+                      const isMax = g.pct === maxPct;
+                      const family = FAMIGLIE_GIOCATE[g.familyId];
+                      return (
+                        <div key={gi} style={{background: 'var(--surface)', padding: '3px 8px', borderRadius: '4px', textAlign: 'center', border: isMax && g.isBomb ? '2px solid var(--accent)' : '1px solid var(--border)', flex: '1', minWidth: '60px', maxWidth: '160px'}}>
+                          <div style={{fontWeight: 'bold', color: 'var(--text)', fontSize: '9px', lineHeight: '1.2'}}>{family ? family.label : g.familyId}</div>
+                          <div style={{fontWeight: 'bold', fontSize: '13px'}}>{renderPct(g.pct)}</div>
+                          <div style={{fontSize: '8px', color: 'var(--text-muted)'}}>{g.label}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{textAlign: 'center', minWidth: '35px'}}><div style={{fontSize: '14px', fontWeight: 'bold', color: 'var(--accent)'}}>{renderPct(match.score)}</div><div style={{fontSize: '8px', color: 'var(--text-muted)'}}>Score</div></div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="widget-footer" style={{display: 'flex', justifyContent: 'space-between', marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--border)', fontSize: '11px', color: 'var(--text-muted)', flexWrap: 'wrap', gap: '6px'}}>
+            <span>💣 {giocateDelGiorno.length} partite con bombe</span>
+            <span>⭐ Media Score: {Math.round(giocateDelGiorno.reduce((s, m) => s + m.score, 0) / giocateDelGiorno.length)}%</span>
+            <span style={{color: 'var(--accent)', cursor: 'pointer'}} onClick={() => setTab('Home')}>Vedi tutte →</span>
+          </div>
+          <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '6px', paddingTop: '8px', borderTop: '1px solid var(--border)', fontSize: '10px', color: 'var(--text-muted)', alignItems: 'center'}}>
+            <span>🔴 0% - 33,33%</span><span>⚪ 33,34% - 66,66%</span><span>🟢 66,67% - 89,99%</span><span style={{color: 'var(--accent)'}}>🟡 Migliore tra le 3</span><span style={{color: 'var(--accent)', fontWeight: 'bold'}}>💣 ≥ 90% (Bomba)</span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// ============================================================
+// AVVIA APP
+// ============================================================
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
