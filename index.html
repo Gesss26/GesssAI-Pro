@@ -3001,7 +3001,7 @@ const AIAnalysis = ({ match, allMatches }) => {
     setSimulationLoading(true);
     setError(null);
     try {
-      const result = simulateMatches(homeTeam, awayTeam, allMatches, 1000);
+      const result = simulateMatches(homeTeam, awayTeam, allMatches, 10000);
       setMonteCarloResult(result);
       const storageKey = `ft_mc_${match.id}`;
       localStorage.setItem(storageKey, JSON.stringify(result));
