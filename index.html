@@ -3577,11 +3577,29 @@ window.TeamLogo = TeamLogo;
 
 console.log('✅ Funzioni esposte globalmente per il modulo Schedina');
 
-// ... (il resto del file rimane invariato fino al componente App) ...
-
 // ============================================================
 // COMPONENTE APP
 // ============================================================
+
+const loadState = () => {
+  try {
+    return {
+      championships: JSON.parse(localStorage.getItem('ft_champs') || '[]'),
+      matches: JSON.parse(localStorage.getItem('ft_matches') || '[]'),
+      theme: JSON.parse(localStorage.getItem('ft_theme') || '"Scuro Blu Notte"'),
+      customTheme: JSON.parse(localStorage.getItem('ft_custom_theme') || 'null'),
+      selectedFamiglie: JSON.parse(localStorage.getItem('ft_selected_famiglie') || '["dc_under","mg_casa_ospite","over"]'),
+    };
+  } catch(e) { return { championships:[], matches:[], theme:'Scuro Blu Notte', customTheme:null, selectedFamiglie:['dc_under','mg_casa_ospite','over'] }; }
+};
+
+const saveState = (data) => {
+  localStorage.setItem('ft_champs', JSON.stringify(data.championships));
+  localStorage.setItem('ft_matches', JSON.stringify(data.matches));
+  localStorage.setItem('ft_theme', JSON.stringify(data.theme));
+  localStorage.setItem('ft_custom_theme', JSON.stringify(data.customTheme));
+  localStorage.setItem('ft_selected_famiglie', JSON.stringify(data.selectedFamiglie || ['dc_under','mg_casa_ospite','over']));
+};
 
 function App() {
   const initial = loadState();
