@@ -2166,6 +2166,10 @@ const FamiglieSelector = ({ selectedFamiglie, setSelectedFamiglie, showAlert }) 
 // COMPONENTE MATCH TAB CON LOGHI
 // ============================================================
 
+// ============================================================
+// COMPONENTE MATCH TAB CON LOGHI - VERSIONE MODIFICATA
+// ============================================================
+
 const MatchTab = ({ match, allMatches, onSelect, selectedFamiglie, weatherData }) => {
   if (!match) return null;
   
@@ -2198,11 +2202,28 @@ const MatchTab = ({ match, allMatches, onSelect, selectedFamiglie, weatherData }
     return <span className={`xg-value ${cls}`}>{num.toFixed(1)}</span>;
   };
   
+  // Funzione per ottenere il colore CSS in base alla percentuale
   const getColorForPct = (valore) => {
-    if (valore >= 90) return '#f39c12';
-    if (valore >= 66.67) return '#6fcf97';
-    if (valore >= 33.34) return '#8b949e';
-    return '#eb5757';
+    if (valore >= 90) return '#f39c12';  // Oro (Bomb)
+    if (valore >= 66.67) return '#6fcf97'; // Verde
+    if (valore >= 33.34) return '#8b949e'; // Bianco/Grigio
+    return '#eb5757'; // Rosso
+  };
+  
+  // Funzione per ottenere il colore di sfondo della targhetta
+  const getBadgeBackground = (valore) => {
+    if (valore >= 90) return 'rgba(243, 156, 18, 0.2)';  // Oro trasparente
+    if (valore >= 66.67) return 'rgba(111, 207, 151, 0.2)'; // Verde trasparente
+    if (valore >= 33.34) return 'rgba(139, 148, 158, 0.2)'; // Bianco trasparente
+    return 'rgba(235, 87, 87, 0.2)'; // Rosso trasparente
+  };
+  
+  // Funzione per ottenere il bordo della targhetta
+  const getBadgeBorder = (valore) => {
+    if (valore >= 90) return '2px solid #f39c12';
+    if (valore >= 66.67) return '1px solid #6fcf97';
+    if (valore >= 33.34) return '1px solid #8b949e';
+    return '1px solid #eb5757';
   };
   
   const getGiocateDaMostrare = () => {
@@ -2297,22 +2318,41 @@ const MatchTab = ({ match, allMatches, onSelect, selectedFamiglie, weatherData }
       
       <div className="bet-row-vertical">
         {giocateDaMostrare.length > 0 ? (
-          giocateDaMostrare.map((g, idx) => (
-            <div key={idx} className={`bet-item-vertical ${g.isBomb ? 'bomb' : ''}`}>
-              <span className="bet-label" style={{color: getColorForPct(g.pct)}}>
-                {g.isBomb && '💣 '}
-                <span style={{fontWeight: 'bold', fontSize: '13px'}}>{g.label}</span>
-              </span>
-              <span className="bet-value">
-                <span className={`giocata-pct ${getPercentualeClasse(g.pct)}`}>
-                  {g.pct}% {g.isBomb && <span className="bomb-icon">💣</span>}
+          giocateDaMostrare.map((g, idx) => {
+            // Calcola il colore in base alla percentuale
+            const pctColor = getColorForPct(g.pct);
+            const bgColor = getBadgeBackground(g.pct);
+            const borderStyle = getBadgeBorder(g.pct);
+            const isBomb = g.pct >= 90;
+            
+            return (
+              <div 
+                key={idx} 
+                className={`bet-item-vertical ${isBomb ? 'bomb' : ''}`}
+                style={{
+                  borderColor: pctColor,
+                  background: isBomb ? 'var(--accent)' : bgColor,
+                  border: isBomb ? '2px solid var(--accent)' : borderStyle,
+                  animation: isBomb ? 'bomb-glow 1s infinite alternate' : 'none'
+                }}
+              >
+                <span className="bet-label" style={{color: isBomb ? '#000' : pctColor}}>
+                  {isBomb && '💣 '}
+                  <span style={{fontWeight: 'bold', fontSize: '13px', color: isBomb ? '#000' : pctColor}}>
+                    {g.label}
+                  </span>
                 </span>
-                <div className="combinata-detail" style={{fontSize: '10px', color: 'var(--text-muted)'}}>
-                  {g.familyIcon} {g.familyName}
-                </div>
-              </span>
-            </div>
-          ))
+                <span className="bet-value">
+                  <span className={`giocata-pct ${getPercentualeClasse(g.pct)}`}>
+                    {g.pct}% {isBomb && <span className="bomb-icon">💣</span>}
+                  </span>
+                  <div className="combinata-detail" style={{fontSize: '10px', color: 'var(--text-muted)'}}>
+                    {g.familyIcon} {g.familyName}
+                  </div>
+                </span>
+              </div>
+            );
+          })
         ) : (
           <div className="bet-item-vertical" style={{textAlign: 'center', color: 'var(--text-muted)'}}>
             <span>Nessuna giocata disponibile</span>
