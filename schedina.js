@@ -119,6 +119,46 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     return topGiocate[randomIndex];
   };
   
+  // ============================================================
+  // FUNZIONE PER VERIFICARE SE UNA PARTITA È GIÀ PASSATA
+  // ============================================================
+  const isMatchPassed = (match) => {
+    if (!match || !match.data) return false;
+    
+    try {
+      // Normalizza la data
+      const dataNormalizzata = window.normalizeDate(match.data);
+      if (!dataNormalizzata) return false;
+      
+      // Crea la data della partita con l'ora
+      let oraMatch = match.ora || '00:00';
+      // Rimuovi eventuali caratteri speciali dall'ora
+      oraMatch = oraMatch.replace(/[^0-9:]/g, '');
+      // Se l'ora è vuota o non valida, usa 00:00
+      if (!oraMatch || oraMatch === 'TBD' || oraMatch === 'N/D') {
+        oraMatch = '00:00';
+      }
+      // Assicurati che l'ora sia nel formato HH:MM
+      if (!oraMatch.includes(':')) {
+        oraMatch = '00:00';
+      }
+      
+      const matchDateTime = new Date(`${dataNormalizzata}T${oraMatch}:00`);
+      const now = new Date();
+      
+      // Se la data è passata, escludi la partita
+      if (matchDateTime < now) {
+        return true;
+      }
+      
+      return false;
+    } catch (e) {
+      console.warn('Errore nel controllo orario per', match.casa, match.ospiti, e);
+      // In caso di errore, assumiamo che la partita non sia passata per sicurezza
+      return false;
+    }
+  };
+  
   // Calcola la schedina
   const calcolaSchedina = () => {
     if (campionatiSelezionati.length === 0) {
@@ -134,18 +174,33 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const maxDateStr = maxDate.toISOString().slice(0, 10);
     
     let partiteDisponibili = matches.filter(m => {
+      // Solo partite FUTURE (non ancora giocate)
       if (m.stato !== 'Futura') return false;
+      
+      // Filtra per campionati selezionati
       if (!campionatiSelezionati.includes(m.campionato)) return false;
+      
+      // Controlla se ha una data valida
       if (!m.data) return false;
       
       const normalized = window.normalizeDate(m.data);
       if (!normalized) return false;
       
-      return normalized >= todayStr && normalized <= maxDateStr;
+      // Controlla se la data rientra nel range
+      if (normalized < todayStr || normalized > maxDateStr) return false;
+      
+      // ============================================================
+      // CONTROLLO ORARIO: escludi partite già passate
+      // ============================================================
+      if (isMatchPassed(m)) {
+        return false;
+      }
+      
+      return true;
     });
     
     if (partiteDisponibili.length === 0) {
-      showAlert('warning', '⚠️ Nessuna partita disponibile nei campionati selezionati per il range di date scelto.');
+      showAlert('warning', '⚠️ Nessuna partita disponibile nei campionati selezionati per il range di date scelto (sono state escluse quelle già passate).');
       setIsLoading(false);
       setPartiteCalcolate([]);
       return;
@@ -192,7 +247,14 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     setPartiteCalcolate(partiteSelezionate);
     setIsLoading(false);
     
-    showAlert('success', `✅ Trovate ${partiteSelezionate.length} partite valide!`);
+    // Mostra quante partite sono state escluse per orario passato
+    const totaliTrovate = partiteDisponibili.length;
+    const esclusePerOrario = partiteDisponibili.length - partiteValide.length;
+    let messaggio = `✅ Trovate ${partiteSelezionate.length} partite valide!`;
+    if (esclusePerOrario > 0) {
+      messaggio += ` (${esclusePerOrario} escluse perché già passate)`;
+    }
+    showAlert('success', messaggio);
   };
   
   // Resetta la schedina
@@ -243,6 +305,13 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const senzaGiocata = partiteCalcolate.filter(p => !p.migliorGiocata);
     if (senzaGiocata.length > 0) {
       showAlert('error', `⚠️ ${senzaGiocata.length} partita/e senza giocata selezionata!`);
+      return;
+    }
+    
+    // Verifica che nessuna partita sia già passata
+    const partitePassate = partiteCalcolate.filter(p => isMatchPassed(p));
+    if (partitePassate.length > 0) {
+      showAlert('error', `⚠️ ${partitePassate.length} partita/e sono già passate! Rigenera la schedina.`);
       return;
     }
     
@@ -408,30 +477,23 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       appUrl = `intent://send?text=${testoEncoded}#Intent;package=com.whatsapp;scheme=whatsapp;end;`;
       webUrl = `https://api.whatsapp.com/send?text=${testoEncoded}`;
     } else if (isWindows) {
-      // Windows: prova ad aprire l'app WhatsApp (se installata dallo store)
-      // usa il protocollo whatsapp:// che funziona anche su Windows con l'app installata
       appUrl = `whatsapp://send?text=${testoEncoded}`;
       webUrl = `https://web.whatsapp.com/send?text=${testoEncoded}`;
     } else if (isMac) {
-      // Mac: prova l'app WhatsApp Desktop
       appUrl = `whatsapp://send?text=${testoEncoded}`;
       webUrl = `https://web.whatsapp.com/send?text=${testoEncoded}`;
     } else {
-      // Altri desktop
       appUrl = `whatsapp://send?text=${testoEncoded}`;
       webUrl = `https://web.whatsapp.com/send?text=${testoEncoded}`;
     }
     
     // Tentativo di aprire l'app
     try {
-      // Apri l'app con un timeout per il fallback
       const win = window.open(appUrl, '_blank');
       
-      // Se la finestra non si apre o viene chiusa subito, usa il fallback web
       if (!win || win.closed) {
         window.open(webUrl, '_blank');
       } else {
-        // Dopo 2 secondi, se la finestra è ancora aperta, significa che l'app non c'è
         setTimeout(() => {
           try {
             if (win && !win.closed) {
@@ -444,7 +506,6 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         }, 2000);
       }
     } catch (e) {
-      // Se qualcosa va storto, usa il web
       window.open(webUrl, '_blank');
     }
   };
@@ -473,15 +534,12 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       appUrl = `intent://share/url?url=&text=${testoEncoded}#Intent;package=org.telegram.messenger;scheme=tg;end;`;
       webUrl = `https://t.me/share/url?url=&text=${testoEncoded}`;
     } else if (isWindows) {
-      // Windows: prova ad aprire l'app Telegram (se installata)
       appUrl = `tg://msg?text=${testoEncoded}`;
       webUrl = `https://web.telegram.org/k/#?tgaddr=tg://msg?text=${testoEncoded}`;
     } else if (isMac) {
-      // Mac: prova l'app Telegram
       appUrl = `tg://msg?text=${testoEncoded}`;
       webUrl = `https://web.telegram.org/k/#?tgaddr=tg://msg?text=${testoEncoded}`;
     } else {
-      // Altri desktop
       appUrl = `tg://msg?text=${testoEncoded}`;
       webUrl = `https://web.telegram.org/k/#?tgaddr=tg://msg?text=${testoEncoded}`;
     }
