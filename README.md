@@ -13,7 +13,7 @@ App di trading scommesse con analisi statistiche automatiche.
 ## 🌐 App Live
 
 L'app è disponibile all'indirizzo:
-👉 **https://[tuo-username].github.io/gesssai-app/**
+👉 **https://github.com/Gesss26/GesssAI-Pro**
 
 I dati vengono **aggiornati automaticamente ogni giorno** alle 3:00 AM UTC.
 
