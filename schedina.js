@@ -385,8 +385,19 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     if (!schedina) return;
     const testo = generaTestoCondivisione(schedina);
     const testoEncoded = encodeURIComponent(testo);
-    const url = `https://wa.me/?text=${testoEncoded}`;
-    window.open(url, '_blank');
+    
+    // Rileva se è mobile o desktop
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // Su mobile usa il link che apre l'app
+      const url = `https://api.whatsapp.com/send?text=${testoEncoded}`;
+      window.open(url, '_blank');
+    } else {
+      // Su desktop usa WhatsApp Web
+      const url = `https://web.whatsapp.com/send?text=${testoEncoded}`;
+      window.open(url, '_blank');
+    }
   };
   
   // Condividi su Telegram
@@ -394,8 +405,27 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     if (!schedina) return;
     const testo = generaTestoCondivisione(schedina);
     const testoEncoded = encodeURIComponent(testo);
-    const url = `https://t.me/share/url?url=&text=${testoEncoded}`;
-    window.open(url, '_blank');
+    
+    // Rileva se è mobile o desktop
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // Su mobile usa il link che apre l'app
+      const url = `tg://msg?text=${testoEncoded}`;
+      // Prova ad aprire direttamente l'app
+      window.location.href = url;
+      
+      // Fallback: se dopo 2 secondi non si è aperto, usa il web
+      setTimeout(() => {
+        // Se la pagina è ancora visibile (l'app non si è aperta)
+        const fallbackUrl = `https://t.me/share/url?url=&text=${testoEncoded}`;
+        window.open(fallbackUrl, '_blank');
+      }, 2000);
+    } else {
+      // Su desktop usa Telegram Web
+      const url = `https://t.me/share/url?url=&text=${testoEncoded}`;
+      window.open(url, '_blank');
+    }
   };
   
   // Render della modal per visualizzare la schedina
