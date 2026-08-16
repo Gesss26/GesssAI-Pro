@@ -386,17 +386,36 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const testo = generaTestoCondivisione(schedina);
     const testoEncoded = encodeURIComponent(testo);
     
-    // Rileva se è mobile o desktop
+    // Rileva il dispositivo
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
     
     if (isMobile) {
-      // Su mobile usa il link che apre l'app
-      const url = `https://api.whatsapp.com/send?text=${testoEncoded}`;
-      window.open(url, '_blank');
+      if (isIOS) {
+        // iOS: usa il link che apre WhatsApp
+        window.location.href = `whatsapp://send?text=${testoEncoded}`;
+        // Fallback per iOS se WhatsApp non è installato
+        setTimeout(() => {
+          window.location.href = `https://api.whatsapp.com/send?text=${testoEncoded}`;
+        }, 1000);
+      } else if (isAndroid) {
+        // Android: usa intent
+        window.location.href = `intent://send?text=${testoEncoded}#Intent;package=com.whatsapp;scheme=whatsapp;end;`;
+        // Fallback per Android
+        setTimeout(() => {
+          window.location.href = `https://api.whatsapp.com/send?text=${testoEncoded}`;
+        }, 1500);
+      } else {
+        // Altri mobile
+        window.location.href = `whatsapp://send?text=${testoEncoded}`;
+        setTimeout(() => {
+          window.location.href = `https://api.whatsapp.com/send?text=${testoEncoded}`;
+        }, 1000);
+      }
     } else {
-      // Su desktop usa WhatsApp Web
-      const url = `https://web.whatsapp.com/send?text=${testoEncoded}`;
-      window.open(url, '_blank');
+      // Desktop: usa WhatsApp Web
+      window.open(`https://web.whatsapp.com/send?text=${testoEncoded}`, '_blank');
     }
   };
   
@@ -406,25 +425,36 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const testo = generaTestoCondivisione(schedina);
     const testoEncoded = encodeURIComponent(testo);
     
-    // Rileva se è mobile o desktop
+    // Rileva il dispositivo
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
     
     if (isMobile) {
-      // Su mobile usa il link che apre l'app
-      const url = `tg://msg?text=${testoEncoded}`;
-      // Prova ad aprire direttamente l'app
-      window.location.href = url;
-      
-      // Fallback: se dopo 2 secondi non si è aperto, usa il web
-      setTimeout(() => {
-        // Se la pagina è ancora visibile (l'app non si è aperta)
-        const fallbackUrl = `https://t.me/share/url?url=&text=${testoEncoded}`;
-        window.open(fallbackUrl, '_blank');
-      }, 2000);
+      if (isIOS) {
+        // iOS: usa il link che apre l'app Telegram
+        window.location.href = `tg://msg?text=${testoEncoded}`;
+        // Fallback per iOS se Telegram non è installato
+        setTimeout(() => {
+          window.location.href = `https://t.me/share/url?url=&text=${testoEncoded}`;
+        }, 1000);
+      } else if (isAndroid) {
+        // Android: usa intent per Telegram
+        window.location.href = `intent://share/url?url=&text=${testoEncoded}#Intent;package=org.telegram.messenger;scheme=tg;end;`;
+        // Fallback per Android
+        setTimeout(() => {
+          window.location.href = `https://t.me/share/url?url=&text=${testoEncoded}`;
+        }, 1500);
+      } else {
+        // Altri mobile
+        window.location.href = `tg://msg?text=${testoEncoded}`;
+        setTimeout(() => {
+          window.location.href = `https://t.me/share/url?url=&text=${testoEncoded}`;
+        }, 1000);
+      }
     } else {
-      // Su desktop usa Telegram Web
-      const url = `https://t.me/share/url?url=&text=${testoEncoded}`;
-      window.open(url, '_blank');
+      // Desktop: usa Telegram Web
+      window.open(`https://t.me/share/url?url=&text=${testoEncoded}`, '_blank');
     }
   };
   
