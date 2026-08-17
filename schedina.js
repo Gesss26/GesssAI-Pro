@@ -625,6 +625,7 @@ function App() {
 
 // ============================================================
 // COMPONENTE SCHEDINA - VERSIONE COMPLETA CON SCHEDINE SALVATE
+// MODIFICHE: MASSIMO 10 PARTITE + BOTTONE RIGENERA
 // ============================================================
 
 const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectMatch, showAlert }) => {
@@ -711,30 +712,42 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     let migliorGiocata = null;
     let migliorPct = 0;
     
+    // Raccogli TUTTE le giocate valide per questa partita
+    const tutteGiocateValide = [];
+    
     if (giocataSelezionata === 'tutte') {
       Object.keys(FAMIGLIE_GIOCATE).forEach(familyId => {
         const best = getBestBetForFamily(familyId, stats, homeRange, awayRange, homeMG, awayMG, mgTot);
-        if (best && best.pct > migliorPct) {
-          migliorPct = best.pct;
-          migliorGiocata = {
+        if (best && best.pct > 0) {
+          tutteGiocateValide.push({
             ...best,
             familyId: familyId,
             familyLabel: FAMIGLIE_GIOCATE[familyId].label,
             familyIcon: FAMIGLIE_GIOCATE[familyId].icon
-          };
+          });
         }
       });
     } else {
       const best = getBestBetForFamily(giocataSelezionata, stats, homeRange, awayRange, homeMG, awayMG, mgTot);
       if (best && best.pct > 0) {
-        migliorPct = best.pct;
-        migliorGiocata = {
+        tutteGiocateValide.push({
           ...best,
           familyId: giocataSelezionata,
           familyLabel: FAMIGLIE_GIOCATE[giocataSelezionata]?.label || giocataSelezionata,
           familyIcon: FAMIGLIE_GIOCATE[giocataSelezionata]?.icon || '🎯'
-        };
+        });
       }
+    }
+    
+    // Seleziona la migliore tra tutte
+    if (tutteGiocateValide.length > 0) {
+      // Ordina per percentuale decrescente
+      tutteGiocateValide.sort((a, b) => b.pct - a.pct);
+      migliorGiocata = tutteGiocateValide[0];
+      migliorPct = migliorGiocata.pct;
+      
+      // Aggiungi tutte le giocate valide alla partita per il confronto
+      match._tutteGiocateValide = tutteGiocateValide;
     }
     
     let score = 0;
@@ -752,7 +765,8 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     return { 
       giocata: migliorGiocata,
       pct: migliorPct,
-      score: score
+      score: score,
+      tutteGiocate: tutteGiocateValide
     };
   };
 
@@ -764,15 +778,110 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         ...m,
         giocata: dettagli.giocata,
         pct: dettagli.pct,
-        score: dettagli.score
+        score: dettagli.score,
+        tutteGiocate: dettagli.tutteGiocate || []
       };
     }).filter(m => m.score > 0).sort((a, b) => b.score - a.score);
   }, [getPartiteFutureConFiltro, giocataSelezionata]);
 
   const partiteDisponibili = getPartiteConGiocate();
 
+  // ============================================================
+  // NUOVA FUNZIONE: RIGENERA SCHEDINA
+  // Seleziona le partite con le migliori percentuali e gestisce i pareggi
+  // ============================================================
+  const rigeneraSchedina = () => {
+    if (partiteDisponibili.length === 0) {
+      showAlert('info', 'ℹ️ Nessuna partita disponibile per rigenerare la schedina.');
+      return;
+    }
+
+    // Raggruppa le partite per punteggio
+    const partitePerScore = {};
+    partiteDisponibili.forEach(m => {
+      const score = m.score;
+      if (!partitePerScore[score]) partitePerScore[score] = [];
+      partitePerScore[score].push(m);
+    });
+
+    // Ordina i punteggi in modo decrescente
+    const scores = Object.keys(partitePerScore).map(Number).sort((a, b) => b - a);
+    
+    let selezionate = [];
+    
+    // Seleziona partite a partire dal punteggio più alto
+    for (const score of scores) {
+      const partiteGruppo = partitePerScore[score];
+      
+      // Se abbiamo già raggiunto il massimo, esci
+      if (selezionate.length >= 10) break;
+      
+      // Se il gruppo è vuoto, salta
+      if (partiteGruppo.length === 0) continue;
+      
+      // Calcola quante partite possiamo prendere da questo gruppo
+      const postiDisponibili = 10 - selezionate.length;
+      
+      if (partiteGruppo.length <= postiDisponibili) {
+        // Prendi tutto il gruppo
+        selezionate = [...selezionate, ...partiteGruppo];
+      } else {
+        // Se il gruppo ha più partite dei posti disponibili, prendi le migliori
+        // Ordina per percentuale della giocata (decrescente) e poi per punteggio totale
+        const gruppoOrdinato = [...partiteGruppo].sort((a, b) => {
+          // Prima confronta le percentuali delle giocate
+          const pctA = a.pct || 0;
+          const pctB = b.pct || 0;
+          if (pctA !== pctB) return pctB - pctA;
+          
+          // Se la percentuale è uguale, controlla se ci sono più giocate con la stessa % alta
+          // Se una partita ha più giocate con la stessa percentuale alta, è meglio
+          const giocateAlteA = a.tutteGiocate?.filter(g => g.pct === pctA).length || 0;
+          const giocateAlteB = b.tutteGiocate?.filter(g => g.pct === pctB).length || 0;
+          if (giocateAlteA !== giocateAlteB) return giocateAlteB - giocateAlteA;
+          
+          // Se ancora uguali, prendi quella con più giocate valide in totale
+          const totaleA = a.tutteGiocate?.length || 0;
+          const totaleB = b.tutteGiocate?.length || 0;
+          return totaleB - totaleA;
+        });
+        
+        // Prendi solo quelle necessarie
+        selezionate = [...selezionate, ...gruppoOrdinato.slice(0, postiDisponibili)];
+        
+        // Se abbiamo preso tutte le partite del gruppo con lo stesso score,
+        // e siamo arrivati a 10, fermiamoci
+        if (selezionate.length >= 10) break;
+      }
+    }
+    
+    // Se non siamo arrivati a 10, prendi altre partite dai gruppi successivi
+    if (selezionate.length < 10 && scores.length > 0) {
+      for (let i = 0; i < scores.length && selezionate.length < 10; i++) {
+        const score = scores[i];
+        const partiteGruppo = partitePerScore[score];
+        const disponibili = partiteGruppo.filter(m => !selezionate.includes(m));
+        const postiDisponibili = 10 - selezionate.length;
+        if (disponibili.length > 0) {
+          const daPrendere = disponibili.slice(0, postiDisponibili);
+          selezionate = [...selezionate, ...daPrendere];
+        }
+      }
+    }
+    
+    // Se abbiamo selezionato meno di 2 partite, avvisa l'utente
+    if (selezionate.length < 2) {
+      showAlert('info', 'ℹ️ Non ci sono abbastanza partite di qualità per creare una schedina (minimo 2).');
+      return;
+    }
+    
+    setPartiteSelezionate(selezionate);
+    showAlert('success', `🔄 Schedina rigenerata! ${selezionate.length} partite selezionate.`);
+  };
+
   const selezionaMiglioriPartite = (n) => {
-    const migliori = partiteDisponibili.slice(0, n);
+    const massimo = Math.min(n, 10);
+    const migliori = partiteDisponibili.slice(0, massimo);
     setPartiteSelezionate(migliori);
     showAlert('success', `✅ Selezionate ${migliori.length} migliori partite!`);
   };
@@ -783,8 +892,8 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       if (exists) {
         return prev.filter(m => m.id !== match.id);
       } else {
-        if (prev.length >= 6) {
-          showAlert('error', '⚠️ Massimo 6 partite per schedina!');
+        if (prev.length >= 10) {
+          showAlert('error', '⚠️ Massimo 10 partite per schedina!');
           return prev;
         }
         return [...prev, match];
@@ -860,22 +969,14 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     lines.push('');
     
     schedina.partite.forEach((m, idx) => {
-      // Data e Ora
       const dataOra = `${formatDateEU(m.data)} ${m.ora && m.ora !== 'TBD' ? m.ora : ''}`;
       lines.push(`📅 ${dataOra}`);
-      
-      // Campionato
       lines.push(`🏆 ${m.campionato}`);
-      
-      // Partita
       lines.push(`⚽ ${m.casa} vs ${m.ospiti}`);
-      
-      // Giocata con percentuale
       const giocataLabel = m.giocata ? `${m.giocata.familyIcon} ${m.giocata.label}` : 'N/A';
       const pctDisplay = m.pct || 0;
       const bombEmoji = m.giocata?.isBomb ? ' 💣' : '';
       lines.push(`🎯 ${giocataLabel} → ${pctDisplay}%${bombEmoji}`);
-      
       if (idx < schedina.partite.length - 1) lines.push('');
     });
     
@@ -892,7 +993,6 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
   const shareOnWhatsApp = () => {
     if (!schedinaCreata) return;
     const text = formatSchedinaText(schedinaCreata);
-    // Usa l'URL corretto per WhatsApp
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
   };
@@ -1067,7 +1167,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
           <span>⭐ Media score: <b style={{color: 'var(--accent)'}}>
             {partiteDisponibili.length > 0 ? Math.round(partiteDisponibili.reduce((s, m) => s + m.score, 0) / partiteDisponibili.length) : 0}%
           </b></span>
-          <span>🎯 Selezionate: <b style={{color: 'var(--win)'}}>{partiteSelezionate.length}</b></span>
+          <span>🎯 Selezionate: <b style={{color: 'var(--win)'}}>{partiteSelezionate.length}</b> / 10</span>
         </div>
         
         {/* PULSANTI */}
@@ -1078,8 +1178,14 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
           <button className="btn" onClick={() => selezionaMiglioriPartite(5)}>
             ⚡ Top 5
           </button>
-          <button className="btn btn-secondary" onClick={() => selezionaMiglioriPartite(partiteDisponibili.length)}>
+          <button className="btn" onClick={() => selezionaMiglioriPartite(10)}>
+            ⚡ Top 10
+          </button>
+          <button className="btn" onClick={() => selezionaMiglioriPartite(partiteDisponibili.length)}>
             📋 Tutte
+          </button>
+          <button className="btn" onClick={rigeneraSchedina} style={{background: 'var(--accent2)', color: '#000'}}>
+            🔄 Rigenera Schedina
           </button>
           <button className="btn btn-secondary" onClick={resettaSchedina}>
             🗑️ Resetta
@@ -1090,7 +1196,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         </div>
         
         <div style={{marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)'}}>
-          💡 Seleziona una giocata in alto. Clicca su una partita per selezionarla/deselezionarla. Max 6 partite.
+          💡 Seleziona una giocata in alto. Clicca su una partita per selezionarla/deselezionarla. Max 10 partite.
         </div>
       </div>
       
@@ -1174,9 +1280,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         )}
       </div>
 
-      {/* ============================================================
-          SCHEDINE SALVATE - AREA SOTTO LA LISTA PARTITE
-          ============================================================ */}
+      {/* SCHEDINE SALVATE */}
       {schedineSalvate.length > 0 && (
         <div className="card" style={{marginTop: '16px', border: '2px solid var(--accent)'}}>
           <h4 style={{color: 'var(--accent)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px'}}>
@@ -1233,7 +1337,6 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
                   <button 
                     className="btn btn-secondary" 
                     onClick={() => {
-                      // Copia negli appunti
                       const text = formatSchedinaText(s);
                       navigator.clipboard?.writeText?.(text);
                       showAlert('success', '📋 Schedina copiata!');
@@ -1256,9 +1359,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         </div>
       )}
 
-      {/* ============================================================
-          MODAL SCHEDINA
-          ============================================================ */}
+      {/* MODAL SCHEDINA */}
       {showSchedinaModal && schedinaCreata && (
         <div className="heatmap-detail-overlay" onClick={() => setShowSchedinaModal(false)}>
           <div className="heatmap-detail-modal" onClick={e => e.stopPropagation()} style={{maxWidth: '800px'}}>
