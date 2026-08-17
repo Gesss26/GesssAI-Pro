@@ -1,5 +1,5 @@
 // ============================================================
-// SCHEDINA.JS - VERSIONE COMPLETA CON SELEZIONE GIOCATE
+// SCHEDINA.JS - VERSIONE COMPLETA CON SELEZIONE GIOCATE IN ALTO
 // ============================================================
 
 function App() {
@@ -26,7 +26,7 @@ function App() {
   const [selectedFamiglie, setSelectedFamiglie] = useState(initial.selectedFamiglie || ['dc_under','mg_casa_ospite','over']);
   
   // NUOVO STATO PER IL FILTRO ORARIO
-  const [filterTime, setFilterTime] = useState('dopo_ora'); // 'dopo_ora' o 'giorno_intero'
+  const [filterTime, setFilterTime] = useState('dopo_ora');
 
   // Effetto per caricare il meteo
   useEffect(() => {
@@ -638,20 +638,21 @@ function App() {
 }
 
 // ============================================================
-// COMPONENTE SCHEDINA - VERSIONE COMPLETA CON SELEZIONE GIOCATE
+// COMPONENTE SCHEDINA - CON SELEZIONE GIOCATE IN ALTO
 // ============================================================
 
 const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectMatch, showAlert }) => {
   const [campionatoSelezionato, setCampionatoSelezionato] = useState('Tutti');
   const [partiteSelezionate, setPartiteSelezionate] = useState([]);
-  const [numPartite, setNumPartite] = useState(3);
   const [filtroOrario, setFiltroOrario] = useState('dopo_ora');
   const [giorniRange, setGiorniRange] = useState(1);
   const [schedinaCreata, setSchedinaCreata] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [modalitaSelezione, setModalitaSelezione] = useState('tutte'); // 'tutte' o 'manuale'
+  
+  // STATO PER LA GIOCATA SELEZIONATA (UNA SOLA)
+  const [giocataSelezionata, setGiocataSelezionata] = useState('tutte');
 
-  // Funzione per ottenere le partite "future" con filtro orario (IDENTICA AL PALINSESTO)
+  // Funzione per ottenere le partite "future" con filtro orario
   const getPartiteFutureConFiltro = useCallback(() => {
     const todayStr = getTodayStr();
     const maxDateStr = addDaysToDateStr(todayStr, giorniRange);
@@ -669,7 +670,6 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       return normalized >= todayStr && normalized <= maxDateStr;
     });
     
-    // FILTRO ORARIO: mostra solo partite non ancora iniziate
     if (filtroOrario === 'dopo_ora') {
       const now = new Date();
       const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
@@ -703,10 +703,10 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     return futureMatches;
   }, [matches, campionatoSelezionato, giorniRange, filtroOrario]);
 
-  // Calcola tutte le giocate disponibili per una partita
-  const calcolaGiocatePerPartita = (match) => {
+  // Calcola la giocata per una partita in base al filtro selezionato
+  const calcolaGiocataPerPartita = (match) => {
     const stats = computeMatchStats(match, matches);
-    if (stats.error) return { giocate: [], score: 0 };
+    if (stats.error) return { giocata: null, pct: 0, score: 0 };
     
     stats._allMatches = matches;
     stats._homeTeam = match.casa;
@@ -718,154 +718,83 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const homeRange = getMultigolRange(match.casa, matches);
     const awayRange = getMultigolRange(match.ospiti, matches);
     
-    const giocate = [];
+    let migliorGiocata = null;
+    let migliorPct = 0;
     let tutteGiocate = [];
     
-    selectedFamiglie.forEach(familyId => {
-      const family = FAMIGLIE_GIOCATE[familyId];
-      if (!family) return;
-      
-      // Calcola tutte le opzioni della famiglia
-      family.options.forEach(opt => {
-        let pct = 0;
-        let label = opt;
-        let giocataKey = opt;
-        
-        // Usa la stessa logica di getGiocataPct
-        if (familyId === 'dc_under' && opt === '12+U4.5') {
-          pct = Math.round(get12Under45(matches, match.casa, match.ospiti) || 0);
-        } else if (familyId === 'mg_casa_ospite') {
-          const parts = opt.split('+');
-          let pct1 = 0;
-          if (parts[0] === '0-1') pct1 = homeMG['0-1'] || 0;
-          else if (parts[0] === '0-2') pct1 = homeMG['0-2'] || 0;
-          else if (parts[0] === '1-3') pct1 = homeMG['1-3'] || 0;
-          else if (parts[0] === '2-5') pct1 = homeMG['2-5'] || 0;
-          
-          let pct2 = 0;
-          if (parts[1] === '0-1') pct2 = awayMG['0-1'] || 0;
-          else if (parts[1] === '0-2') pct2 = awayMG['0-2'] || 0;
-          else if (parts[1] === '1-3') pct2 = awayMG['1-3'] || 0;
-          else if (parts[1] === '2-5') pct2 = awayMG['2-5'] || 0;
-          
-          pct = Math.round((pct1 + pct2) / 2);
-          label = `${parts[0]}+${parts[1]}`;
-          giocataKey = opt;
-        } else {
-          pct = getGiocataPct(opt, stats, homeMG, awayMG, mgTot);
-        }
-        
-        if (pct > 0) {
-          tutteGiocate.push({
-            familyId,
-            familyLabel: family.label,
-            familyIcon: family.icon,
-            label: label,
-            giocataKey: giocataKey,
-            pct: pct,
-            isBomb: pct >= 90
-          });
+    // Se "tutte", prendi la migliore tra TUTTE le famiglie
+    if (giocataSelezionata === 'tutte') {
+      // Considera TUTTE le famiglie
+      Object.keys(FAMIGLIE_GIOCATE).forEach(familyId => {
+        const best = getBestBetForFamily(familyId, stats, homeRange, awayRange, homeMG, awayMG, mgTot);
+        if (best && best.pct > migliorPct) {
+          migliorPct = best.pct;
+          migliorGiocata = {
+            ...best,
+            familyId: familyId,
+            familyLabel: FAMIGLIE_GIOCATE[familyId].label,
+            familyIcon: FAMIGLIE_GIOCATE[familyId].icon
+          };
         }
       });
-    });
+    } else {
+      // Usa la famiglia specifica selezionata
+      const best = getBestBetForFamily(giocataSelezionata, stats, homeRange, awayRange, homeMG, awayMG, mgTot);
+      if (best && best.pct > 0) {
+        migliorPct = best.pct;
+        migliorGiocata = {
+          ...best,
+          familyId: giocataSelezionata,
+          familyLabel: FAMIGLIE_GIOCATE[giocataSelezionata]?.label || giocataSelezionata,
+          familyIcon: FAMIGLIE_GIOCATE[giocataSelezionata]?.icon || '🎯'
+        };
+      }
+    }
     
-    // Ordina per percentuale decrescente
-    tutteGiocate.sort((a, b) => b.pct - a.pct);
-    
-    // Prendi solo la migliore per famiglia
-    const bestPerFamily = {};
-    tutteGiocate.forEach(g => {
-      if (!bestPerFamily[g.familyId] || g.pct > bestPerFamily[g.familyId].pct) {
-        bestPerFamily[g.familyId] = g;
+    // Calcola lo score (media di tutte le famiglie selezionate dall'utente)
+    let score = 0;
+    let giocatePct = [];
+    selectedFamiglie.forEach(familyId => {
+      const best = getBestBetForFamily(familyId, stats, homeRange, awayRange, homeMG, awayMG, mgTot);
+      if (best && best.pct > 0) {
+        giocatePct.push(best.pct);
       }
     });
-    
-    const giocateMigliori = Object.values(bestPerFamily);
-    const score = giocateMigliori.length > 0 
-      ? Math.round(giocateMigliori.reduce((s, g) => s + g.pct, 0) / giocateMigliori.length) 
-      : 0;
+    if (giocatePct.length > 0) {
+      score = Math.round(giocatePct.reduce((s, g) => s + g, 0) / giocatePct.length);
+    }
     
     return { 
-      giocate: tutteGiocate,
-      miglioriPerFamiglia: giocateMigliori,
+      giocata: migliorGiocata,
+      pct: migliorPct,
       score: score
     };
   };
 
-  // Ottieni le partite con i loro score e giocate
-  const getPartiteConDettagli = useCallback(() => {
+  // Ottieni le partite con le loro giocate calcolate
+  const getPartiteConGiocate = useCallback(() => {
     const partite = getPartiteFutureConFiltro();
     return partite.map(m => {
-      const dettagli = calcolaGiocatePerPartita(m);
+      const dettagli = calcolaGiocataPerPartita(m);
       return {
         ...m,
-        giocate: dettagli.giocate,
-        miglioriPerFamiglia: dettagli.miglioriPerFamiglia,
+        giocata: dettagli.giocata,
+        pct: dettagli.pct,
         score: dettagli.score
       };
     }).filter(m => m.score > 0).sort((a, b) => b.score - a.score);
-  }, [getPartiteFutureConFiltro]);
+  }, [getPartiteFutureConFiltro, giocataSelezionata]);
 
-  const partiteDisponibili = getPartiteConDettagli();
+  const partiteDisponibili = getPartiteConGiocate();
 
-  // Gestione selezione giocata per una partita
-  const [selezioneGiocate, setSelezioneGiocate] = useState({});
-
-  const toggleGiocata = (matchId, giocata) => {
-    setSelezioneGiocate(prev => {
-      const current = prev[matchId] || null;
-      if (current && current.giocataKey === giocata.giocataKey) {
-        // Deseleziona
-        const newState = { ...prev };
-        delete newState[matchId];
-        return newState;
-      } else {
-        // Seleziona
-        return { ...prev, [matchId]: giocata };
-      }
-    });
-  };
-
-  // Seleziona "Tutte" - prende la giocata con percentuale più alta per ogni partita
-  const selezionaTutteGiocate = () => {
-    const newSelezione = {};
-    partiteDisponibili.forEach(m => {
-      if (m.giocate && m.giocate.length > 0) {
-        const best = m.giocate.reduce((a, b) => a.pct > b.pct ? a : b);
-        newSelezione[m.id] = best;
-      }
-    });
-    setSelezioneGiocate(newSelezione);
-    setModalitaSelezione('tutte');
-    showAlert('success', `✅ Selezionate tutte le migliori giocate per ${Object.keys(newSelezione).length} partite!`);
-  };
-
-  // Seleziona manuale - resetta la selezione
-  const selezionaManuale = () => {
-    setSelezioneGiocate({});
-    setModalitaSelezione('manuale');
-    showAlert('info', '🔄 Modalità manuale: clicca sulle giocate per selezionarle');
-  };
-
-  // Seleziona automaticamente le migliori N partite (per la schedina)
+  // Seleziona automaticamente le migliori N partite
   const selezionaMiglioriPartite = (n) => {
     const migliori = partiteDisponibili.slice(0, n);
     setPartiteSelezionate(migliori);
-    
-    // Seleziona anche le giocate migliori per queste partite
-    const newSelezione = {};
-    migliori.forEach(m => {
-      if (m.giocate && m.giocate.length > 0) {
-        const best = m.giocate.reduce((a, b) => a.pct > b.pct ? a : b);
-        newSelezione[m.id] = best;
-      }
-    });
-    setSelezioneGiocate(newSelezione);
-    setModalitaSelezione('tutte');
-    showAlert('success', `✅ Selezionate ${migliori.length} migliori partite con le loro migliori giocate!`);
+    showAlert('success', `✅ Selezionate ${migliori.length} migliori partite!`);
   };
 
-  // Aggiungi/Rimuovi una partita dalla selezione (per la schedina)
+  // Aggiungi/Rimuovi una partita dalla selezione
   const togglePartita = (match) => {
     setPartiteSelezionate(prev => {
       const exists = prev.find(m => m.id === match.id);
@@ -881,23 +810,13 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     });
   };
 
-  // Verifica se una partita ha una giocata selezionata
-  const hasGiocataSelezionata = (matchId) => {
-    return selezioneGiocate[matchId] !== undefined;
-  };
-
-  // Calcola il totale delle percentuali delle giocate selezionate
+  // Calcola il totale delle percentuali
   const calcolaTotalePercentuali = () => {
     let total = 0;
-    let count = 0;
     partiteSelezionate.forEach(m => {
-      const giocata = selezioneGiocate[m.id];
-      if (giocata) {
-        total += giocata.pct;
-        count++;
-      }
+      total += m.pct || 0;
     });
-    return count > 0 ? Math.round(total / count) : 0;
+    return partiteSelezionate.length > 0 ? Math.round(total / partiteSelezionate.length) : 0;
   };
 
   // Crea la schedina
@@ -906,29 +825,21 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       showAlert('error', '⚠️ Seleziona almeno 2 partite per creare la schedina!');
       return;
     }
-
-    // Verifica che tutte le partite selezionate abbiano una giocata scelta
-    const mancanti = partiteSelezionate.filter(m => !selezioneGiocate[m.id]);
-    if (mancanti.length > 0) {
-      showAlert('error', `⚠️ ${mancanti.length} partite non hanno una giocata selezionata. Usa "Tutte" o clicca su una giocata per ogni partita.`);
-      return;
-    }
     
     setLoading(true);
     
     const schedina = partiteSelezionate.map(m => {
-      const giocata = selezioneGiocate[m.id];
-      const dettagli = calcolaGiocatePerPartita(m);
-      
+      // Ricalcola la giocata per essere sicuri
+      const dettagli = calcolaGiocataPerPartita(m);
       return {
         ...m,
-        giocataScelta: giocata,
-        tutteGiocate: dettagli.giocate,
+        giocata: dettagli.giocata,
+        pct: dettagli.pct,
         score: dettagli.score
       };
     });
     
-    const totaleScore = schedina.reduce((s, m) => s + (m.giocataScelta?.pct || 0), 0);
+    const totaleScore = schedina.reduce((s, m) => s + (m.pct || 0), 0);
     const mediaScore = Math.round(totaleScore / schedina.length);
     
     setSchedinaCreata({
@@ -936,7 +847,8 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       totale: totaleScore,
       media: mediaScore,
       numPartite: schedina.length,
-      data: new Date().toISOString()
+      data: new Date().toISOString(),
+      giocataSelezionata: giocataSelezionata
     });
     
     setLoading(false);
@@ -945,11 +857,19 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
 
   const resettaSchedina = () => {
     setPartiteSelezionate([]);
-    setSelezioneGiocate({});
     setSchedinaCreata(null);
-    setModalitaSelezione('manuale');
     showAlert('info', '🔄 Schedina resettata');
   };
+
+  // Lista delle famiglie disponibili per la selezione
+  const famiglieDisponibili = [
+    { id: 'tutte', label: '⭐ Tutte', icon: '⭐' },
+    ...Object.entries(FAMIGLIE_GIOCATE).map(([id, family]) => ({
+      id: id,
+      label: family.label,
+      icon: family.icon
+    }))
+  ];
 
   // Render del componente
   return (
@@ -1025,39 +945,38 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
           </div>
         </div>
         
-        {/* SELEZIONE GIOCATE - BOTTONI */}
-        <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px', padding: '10px 14px', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--border)'}}>
-          <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-            <span style={{fontSize: '13px', fontWeight: 'bold', color: 'var(--text)'}}>🎯 Selezione Giocate:</span>
+        {/* SELEZIONE GIOCATE - BOTTONI IN ALTO */}
+        <div style={{display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px', padding: '10px 14px', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--border)'}}>
+          <div style={{display: 'flex', alignItems: 'center', gap: '6px', marginRight: '8px'}}>
+            <span style={{fontSize: '12px', fontWeight: 'bold', color: 'var(--text)'}}>🎯 Giocata:</span>
           </div>
-          <button 
-            className={`btn ${modalitaSelezione === 'tutte' ? '' : 'btn-secondary'}`}
-            onClick={selezionaTutteGiocate}
-            style={{
-              padding: '4px 16px',
-              fontSize: '12px',
-              background: modalitaSelezione === 'tutte' ? 'var(--accent)' : 'var(--surface)',
-              color: modalitaSelezione === 'tutte' ? '#000' : 'var(--text)',
-              border: modalitaSelezione === 'tutte' ? '2px solid var(--accent)' : '1px solid var(--border)'
-            }}
-          >
-            ⭐ Tutte (miglior %)
-          </button>
-          <button 
-            className={`btn ${modalitaSelezione === 'manuale' ? '' : 'btn-secondary'}`}
-            onClick={selezionaManuale}
-            style={{
-              padding: '4px 16px',
-              fontSize: '12px',
-              background: modalitaSelezione === 'manuale' ? 'var(--accent)' : 'var(--surface)',
-              color: modalitaSelezione === 'manuale' ? '#000' : 'var(--text)',
-              border: modalitaSelezione === 'manuale' ? '2px solid var(--accent)' : '1px solid var(--border)'
-            }}
-          >
-            ✋ Manuale
-          </button>
-          <div style={{marginLeft: 'auto', fontSize: '12px', color: 'var(--text-muted)'}}>
-            Selezionate: <b style={{color: 'var(--win)'}}>{Object.keys(selezioneGiocate).length}</b> giocate
+          {famiglieDisponibili.map(f => {
+            const isSelected = giocataSelezionata === f.id;
+            return (
+              <button 
+                key={f.id}
+                onClick={() => setGiocataSelezionata(f.id)}
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: '6px',
+                  border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border)',
+                  background: isSelected ? 'var(--accent)' : 'var(--card)',
+                  color: isSelected ? '#000' : 'var(--text)',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  fontWeight: isSelected ? 'bold' : 'normal',
+                  transition: 'all 0.2s',
+                  boxShadow: isSelected ? '0 0 20px rgba(243, 156, 18, 0.3)' : 'none',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {f.icon} {f.label}
+                {isSelected && ' ⭐'}
+              </button>
+            );
+          })}
+          <div style={{marginLeft: 'auto', fontSize: '11px', color: 'var(--text-muted)'}}>
+            {giocataSelezionata === 'tutte' ? '⭐ Migliore tra tutte le famiglie' : `📊 ${FAMIGLIE_GIOCATE[giocataSelezionata]?.label || ''}`}
           </div>
         </div>
         
@@ -1067,20 +986,25 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
           <span>⭐ Media score: <b style={{color: 'var(--accent)'}}>
             {partiteDisponibili.length > 0 ? Math.round(partiteDisponibili.reduce((s, m) => s + m.score, 0) / partiteDisponibili.length) : 0}%
           </b></span>
-          <span>🎯 Partite selezionate: <b style={{color: 'var(--win)'}}>{partiteSelezionate.length}</b></span>
-          <span>📊 Giocate selezionate: <b style={{color: 'var(--accent)'}}>{Object.keys(selezioneGiocate).length}</b></span>
+          <span>🎯 Selezionate: <b style={{color: 'var(--win)'}}>{partiteSelezionate.length}</b></span>
+          <span>📊 Giocata: <b style={{color: 'var(--accent)'}}>
+            {giocataSelezionata === 'tutte' ? '⭐ Tutte (miglior %)' : FAMIGLIE_GIOCATE[giocataSelezionata]?.label || ''}
+          </b></span>
         </div>
         
         {/* PULSANTI */}
         <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
-          <button className="btn" onClick={() => selezionaMiglioriPartite(numPartite)}>
-            ⚡ Seleziona Top {numPartite} Partite
+          <button className="btn" onClick={() => selezionaMiglioriPartite(3)}>
+            ⚡ Seleziona Top 3
+          </button>
+          <button className="btn" onClick={() => selezionaMiglioriPartite(5)}>
+            ⚡ Seleziona Top 5
           </button>
           <button className="btn btn-secondary" onClick={() => selezionaMiglioriPartite(partiteDisponibili.length)}>
-            📋 Seleziona Tutte le Partite
+            📋 Seleziona Tutte
           </button>
           <button className="btn btn-secondary" onClick={resettaSchedina}>
-            🗑️ Resetta Tutto
+            🗑️ Resetta
           </button>
           <button className="btn" onClick={creaSchedina} disabled={partiteSelezionate.length < 2 || loading} style={{marginLeft: 'auto'}}>
             {loading ? '⏳ Creazione...' : `🎯 Calcolo Partite (${partiteSelezionate.length})`}
@@ -1088,11 +1012,11 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         </div>
         
         <div style={{marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)'}}>
-          💡 Clicca su una partita per selezionarla/deselezionarla. Clicca sulle giocate per scegliere quella desiderata. Max 6 partite.
+          💡 Seleziona una giocata in alto. Clicca su una partita per selezionarla/deselezionarla. Max 6 partite.
         </div>
       </div>
       
-      {/* LISTA PARTITE CON GIOCATE */}
+      {/* LISTA PARTITE CON UNA SOLA GIOCATA */}
       <div className="card" style={{marginTop: '12px'}}>
         <h4 style={{marginBottom: '8px'}}>📋 Partite Disponibili</h4>
         {partiteDisponibili.length === 0 ? (
@@ -1102,95 +1026,73 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
               : 'Nessuna partita disponibile per i filtri selezionati.'}
           </div>
         ) : (
-          <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+          <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
             {partiteDisponibili.map(m => {
               const isSelected = partiteSelezionate.some(p => p.id === m.id);
-              const giocataSelezionata = selezioneGiocate[m.id];
               
               return (
                 <div 
                   key={m.id}
+                  onClick={() => togglePartita(m)}
                   style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                     padding: '10px 14px',
                     borderRadius: '8px',
                     border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border)',
                     background: isSelected ? 'rgba(243, 156, 18, 0.08)' : 'var(--surface)',
-                    transition: 'all 0.2s'
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    gap: '8px',
+                    flexWrap: 'wrap'
                   }}
                 >
-                  {/* Intestazione partita - cliccabile per selezionare la partita */}
-                  <div 
-                    onClick={() => togglePartita(m)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      cursor: 'pointer',
-                      gap: '8px',
-                      flexWrap: 'wrap',
-                      padding: '4px 0'
-                    }}
-                  >
-                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', flex: '1', minWidth: '200px'}}>
-                      <span style={{fontSize: '11px', color: 'var(--text-muted)', minWidth: '80px'}}>
-                        {formatDateEU(m.data)} {m.ora && m.ora !== 'TBD' ? m.ora : ''}
-                      </span>
-                      <span style={{fontSize: '11px', color: 'var(--text-muted)'}}>
-                        {m.campionato}
-                      </span>
-                      <span style={{fontWeight: 'bold', fontSize: '14px', color: 'var(--text)'}}>
-                        {m.casa} vs {m.ospiti}
-                      </span>
-                    </div>
-                    <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                      <span className={`giocata-pct ${getPercentualeClasse(m.score)}`}>
-                        {m.score}%
-                      </span>
-                      {isSelected && <span style={{color: 'var(--win)', fontSize: '14px'}}>✅</span>}
-                    </div>
+                  {/* Data e Ora */}
+                  <div style={{display: 'flex', alignItems: 'center', gap: '6px', minWidth: '100px'}}>
+                    <span style={{fontSize: '11px', color: 'var(--text-muted)'}}>
+                      {formatDateEU(m.data)}
+                    </span>
+                    <span style={{fontSize: '10px', color: 'var(--text-muted)'}}>
+                      {m.ora && m.ora !== 'TBD' ? m.ora : ''}
+                    </span>
                   </div>
                   
-                  {/* Giocate disponibili - bottoni cliccabili */}
-                  <div style={{display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid var(--border)'}}>
-                    {m.giocate && m.giocate.length > 0 ? (
-                      m.giocate.slice(0, 8).map((g, idx) => {
-                        const isSelectedGiocata = giocataSelezionata && giocataSelezionata.giocataKey === g.giocataKey;
-                        return (
-                          <button
-                            key={idx}
-                            onClick={() => toggleGiocata(m.id, g)}
-                            style={{
-                              padding: '4px 12px',
-                              borderRadius: '6px',
-                              border: isSelectedGiocata ? '2px solid var(--accent)' : '1px solid var(--border)',
-                              background: isSelectedGiocata ? 'var(--accent)' : 'var(--card)',
-                              color: isSelectedGiocata ? '#000' : 'var(--text)',
-                              cursor: 'pointer',
-                              fontSize: '11px',
-                              fontWeight: isSelectedGiocata ? 'bold' : 'normal',
-                              transition: 'all 0.2s',
-                              boxShadow: isSelectedGiocata ? '0 0 20px rgba(243, 156, 18, 0.3)' : 'none'
-                            }}
-                          >
-                            {g.familyIcon} {g.label} <span className={`giocata-pct ${getPercentualeClasse(g.pct)}`} style={{fontSize: '10px', padding: '1px 6px'}}>{g.pct}%</span>
-                            {g.isBomb && ' 💣'}
-                            {isSelectedGiocata && ' ⭐'}
-                          </button>
-                        );
-                      })
+                  {/* Campionato */}
+                  <div style={{fontSize: '11px', color: 'var(--text-muted)', minWidth: '80px'}}>
+                    {m.campionato}
+                  </div>
+                  
+                  {/* Partita */}
+                  <div style={{display: 'flex', alignItems: 'center', gap: '6px', flex: '1', minWidth: '150px'}}>
+                    <span style={{fontWeight: 'bold', fontSize: '13px', color: 'var(--text)'}}>
+                      {m.casa} vs {m.ospiti}
+                    </span>
+                  </div>
+                  
+                  {/* Giocata scelta */}
+                  <div style={{display: 'flex', alignItems: 'center', gap: '6px', minWidth: '100px', justifyContent: 'center'}}>
+                    {m.giocata ? (
+                      <>
+                        <span style={{fontSize: '11px', color: 'var(--accent)', fontWeight: 'bold'}}>
+                          {m.giocata.familyIcon} {m.giocata.label}
+                        </span>
+                        <span className={`giocata-pct ${getPercentualeClasse(m.pct)}`} style={{fontSize: '12px', padding: '2px 8px'}}>
+                          {m.pct}%
+                        </span>
+                        {m.giocata.isBomb && <span style={{fontSize: '14px'}}>💣</span>}
+                      </>
                     ) : (
-                      <span style={{fontSize: '11px', color: 'var(--text-muted)'}}>Nessuna giocata disponibile</span>
+                      <span style={{fontSize: '10px', color: 'var(--text-muted)'}}>N/D</span>
                     )}
-                    {m.giocate && m.giocate.length > 8 && (
-                      <span style={{fontSize: '10px', color: 'var(--text-muted)', alignSelf: 'center'}}>
-                        +{m.giocate.length - 8} altre
-                      </span>
-                    )}
-                    {giocataSelezionata && (
-                      <span style={{fontSize: '10px', color: 'var(--accent)', alignSelf: 'center', marginLeft: 'auto'}}>
-                        ✅ {giocataSelezionata.familyLabel}: {giocataSelezionata.pct}%
-                      </span>
-                    )}
+                  </div>
+                  
+                  {/* Score */}
+                  <div style={{display: 'flex', alignItems: 'center', gap: '6px', minWidth: '50px', justifyContent: 'flex-end'}}>
+                    <span className={`giocata-pct ${getPercentualeClasse(m.score)}`} style={{fontSize: '13px', padding: '2px 10px'}}>
+                      {m.score}%
+                    </span>
+                    {isSelected && <span style={{color: 'var(--win)', fontSize: '14px'}}>✅</span>}
                   </div>
                 </div>
               );
@@ -1205,6 +1107,11 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
           <h3 style={{color: 'var(--accent)'}}>🎯 Schedina Generata</h3>
           <p style={{fontSize: '13px', color: 'var(--text-muted)'}}>
             {schedinaCreata.numPartite} partite • Media score: <b style={{color: 'var(--accent)'}}>{schedinaCreata.media}%</b>
+            {schedinaCreata.giocataSelezionata && (
+              <span style={{marginLeft: '12px'}}>
+                Giocata: <b>{schedinaCreata.giocataSelezionata === 'tutte' ? '⭐ Tutte (miglior %)' : FAMIGLIE_GIOCATE[schedinaCreata.giocataSelezionata]?.label || ''}</b>
+              </span>
+            )}
           </p>
           
           {schedinaCreata.partite.map((m, idx) => (
@@ -1222,31 +1129,28 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
                     {formatDateEU(m.data)} {m.ora}
                   </span>
                 </span>
-                <span style={{fontSize: '12px', color: 'var(--text-muted)'}}>
+                <span style={{fontSize: '11px', color: 'var(--text-muted)'}}>
                   {m.campionato}
                 </span>
               </div>
               <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px', marginTop: '4px'}}>
-                <div style={{display: 'flex', gap: '4px', flexWrap: 'wrap'}}>
-                  {m.tutteGiocate && m.tutteGiocate.slice(0, 4).map((g, gi) => {
-                    const isScelta = m.giocataScelta && m.giocataScelta.giocataKey === g.giocataKey;
-                    return (
-                      <span key={gi} style={{
-                        background: isScelta ? 'var(--accent)' : 'var(--card)',
-                        color: isScelta ? '#000' : 'var(--text)',
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        fontSize: '10px',
-                        border: isScelta ? '2px solid var(--accent)' : '1px solid var(--border)',
-                        fontWeight: isScelta ? 'bold' : 'normal'
-                      }}>
-                        {g.label} {g.pct}%{g.isBomb && ' 💣'}{isScelta && ' ⭐'}
+                <div style={{display: 'flex', gap: '6px', alignItems: 'center'}}>
+                  {m.giocata ? (
+                    <>
+                      <span style={{fontSize: '12px', fontWeight: 'bold', color: 'var(--accent)'}}>
+                        {m.giocata.familyIcon} {m.giocata.label}
                       </span>
-                    );
-                  })}
+                      <span className={`giocata-pct ${getPercentualeClasse(m.pct)}`} style={{fontSize: '12px', padding: '2px 10px'}}>
+                        {m.pct}%
+                      </span>
+                      {m.giocata.isBomb && <span style={{fontSize: '16px'}}>💣</span>}
+                    </>
+                  ) : (
+                    <span style={{fontSize: '11px', color: 'var(--text-muted)'}}>Nessuna giocata</span>
+                  )}
                 </div>
-                <span className={`giocata-pct ${getPercentualeClasse(m.giocataScelta?.pct || 0)}`}>
-                  {m.giocataScelta?.pct || 0}%
+                <span className={`giocata-pct ${getPercentualeClasse(m.score)}`} style={{fontSize: '13px', padding: '2px 10px'}}>
+                  Score: {m.score}%
                 </span>
               </div>
             </div>
@@ -1255,7 +1159,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
           <div style={{marginTop: '12px', display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
             <button className="btn" onClick={() => {
               const text = schedinaCreata.partite.map((m, idx) => 
-                `#${idx + 1} ${m.casa} vs ${m.ospiti} - ${m.giocataScelta?.label || 'N/A'} ${m.giocataScelta?.pct || 0}%`
+                `#${idx + 1} ${m.casa} vs ${m.ospiti} - ${m.giocata?.label || 'N/A'} ${m.pct || 0}%`
               ).join('\n');
               navigator.clipboard?.writeText?.(`🎯 SCHEDINA GesssAI-Pro\n\n${text}\n\nMedia Score: ${schedinaCreata.media}% - ${schedinaCreata.numPartite} partite`);
               showAlert('success', '📋 Copiato!');
