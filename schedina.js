@@ -1,5 +1,5 @@
 // ============================================================
-// SCHEDINA.JS - VERSIONE COMPLETA CON SCHEDINE SALVATE
+// SCHEDINA.JS - VERSIONE COMPLETA CON SCHEDINE SALVATE + CASUALITÀ
 // ============================================================
 
 function App() {
@@ -624,8 +624,8 @@ function App() {
 }
 
 // ============================================================
-// COMPONENTE SCHEDINA - VERSIONE COMPLETA CON SCHEDINE SALVATE
-// MODIFICHE: MASSIMO 10 PARTITE + BOTTONE RIGENERA
+// COMPONENTE SCHEDINA - CON CASUALITÀ 🎲
+// MODIFICHE: MASSIMO 10 PARTITE + BOTTONE RIGENERA + CASUALITÀ
 // ============================================================
 
 const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectMatch, showAlert }) => {
@@ -637,11 +637,22 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
   const [loading, setLoading] = useState(false);
   const [giocataSelezionata, setGiocataSelezionata] = useState('tutte');
   const [showSchedinaModal, setShowSchedinaModal] = useState(false);
+  const [casualitaLevel, setCasualitaLevel] = useState(30); // 0-100
   const [schedineSalvate, setSchedineSalvate] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('ft_schedine_salvate') || '[]');
     } catch { return []; }
   });
+
+  // Funzione per mescolare un array (Fisher-Yates)
+  const shuffleArray = (array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
 
   // Funzione per ottenere le partite "future" con filtro orario
   const getPartiteFutureConFiltro = useCallback(() => {
@@ -787,8 +798,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
   const partiteDisponibili = getPartiteConGiocate();
 
   // ============================================================
-  // NUOVA FUNZIONE: RIGENERA SCHEDINA
-  // Seleziona le partite con le migliori percentuali e gestisce i pareggi
+  // FUNZIONE RIGENERA CON CASUALITÀ 🎲
   // ============================================================
   const rigeneraSchedina = () => {
     if (partiteDisponibili.length === 0) {
@@ -804,79 +814,94 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       partitePerScore[score].push(m);
     });
 
-    // Ordina i punteggi in modo decrescente
     const scores = Object.keys(partitePerScore).map(Number).sort((a, b) => b - a);
-    
     let selezionate = [];
     
-    // Seleziona partite a partire dal punteggio più alto
+    // Determina quante partite prendere in base al livello di casualità
+    const sogliaCasualita = casualitaLevel / 100; // 0-1
+    
     for (const score of scores) {
-      const partiteGruppo = partitePerScore[score];
-      
-      // Se abbiamo già raggiunto il massimo, esci
       if (selezionate.length >= 10) break;
       
-      // Se il gruppo è vuoto, salta
+      let partiteGruppo = partitePerScore[score];
       if (partiteGruppo.length === 0) continue;
       
-      // Calcola quante partite possiamo prendere da questo gruppo
       const postiDisponibili = 10 - selezionate.length;
       
-      if (partiteGruppo.length <= postiDisponibili) {
-        // Prendi tutto il gruppo
-        selezionate = [...selezionate, ...partiteGruppo];
+      // 🎲 Applica casualità: mescola il gruppo
+      let shuffled = shuffleArray(partiteGruppo);
+      
+      // Decidi quante partite prendere da questo gruppo in base alla casualità
+      let daPrendereCount;
+      if (casualitaLevel > 80) {
+        // Molto casuale: prendi un numero casuale di partite da questo gruppo (almeno 1)
+        const maxDaPrendere = Math.min(partiteGruppo.length, postiDisponibili);
+        daPrendereCount = Math.floor(Math.random() * maxDaPrendere) + 1;
+      } else if (casualitaLevel > 50) {
+        // Casualità media: prendi la maggior parte delle partite
+        const percentuale = 0.5 + (casualitaLevel - 50) / 100; // 0.5-0.8
+        daPrendereCount = Math.min(
+          Math.ceil(partiteGruppo.length * percentuale),
+          postiDisponibili
+        );
+        // Assicurati di prendere almeno 1
+        daPrendereCount = Math.max(1, daPrendereCount);
       } else {
-        // Se il gruppo ha più partite dei posti disponibili, prendi le migliori
-        // Ordina per percentuale della giocata (decrescente) e poi per punteggio totale
-        const gruppoOrdinato = [...partiteGruppo].sort((a, b) => {
-          // Prima confronta le percentuali delle giocate
-          const pctA = a.pct || 0;
-          const pctB = b.pct || 0;
-          if (pctA !== pctB) return pctB - pctA;
-          
-          // Se la percentuale è uguale, controlla se ci sono più giocate con la stessa % alta
-          // Se una partita ha più giocate con la stessa percentuale alta, è meglio
-          const giocateAlteA = a.tutteGiocate?.filter(g => g.pct === pctA).length || 0;
-          const giocateAlteB = b.tutteGiocate?.filter(g => g.pct === pctB).length || 0;
-          if (giocateAlteA !== giocateAlteB) return giocateAlteB - giocateAlteA;
-          
-          // Se ancora uguali, prendi quella con più giocate valide in totale
-          const totaleA = a.tutteGiocate?.length || 0;
-          const totaleB = b.tutteGiocate?.length || 0;
-          return totaleB - totaleA;
-        });
-        
-        // Prendi solo quelle necessarie
-        selezionate = [...selezionate, ...gruppoOrdinato.slice(0, postiDisponibili)];
-        
-        // Se abbiamo preso tutte le partite del gruppo con lo stesso score,
-        // e siamo arrivati a 10, fermiamoci
-        if (selezionate.length >= 10) break;
+        // Poca casualità: prendi tutte le partite se possibile
+        daPrendereCount = Math.min(partiteGruppo.length, postiDisponibili);
       }
+      
+      // Prendi le partite mescolate
+      const daPrendere = shuffled.slice(0, daPrendereCount);
+      selezionate = [...selezionate, ...daPrendere];
     }
     
-    // Se non siamo arrivati a 10, prendi altre partite dai gruppi successivi
-    if (selezionate.length < 10 && scores.length > 0) {
-      for (let i = 0; i < scores.length && selezionate.length < 10; i++) {
-        const score = scores[i];
-        const partiteGruppo = partitePerScore[score];
-        const disponibili = partiteGruppo.filter(m => !selezionate.includes(m));
-        const postiDisponibili = 10 - selezionate.length;
-        if (disponibili.length > 0) {
-          const daPrendere = disponibili.slice(0, postiDisponibili);
-          selezionate = [...selezionate, ...daPrendere];
-        }
-      }
+    // Se non siamo arrivati a 10, prendi altre partite mescolate
+    if (selezionate.length < 10) {
+      const idsSelezionati = new Set(selezionate.map(m => m.id));
+      let rimanenti = partiteDisponibili.filter(m => !idsSelezionati.has(m.id));
+      
+      // Mescola i rimanenti
+      rimanenti = shuffleArray(rimanenti);
+      
+      const postiDisponibili = 10 - selezionate.length;
+      const daPrendere = rimanenti.slice(0, postiDisponibili);
+      selezionate = [...selezionate, ...daPrendere];
     }
     
-    // Se abbiamo selezionato meno di 2 partite, avvisa l'utente
     if (selezionate.length < 2) {
       showAlert('info', 'ℹ️ Non ci sono abbastanza partite di qualità per creare una schedina (minimo 2).');
       return;
     }
     
     setPartiteSelezionate(selezionate);
-    showAlert('success', `🔄 Schedina rigenerata! ${selezionate.length} partite selezionate.`);
+    
+    // Emoji in base al livello di casualità
+    let emojiCasualita = '🎲';
+    if (casualitaLevel > 80) emojiCasualita = '🎲🎲🎲';
+    else if (casualitaLevel > 50) emojiCasualita = '🎲🎲';
+    
+    showAlert('success', `🔄 Schedina rigenerata! ${selezionate.length} partite selezionate. ${emojiCasualita} Livello casualità: ${casualitaLevel}%`);
+  };
+
+  // ============================================================
+  // FUNZIONE SELEZIONE CASUALE COMPLETA 🎲
+  // ============================================================
+  const selezionaCasuale = () => {
+    if (partiteDisponibili.length === 0) {
+      showAlert('info', 'ℹ️ Nessuna partita disponibile.');
+      return;
+    }
+    
+    // Mescola tutte le partite disponibili
+    const shuffled = shuffleArray(partiteDisponibili);
+    
+    // Prendi fino a 10 partite
+    const maxPartite = Math.min(10, shuffled.length);
+    const selezionate = shuffled.slice(0, maxPartite);
+    
+    setPartiteSelezionate(selezionate);
+    showAlert('success', `🎲 ${selezionate.length} partite selezionate casualmente!`);
   };
 
   const selezionaMiglioriPartite = (n) => {
@@ -1056,7 +1081,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
   return (
     <div className="schedina-container">
       <div className="card" style={{marginBottom: '16px'}}>
-        <h3 style={{color: 'var(--accent)', marginBottom: '12px'}}>🎯 Crea Schedina</h3>
+        <h3 style={{color: 'var(--accent)', marginBottom: '12px'}}>🎯 Crea Schedina {casualitaLevel > 50 ? '🎲' : ''}</h3>
         
         {/* FILTRI */}
         <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '12px'}}>
@@ -1125,6 +1150,44 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
             </div>
           </div>
         </div>
+
+        {/* 🎲 SLIDER CASUALITÀ */}
+        <div style={{display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '12px', padding: '8px 12px', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--border)'}}>
+          <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+            <span style={{fontSize: '18px'}}>🎲</span>
+            <span style={{fontSize: '12px', fontWeight: 'bold', color: 'var(--text)'}}>Casualità:</span>
+          </div>
+          <div style={{flex: 1, minWidth: '150px'}}>
+            <input 
+              type="range" 
+              min="0" 
+              max="100" 
+              step="5" 
+              value={casualitaLevel} 
+              onChange={e => setCasualitaLevel(parseInt(e.target.value))}
+              style={{
+                width: '100%',
+                accentColor: '#8e44ad',
+                height: '6px',
+                borderRadius: '3px',
+                background: 'var(--surface)',
+                cursor: 'pointer'
+              }}
+            />
+          </div>
+          <div style={{display: 'flex', alignItems: 'center', gap: '8px', minWidth: '80px'}}>
+            <span style={{fontSize: '13px', fontWeight: 'bold', color: '#8e44ad'}}>{casualitaLevel}%</span>
+            <span style={{fontSize: '16px'}}>
+              {casualitaLevel > 80 ? '🎲🎲🎲' : casualitaLevel > 50 ? '🎲🎲' : casualitaLevel > 20 ? '🎲' : '📊'}
+            </span>
+          </div>
+          <div style={{fontSize: '9px', color: 'var(--text-muted)'}}>
+            {casualitaLevel <= 20 ? '📊 Prevedibile' : 
+             casualitaLevel <= 50 ? '🎲 Un po\' di casualità' : 
+             casualitaLevel <= 80 ? '🎲🎲 Media casualità' : 
+             '🎲🎲🎲 Molto casuale!'}
+          </div>
+        </div>
         
         {/* SELEZIONE GIOCATE - BOTTONI IN ALTO */}
         <div style={{display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px', padding: '10px 14px', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--border)'}}>
@@ -1184,9 +1247,16 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
           <button className="btn" onClick={() => selezionaMiglioriPartite(partiteDisponibili.length)}>
             📋 Tutte
           </button>
-          <button className="btn" onClick={rigeneraSchedina} style={{background: 'var(--accent2)', color: '#000'}}>
-            🔄 Rigenera Schedina
+          
+          {/* 🎲 PULSANTE CASUALE */}
+          <button className="btn" onClick={selezionaCasuale} style={{background: '#8e44ad', color: '#fff'}}>
+            🎲 Casuale
           </button>
+          
+          <button className="btn" onClick={rigeneraSchedina} style={{background: 'var(--accent2)', color: '#000'}}>
+            🔄 Rigenera {casualitaLevel > 50 ? '🎲' : ''}
+          </button>
+          
           <button className="btn btn-secondary" onClick={resettaSchedina}>
             🗑️ Resetta
           </button>
@@ -1197,6 +1267,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         
         <div style={{marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)'}}>
           💡 Seleziona una giocata in alto. Clicca su una partita per selezionarla/deselezionarla. Max 10 partite.
+          {casualitaLevel > 0 && ` 🎲 Livello casualità: ${casualitaLevel}%`}
         </div>
       </div>
       
