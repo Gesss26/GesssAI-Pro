@@ -1,75 +1,711 @@
-// schedina.js
-// Modulo Schedina per GesssAI-Pro v3.0
+// ============================================================
+// SCHEDINA.JS - VERSIONE ORIGINALE CON AGGIUNTA SCHEDINACOMPONENT
+// ============================================================
 
-const { useState, useEffect, useMemo, useCallback } = React;
+function App() {
+  const initial = loadState();
+  const [tab, setTab] = useState('Home');
+  const [settingsTab, setSettingsTab] = useState('Temi');
+  const [championships, setChampionships] = useState(initial.championships);
+  const [matches, setMatches] = useState(initial.matches);
+  const [theme, setTheme] = useState(initial.theme);
+  const [customTheme, setCustomTheme] = useState(initial.customTheme || THEMES['Scuro Blu Notte']);
+  const [selectedChamp, setSelectedChamp] = useState('Tutti');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [weatherCache, setWeatherCache] = useState({});
+  const [heatmapDetailChamp, setHeatmapDetailChamp] = useState(null);
+  const [fontSize, setFontSize] = useState(() => { const saved = localStorage.getItem('ft_font_size'); return saved ? parseInt(saved) : 100; });
+  const [daysRange, setDaysRange] = useState(1);
+  const [selectedMatchId, setSelectedMatchId] = useState(null);
+  const [statsSubTab, setStatsSubTab] = useState('Classifica');
+  const [viewMode, setViewMode] = useState(() => {
+    const saved = localStorage.getItem('ft_view_mode');
+    return saved || 'pc';
+  });
+  const [selectedFamiglie, setSelectedFamiglie] = useState(initial.selectedFamiglie || ['dc_under','mg_casa_ospite','over']);
+  
+  // NUOVO STATO PER IL FILTRO ORARIO
+  const [filterTime, setFilterTime] = useState('dopo_ora'); // 'dopo_ora' o 'giorno_intero'
+
+  // Effetto per caricare il meteo
+  useEffect(() => {
+    if (!selectedMatchId) return;
+    const match = matches.find(m => m.id === selectedMatchId);
+    if (!match) return;
+    
+    const weatherKey = `${match.campionato}_${match.data}`;
+    if (weatherCache[weatherKey]) return;
+    
+    const loadWeather = async () => {
+      try {
+        const w = await fetchWeatherForMatch(match);
+        if (w) {
+          setWeatherCache(prev => ({ ...prev, [weatherKey]: w }));
+        } else {
+          setWeatherCache(prev => ({ ...prev, [weatherKey]: null }));
+        }
+      } catch (err) {
+        console.warn('Errore meteo:', err);
+        setWeatherCache(prev => ({ ...prev, [weatherKey]: null }));
+      }
+    };
+    
+    loadWeather();
+  }, [selectedMatchId, matches]);
+
+  useEffect(() => { saveState({ championships, matches, theme, customTheme, selectedFamiglie }); }, [championships, matches, theme, customTheme, selectedFamiglie]);
+
+  useEffect(() => {
+    const t = theme === 'Custom' ? customTheme : THEMES[theme] || THEMES['Scuro Blu Notte'];
+    const root = document.documentElement;
+    Object.entries(t).forEach(([k, v]) => { root.style.setProperty(`--${k.replace(/([A-Z])/g, '-$1').toLowerCase()}`, v); });
+  }, [theme, customTheme]);
+
+  const showAlert = (type, text) => { setMessage({ type, text }); setTimeout(() => setMessage(null), 5000); };
+  const selectMatch = (matchId) => { setSelectedMatchId(matchId); setTab('Statistiche'); };
+
+  const saveLocal = () => {
+    const data = { championships, matches, theme, customTheme, selectedFamiglie, exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const now = new Date();
+    a.href = url;
+    a.download = `GesssAi-${String(now.getDate()).padStart(2,'0')}${String(now.getMonth()+1).padStart(2,'0')}${now.getFullYear()}.json`;
+    a.click();
+    showAlert('success', '💾 Backup scaricato!');
+  };
+
+  const loadLocal = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.championships) setChampionships(data.championships);
+        if (data.matches) setMatches(data.matches);
+        if (data.theme) setTheme(data.theme);
+        if (data.customTheme) setCustomTheme(data.customTheme);
+        if (data.selectedFamiglie) setSelectedFamiglie(data.selectedFamiglie);
+        showAlert('success', '📂 Dati caricati!');
+      } catch(err) { showAlert('error', 'File non valido'); }
+    };
+    reader.readAsText(file);
+  };
+
+  const selectedMatch = matches.find(m => m.id === selectedMatchId);
+
+  const clearAllChampionships = () => {
+    if (championships.length === 0) { showAlert('info', 'ℹ️ Non ci sono campionati da eliminare.'); return; }
+    if (confirm(`⚠️ Sei sicuro di voler eliminare TUTTI i ${championships.length} campionati e tutte le ${matches.length} partite associate?`)) {
+      setChampionships([]); setMatches([]);
+      showAlert('success', '🗑️ Tutti i campionati e le partite sono stati resettati.');
+    }
+  };
+
+  // ============================================================
+  // RENDER DELL'APP
+  // ============================================================
+
+  const renderAppContent = () => {
+    return (
+      <div>
+        <div className="header">
+          <div className="header-left"><div style={{fontSize:'28px'}}></div></div>
+          <div className="header-center">
+            <div className="app-name">
+              <span style={{color:'#e74c3c'}}>G</span><span style={{color:'#e67e22'}}>e</span>
+              <span style={{color:'#f1c40f'}}>s</span><span style={{color:'#2ecc71'}}>s</span>
+              <span style={{color:'#3498db'}}>s</span><span style={{color:'#9b59b6'}}>A</span>
+              <span style={{color:'#e74c3c'}}>I</span><span style={{color:'#1abc9c'}}>-</span>
+              <span style={{color:'#f39c12'}}>P</span><span style={{color:'#2ecc71'}}>r</span>
+              <span style={{color:'#e67e22'}}>o</span>
+            </div>
+            <div className="subtitle">Statistiche & Trading Scommesse v3.0 - 2026</div>
+          </div>
+          <Clock />
+        </div>
+
+        <div className="tabs-nav">
+          {MAIN_TABS.map(t => (
+            <button key={t} className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>
+              {t === 'Home' && '🏠 '}{t === 'Palinsesto' && '📅 '}{t === 'Statistiche' && '📊 '}
+              {t === 'Storico' && '📜 '}{t === 'Schedina' && '🎯 '}{t === 'Impostazioni' && '⚙️ '}{t}
+            </button>
+          ))}
+        </div>
+
+        <div className="container">
+          {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
+          {loading && <div className="alert alert-info">⏳ Elaborazione in corso...</div>}
+
+          {tab === 'Home' && (
+            <div>
+              <HomeWidget matches={matches} onSelectMatch={selectMatch} setTab={setTab} selectedFamiglie={selectedFamiglie} />
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px'}}>
+                <div><h3 style={{marginBottom: '12px'}}>📊 Statistiche Rapide</h3><div className="perf-grid" style={{gridTemplateColumns: '1fr 1fr'}}>
+                  <div className="perf-card"><div className="perf-value" style={{color: 'var(--accent)'}}>{matches.filter(m => m.stato === 'Futura').length}</div><div className="perf-label">Partite Future</div></div>
+                  <div className="perf-card"><div className="perf-value" style={{color: 'var(--win)'}}>{matches.filter(m => m.stato === 'Giocata').length}</div><div className="perf-label">Partite Giocate</div></div>
+                  <div className="perf-card"><div className="perf-value">{championships.length}</div><div className="perf-label">Campionati</div></div>
+                </div></div>
+                <div><h3 style={{marginBottom: '12px'}}>🔥 Campionati Attivi</h3><div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '8px', maxHeight: '250px', overflowY: 'auto', paddingRight: '8px'}}>
+                  {championships.map(c => { const totalMatches = matches.filter(m => m.campionato === c.name).length; const futureMatches = matches.filter(m => m.campionato === c.name && m.stato === 'Futura').length; const color = getChampColor(c.name); return <div key={c.name} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', borderRadius: '6px', background: 'var(--surface)', borderLeft: `3px solid ${color}`, fontSize: '13px'}}><span style={{color: color, fontWeight: 'bold', fontSize: '12px'}}>{c.name}</span><span style={{fontSize: '11px', color: 'var(--text-muted)'}}>{futureMatches} future</span></div>; })}
+                  {championships.length === 0 && <div style={{textAlign: 'center', color: 'var(--text-muted)', padding: '20px', gridColumn: '1 / -1'}}>Nessun campionato importato. Vai su <b>Impostazioni → Importa Campionato</b></div>}
+                </div>{championships.length > 0 && <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', textAlign: 'right'}}>📊 {championships.length} campionati • {matches.filter(m => m.stato === 'Futura').length} partite future</div>}</div>
+              </div>
+              <HeatmapGiocate matches={matches} championships={championships} onSelectChampionship={(champ) => setHeatmapDetailChamp(champ)} />
+              {heatmapDetailChamp && <HeatmapDetailModal championship={heatmapDetailChamp} matches={matches} onClose={() => setHeatmapDetailChamp(null)} />}
+              {selectedMatch && (
+                <div style={{marginTop: '16px'}}>
+                  <h3 style={{marginBottom: '12px', color: 'var(--accent)'}}>📊 Analisi Partita: {selectedMatch.casa} vs {selectedMatch.ospiti}</h3>
+                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'stretch'}}>
+                    <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}><div style={{flex: 1}}><RisultatiFrequenti teamName={selectedMatch.casa} allMatches={matches} /></div><div style={{flex: 1}}><FrequenzaGol teamName={selectedMatch.casa} allMatches={matches} /></div><div style={{flex: 1}}><IndiceAffidabilita teamName={selectedMatch.casa} allMatches={matches} /></div></div>
+                    <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}><div style={{flex: 1}}><RisultatiFrequenti teamName={selectedMatch.ospiti} allMatches={matches} /></div><div style={{flex: 1}}><FrequenzaGol teamName={selectedMatch.ospiti} allMatches={matches} /></div><div style={{flex: 1}}><IndiceAffidabilita teamName={selectedMatch.ospiti} allMatches={matches} /></div></div>
+                  </div>
+                  <AnalisiMeteo matches={matches} weatherCache={weatherCache} />
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === 'Palinsesto' && (
+            <div>
+              <div style={{display: 'flex', gap: '12px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center'}}>
+                <div className="form-group" style={{maxWidth: '300px', marginBottom: '0', flex: '1'}}>
+                  <label>Filtra per Campionato</label>
+                  <select value={selectedChamp} onChange={e => setSelectedChamp(e.target.value)}>
+                    <option value="Tutti">Tutti</option>
+                    {championships.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className="form-group" style={{maxWidth: '200px', marginBottom: '0', flex: '1'}}>
+                  <label>Range Giorni</label>
+                  <select value={daysRange} onChange={e => setDaysRange(parseInt(e.target.value))}>
+                    <option value="0">Oggi (0)</option>
+                    <option value="1">Oggi - Domani (0-1)</option>
+                    <option value="2">Oggi - Dopodomani (0-2)</option>
+                    <option value="3">Oggi - +3 giorni (0-3)</option>
+                    <option value="4">Oggi - +4 giorni (0-4)</option>
+                    <option value="5">Oggi - +5 giorni (0-5)</option>
+                    <option value="6">Oggi - +6 giorni (0-6)</option>
+                  </select>
+                </div>
+                
+                {/* NUOVO FILTRO ORARIO */}
+                <div className="form-group" style={{maxWidth: '220px', marginBottom: '0', flex: '1'}}>
+                  <label>Filtro Orario</label>
+                  <div style={{display: 'flex', background: 'var(--surface)', borderRadius: '8px', padding: '2px', border: '1px solid var(--border)'}}>
+                    <button 
+                      className={`btn ${filterTime === 'dopo_ora' ? '' : 'btn-secondary'}`}
+                      onClick={() => setFilterTime('dopo_ora')}
+                      style={{
+                        flex: 1,
+                        padding: '4px 8px',
+                        fontSize: '11px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontWeight: filterTime === 'dopo_ora' ? 'bold' : 'normal',
+                        background: filterTime === 'dopo_ora' ? 'var(--accent)' : 'transparent',
+                        color: filterTime === 'dopo_ora' ? '#000' : 'var(--text-muted)',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      ⏰ Dopo ora
+                    </button>
+                    <button 
+                      className={`btn ${filterTime === 'giorno_intero' ? '' : 'btn-secondary'}`}
+                      onClick={() => setFilterTime('giorno_intero')}
+                      style={{
+                        flex: 1,
+                        padding: '4px 8px',
+                        fontSize: '11px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontWeight: filterTime === 'giorno_intero' ? 'bold' : 'normal',
+                        background: filterTime === 'giorno_intero' ? 'var(--accent)' : 'transparent',
+                        color: filterTime === 'giorno_intero' ? '#000' : 'var(--text-muted)',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      📅 Giorno intero
+                    </button>
+                  </div>
+                  <div style={{fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px', textAlign: 'center'}}>
+                    {filterTime === 'dopo_ora' ? 'Mostra solo partite non ancora iniziate' : 'Mostra tutte le partite del giorno'}
+                  </div>
+                </div>
+              </div>
+              <h2 style={{marginBottom:'14px'}}>📅 Palinsesto - Prossimi {daysRange + 1} Giorni</h2>
+              {(() => {
+                try {
+                  let futureMatches = matches.filter(m => m.stato === 'Futura');
+                  if (selectedChamp !== 'Tutti') { 
+                    futureMatches = futureMatches.filter(m => m.campionato === selectedChamp);
+                  } else {
+                    const todayStr = getTodayStr();
+                    const maxDateStr = addDaysToDateStr(todayStr, daysRange);
+                    futureMatches = futureMatches.filter(m => {
+                      if (!m.data) return false;
+                      const normalized = normalizeDate(m.data);
+                      if (!normalized) return false;
+                      return normalized >= todayStr && normalized <= maxDateStr;
+                    });
+                  }
+                  
+                  // APPLICA FILTRO ORARIO
+                  if (filterTime === 'dopo_ora') {
+                    const now = new Date();
+                    const currentHour = now.getHours();
+                    const currentMinutes = now.getMinutes();
+                    const currentTotalMinutes = currentHour * 60 + currentMinutes;
+                    
+                    futureMatches = futureMatches.filter(m => {
+                      if (!m.ora || m.ora === 'TBD' || m.ora === 'N/D') {
+                        return true;
+                      }
+                      const timeParts = m.ora.split(':');
+                      if (timeParts.length < 2) return true;
+                      const matchHour = parseInt(timeParts[0], 10);
+                      const matchMinutes = parseInt(timeParts[1], 10);
+                      if (isNaN(matchHour) || isNaN(matchMinutes)) return true;
+                      const matchTotalMinutes = matchHour * 60 + matchMinutes;
+                      
+                      const today = getTodayStr();
+                      const matchDate = normalizeDate(m.data);
+                      if (matchDate === today) {
+                        return matchTotalMinutes > currentTotalMinutes;
+                      }
+                      return true;
+                    });
+                  }
+                  
+                  futureMatches.sort((a, b) => {
+                    const dateA = normalizeDate(a.data);
+                    const dateB = normalizeDate(b.data);
+                    if (!dateA || !dateB) return 0;
+                    return dateA.localeCompare(dateB);
+                  });
+                  
+                  if (futureMatches.length === 0) {
+                    const message = filterTime === 'dopo_ora' 
+                      ? 'Nessuna partita futura disponibile per questo campionato dopo l\'orario corrente.' 
+                      : 'Nessuna partita disponibile per questo campionato nella giornata selezionata.';
+                    return <div className="empty-state">{message}</div>;
+                  }
+                  
+                  return <div className="matches-grid">{futureMatches.map(m => { 
+                    const weatherKey = `${m.campionato}_${m.data}`; 
+                    const weather = weatherCache[weatherKey] || null; 
+                    return <MatchTab key={m.id} match={m} allMatches={matches} onSelect={selectMatch} selectedFamiglie={selectedFamiglie} weatherData={weather} />; 
+                  })}</div>;
+                  
+                } catch (e) { 
+                  console.error('Errore rendering Palinsesto:', e); 
+                  return <div className="empty-state">Errore nel caricamento delle partite: {e.message}</div>; 
+                }
+              })()}
+            </div>
+          )}
+
+          {tab === 'Statistiche' && (
+            <div>
+              <div className="sub-tabs">
+                <button className={statsSubTab === 'Classifica' ? 'active' : ''} onClick={() => setStatsSubTab('Classifica')}>📊 Classifica</button>
+                <button className={statsSubTab === 'Scontri' ? 'active' : ''} onClick={() => setStatsSubTab('Scontri')}>⚔️ Scontri</button>
+                <button className={statsSubTab === 'Analisi' ? 'active' : ''} onClick={() => setStatsSubTab('Analisi')}>📈 Analisi Avanzata</button>
+              </div>
+              {statsSubTab === 'Classifica' && (
+                <div className="stats-two-col">
+                  <div>{selectedMatch ? <MatchDetail match={selectedMatch} allMatches={matches} /> : <div className="stats-placeholder"><p>👈 Seleziona una partita dal <b>Palinsesto</b> o dallo <b>Storico</b> per vedere le statistiche dettagliate.</p></div>}</div>
+                  <div>{selectedMatch ? <><h3 style={{marginBottom:'12px', color: getChampColor(selectedMatch.campionato)}}>Classifica - {selectedMatch.campionato}</h3><Standings matches={matches} filterChampionship={selectedMatch.campionato} highlightTeams={[selectedMatch.casa, selectedMatch.ospiti]} /></> : <div className="stats-placeholder"><p>📊 Seleziona una partita per vedere la classifica.</p></div>}</div>
+                </div>
+              )}
+              {statsSubTab === 'Scontri' && (
+                <div>{selectedMatch ? <div className="stats-two-col" style={{ gridTemplateColumns: '1fr 1fr' }}><TeamMatchesHistory teamName={selectedMatch.casa} championship={selectedMatch.campionato} allMatches={matches} /><TeamMatchesHistory teamName={selectedMatch.ospiti} championship={selectedMatch.campionato} allMatches={matches} /></div> : <div className="stats-placeholder"><p>👈 Seleziona una partita per vedere lo storico delle due squadre.</p></div>}</div>
+              )}
+              {statsSubTab === 'Analisi' && (
+                <div>
+                  {selectedMatch ? (
+                    <div>
+                      {(() => {
+                        const city = getCityForMatch(selectedMatch.casa, selectedMatch.campionato);
+                        const weatherKey = `${selectedMatch.campionato}_${selectedMatch.data}`;
+                        const weather = weatherCache[weatherKey] || null;
+                        return <WeatherProfessionale weatherData={weather} city={city} matchDate={selectedMatch.data} />;
+                      })()}
+                      
+                      <div className="analisi-compact">
+                        <div>
+                          <RisultatiFrequenti teamName={selectedMatch.casa} allMatches={matches} />
+                          <FrequenzaGol teamName={selectedMatch.casa} allMatches={matches} />
+                          <IndiceAffidabilita teamName={selectedMatch.casa} allMatches={matches} />
+                        </div>
+                        <div>
+                          <RisultatiFrequenti teamName={selectedMatch.ospiti} allMatches={matches} />
+                          <FrequenzaGol teamName={selectedMatch.ospiti} allMatches={matches} />
+                          <IndiceAffidabilita teamName={selectedMatch.ospiti} allMatches={matches} />
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <AnalisiMeteo matches={matches} weatherCache={weatherCache} />
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <AIAnalysis 
+                            match={selectedMatch} 
+                            allMatches={matches} 
+                            selectedFamiglie={selectedFamiglie}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="stats-placeholder">
+                      <p>👈 Seleziona una partita per vedere l'analisi avanzata.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === 'Storico' && (
+            <div>
+              <h2 style={{marginBottom:'14px'}}>📜 Storico Partite Giocate</h2>
+              <div className="form-group">
+                <label>Filtra per Campionato</label>
+                <select value={selectedChamp} onChange={e => setSelectedChamp(e.target.value)}>
+                  <option>Tutti</option>
+                  {championships.map(c => <option key={c.name}>{c.name}</option>)}
+                </select>
+              </div>
+              {(() => {
+                let playedMatches = matches.filter(m => {
+                  if (m.stato === 'Giocata') return true;
+                  if (m.stato === 'Futura' && isDatePassed(m.data)) return true;
+                  return false;
+                });
+                
+                if (selectedChamp !== 'Tutti') { 
+                  playedMatches = playedMatches.filter(m => m.campionato === selectedChamp); 
+                }
+                
+                playedMatches.sort((a, b) => {
+                  const dateA = normalizeDate(a.data);
+                  const dateB = normalizeDate(b.data);
+                  if (!dateA || !dateB) return 0;
+                  return dateB.localeCompare(dateA);
+                });
+                
+                if (playedMatches.length === 0) { 
+                  return <div className="empty-state">Nessuna partita giocata o con data passata.</div>; 
+                }
+                
+                const senzaRisultato = playedMatches.filter(m => m.stato === 'Futura' && isDatePassed(m.data));
+                
+                return (
+                  <div>
+                    {senzaRisultato.length > 0 && (
+                      <div className="alert alert-info" style={{marginBottom:'12px'}}>
+                        ⚠️ {senzaRisultato.length} partita/e hanno data passata ma non hanno risultato.
+                      </div>
+                    )}
+                    <div className="matches-grid">
+                      {playedMatches.map(m => <MatchTabHistory key={m.id} match={m} onSelect={selectMatch} />)}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {tab === 'Schedina' && (
+            <div>
+              {window.SchedinaComponent ? (
+                <window.SchedinaComponent 
+                  matches={matches} 
+                  championships={championships}
+                  selectedFamiglie={selectedFamiglie}
+                  onSelectMatch={selectMatch}
+                  showAlert={showAlert}
+                />
+              ) : (
+                <div className="alert alert-info">⏳ Caricamento modulo Schedina... Assicurati che il file <b>schedina.js</b> sia presente nella stessa cartella.</div>
+              )}
+            </div>
+          )}
+
+          {tab === 'Impostazioni' && (
+            <div>
+              <div className="tabs-sub">
+                {SETTINGS_TABS.map(t => <button key={t} className={settingsTab === t ? 'active' : ''} onClick={() => setSettingsTab(t)}>{t === 'Temi' && '🎨 '}{t === 'Dati Locali' && '💾 '}{t === 'Importa Campionato' && '📥 '}{t === 'Giocate' && '🎯 '}{t === 'Grandezza Caratteri' && '📏 '}{t === 'Città Meteo' && '🌍 '}{t === 'Visuale' && '📱 '}{t}</button>)}
+              </div>
+              {settingsTab === 'Temi' && (
+                <div>
+                  <h3 style={{marginBottom:'12px'}}>🎨 Scegli un Tema</h3>
+                  <div className="theme-grid">
+                    {Object.entries(THEMES).map(([name, t]) => <div key={name} className={`theme-card ${theme === name ? 'active' : ''}`} style={{background: t.card, color: t.text, borderColor: theme === name ? t.accent : t.border}} onClick={() => setTheme(name)}><div className="theme-name" style={{color: t.accent}}>{name}</div><div style={{display:'flex', gap:'4px', justifyContent:'center', marginTop:'6px'}}><div style={{width:'20px',height:'20px',background:t.bg,borderRadius:'50%'}}></div><div style={{width:'20px',height:'20px',background:t.accent,borderRadius:'50%'}}></div><div style={{width:'20px',height:'20px',background:t.text,borderRadius:'50%'}}></div></div></div>)}
+                    <div className={`theme-card ${theme === 'Custom' ? 'active' : ''}`} style={{background: customTheme.card, color: customTheme.text, borderColor: theme === 'Custom' ? customTheme.accent : customTheme.border}} onClick={() => setTheme('Custom')}><div className="theme-name" style={{color: customTheme.accent}}>🎨 Custom</div></div>
+                  </div>
+                  {theme === 'Custom' && <div className="card" style={{marginTop:'20px'}}><h3 style={{marginBottom:'12px'}}>Personalizza Colori</h3>{[['Sfondo','bg'],['Superficie','surface'],['Card','card'],['Banner','banner'],['Testo','text'],['Testo Muted','textMuted'],['Accento','accent'],['Accento 2','accent2'],['Bordo','border']].map(([label, key]) => <div key={key} className="color-picker-row"><input type="color" value={customTheme[key]} onChange={e => setCustomTheme({ ...customTheme, [key]: e.target.value })} /><span>{label}</span></div>)}</div>}
+                </div>
+              )}
+              {settingsTab === 'Dati Locali' && (
+                <div>
+                  <h3 style={{marginBottom:'12px'}}>💾 Salvataggio / Caricamento</h3>
+                  <div className="card">
+                    <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px'}}>
+                      <button className="btn" onClick={saveLocal}>💾 Scarica Backup JSON</button>
+                    </div>
+                    <p style={{marginBottom:'12px'}}>I dati vengono salvati automaticamente in localStorage.</p>
+                    <hr style={{margin:'14px 0', borderColor:'var(--border)'}}/>
+                    <label style={{display:'block', marginBottom:'6px'}}>📂 Carica Backup JSON</label>
+                    <input type="file" accept=".json" onChange={e => e.target.files[0] && loadLocal(e.target.files[0])} />
+                    <hr style={{margin:'14px 0', borderColor:'var(--border)'}}/>
+                    <button className="btn btn-danger" onClick={() => { if (confirm('Vuoi davvero resettare TUTTI i dati?')) { localStorage.clear(); setChampionships([]); setMatches([]); showAlert('success', '🗑️ Dati resettati completamente.'); } }}>🗑️ Reset Completo</button>
+                  </div>
+                </div>
+              )}
+              {settingsTab === 'Importa Campionato' && (
+                <div>
+                  <h3 style={{marginBottom:'12px'}}>📥 Importa Campionato</h3>
+                  <div className="sub-tabs" style={{marginBottom:'16px'}}>
+                    <button className="active" onClick={() => {}}>📁 File</button>
+                  </div>
+                  <FileImporter 
+                    matches={matches} 
+                    setMatches={setMatches} 
+                    championships={championships} 
+                    setChampionships={setChampionships} 
+                    loading={loading} 
+                    setLoading={setLoading} 
+                    showAlert={showAlert} 
+                  />
+                  <hr style={{borderColor:'var(--border)', margin:'20px 0'}}/>
+                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', margin:'20px 0 12px', flexWrap:'wrap', gap:'10px'}}>
+                    <h3 style={{margin:0}}>📋 Campionati Importati</h3>
+                    <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
+                      <button className="btn btn-danger" onClick={clearAllChampionships}>🗑️ Elimina Tutti</button>
+                    </div>
+                  </div>
+                  {championships.length === 0 ? <div className="empty-state">Nessun campionato importato.</div> : (
+                    <div className="champ-list">
+                      {championships.map(c => {
+                        const totalMatches = matches.filter(m => m.campionato === c.name).length;
+                        const futureMatches = matches.filter(m => m.campionato === c.name && m.stato === 'Futura').length;
+                        const playedMatches = matches.filter(m => m.campionato === c.name && m.stato === 'Giocata').length;
+                        return (
+                          <div key={c.name} className="champ-item" style={{borderLeft: `4px solid ${getChampColor(c.name)}`, paddingLeft:'12px'}}>
+                            <div><b>{c.name}</b><div style={{fontSize:'11px', color:'var(--text-muted)'}}>{totalMatches} partite ({futureMatches} future, {playedMatches} giocate) <span style={{marginLeft:'8px', fontSize:'10px', color:'var(--text-muted)'}}>📅 {new Date(c.importedAt).toLocaleDateString()}</span></div></div>
+                            <button className="btn btn-danger" onClick={() => { if (confirm(`Eliminare ${c.name} e tutte le sue partite?`)) { setChampionships(championships.filter(x => x.name !== c.name)); setMatches(matches.filter(m => m.campionato !== c.name)); } }}>🗑️ Elimina</button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+              {settingsTab === 'Giocate' && (
+                <div>
+                  <FamiglieSelector selectedFamiglie={selectedFamiglie} setSelectedFamiglie={setSelectedFamiglie} showAlert={showAlert} />
+                </div>
+              )}
+              {settingsTab === 'Grandezza Caratteri' && (
+                <div>
+                  <div className="card">
+                    <h3 style={{marginBottom: '12px'}}>📏 Grandezza Caratteri</h3>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap'}}>
+                      <button className="btn btn-secondary" onClick={() => setFontSize(prev => Math.max(70, prev - 5))} style={{fontSize: '18px', fontWeight: 'bold', padding: '8px 16px', minWidth: '44px', minHeight: '44px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer'}}>−</button>
+                      <div style={{flex: 1, minWidth: '150px'}}>
+                        <input type="range" min="70" max="150" step="5" value={fontSize} onChange={(e) => setFontSize(parseInt(e.target.value))} style={{width: '100%', accentColor: 'var(--accent)', height: '6px', borderRadius: '3px', background: 'var(--surface)', cursor: 'pointer'}} />
+                        <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px'}}><span>70%</span><span style={{fontWeight: 'bold', color: 'var(--accent)'}}>{fontSize}%</span><span>150%</span></div>
+                      </div>
+                      <button className="btn btn-secondary" onClick={() => setFontSize(prev => Math.min(150, prev + 5))} style={{fontSize: '18px', fontWeight: 'bold', padding: '8px 16px', minWidth: '44px', minHeight: '44px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer'}}>+</button>
+                      <button className="btn btn-secondary" onClick={() => setFontSize(100)} style={{fontSize: '12px', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer'}}>🔄 Reset (100%)</button>
+                    </div>
+                    <div style={{marginTop: '12px', fontSize: '12px', color: 'var(--text-muted)', borderTop: '1px solid var(--border)', paddingTop: '10px'}}>
+                      <div style={{display: 'flex', gap: '16px', flexWrap: 'wrap'}}><span>📱 <b>Consigliato:</b> 100% (PC) / 110-120% (Mobile)</span><span>💡 La modifica si applica immediatamente a tutta l'app</span></div>
+                      <div style={{marginTop: '6px', padding: '8px 12px', borderRadius: '6px', background: 'var(--surface)', border: '1px solid var(--border)', fontSize: `${fontSize}%`, transition: 'font-size 0.2s'}}><span style={{fontWeight: 'bold'}}>Anteprima:</span> Questo è un testo di esempio alla dimensione <b>{fontSize}%</b></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {settingsTab === 'Città Meteo' && (
+                <div>
+                  <CittaMeteo matches={matches} />
+                </div>
+              )}
+              {settingsTab === 'Visuale' && (
+                <div className="card">
+                  <h3 style={{marginBottom: '12px'}}>📱 Cambia Visuale</h3>
+                  <div style={{display: 'flex', gap: '16px', flexWrap: 'wrap'}}>
+                    <button 
+                      className={`btn ${viewMode === 'pc' ? '' : 'btn-secondary'}`} 
+                      onClick={() => {
+                        setViewMode('pc');
+                        localStorage.setItem('ft_view_mode', 'pc');
+                        setTimeout(() => window.scrollTo(0, 0), 100);
+                      }} 
+                      style={{flex: 1, minWidth: '120px'}}
+                    >
+                      🖥️ PC
+                    </button>
+                    <button 
+                      className={`btn ${viewMode === 'mobile' ? '' : 'btn-secondary'}`} 
+                      onClick={() => {
+                        setViewMode('mobile');
+                        localStorage.setItem('ft_view_mode', 'mobile');
+                        setTimeout(() => window.scrollTo(0, 0), 100);
+                      }} 
+                      style={{flex: 1, minWidth: '120px'}}
+                    >
+                      📱 Telefono
+                    </button>
+                  </div>
+                  <div style={{marginTop: '12px', fontSize: '13px', color: 'var(--text-muted)'}}>
+                    Modalità attuale: <b>{viewMode === 'pc' ? '🖥️ PC' : '📱 Telefono'}</b>
+                  </div>
+                  <div style={{marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)'}}>
+                    {viewMode === 'mobile' 
+                      ? '✅ La visuale è ottimizzata per schermi piccoli. Il contenuto si adatta automaticamente.'
+                      : '✅ Visuale ottimizzata per schermi grandi. Massima visibilità dei dati.'}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* DISCLAIMER COMMERCIALE */}
+        <div className="disclaimer-footer">
+          <div style={{display: 'flex', gap: '12px', alignItems: 'flex-start', flexWrap: 'wrap'}}>
+            <span style={{fontSize: '24px'}}>⚠️</span>
+            <div style={{flex: 1}}>
+              <p style={{margin: '0 0 6px 0'}}>
+                <strong>⚠️ Disclaimer - Utilizzo in Centro Scommesse</strong>
+              </p>
+              <p style={{margin: '0 0 4px 0'}}>
+                Questa applicazione fornisce analisi statistiche a <strong>solo scopo informativo</strong>. 
+                I dati provengono da <strong>file caricati dall'utente</strong> (XLSX/CSV). 
+                Le percentuali e i pronostici sono <strong>elaborazioni matematiche non vincolanti</strong>.
+              </p>
+              <p style={{margin: '0 0 4px 0'}}>
+                <span className="highlight">⚠️ Le scommesse comportano rischi finanziari. Gioca responsabilmente.</span>
+              </p>
+              <p style={{margin: '0', fontSize: '10px', color: 'var(--text-muted)'}}>
+                I loghi e i nomi delle squadre sono di proprietà dei rispettivi titolari. 
+                L'uso commerciale dei dati richiede licenza specifica.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <button 
+          className="home-btn-overlay" 
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          title="Torna su"
+        >
+          🏠
+        </button>
+      </div>
+    );
+  };
+
+  // Se la modalità è mobile, mostriamo l'app dentro il simulatore
+  if (viewMode === 'mobile') {
+    return (
+      <div style={{display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '20px', minHeight: '100vh', background: '#0a0a1a'}}>
+        <div className="phone-simulator">
+          <div className="phone-notch">
+            <div className="notch-speaker"></div>
+            <div className="notch-camera"></div>
+          </div>
+          <div className="phone-screen">
+            <div className="phone-scroll" style={{paddingTop: '32px'}}>
+              {renderAppContent()}
+            </div>
+            <div className="phone-home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Modalità PC - rendering normale
+  return renderAppContent();
+}
+
+// ============================================================
+// COMPONENTE SCHEDINA - AGGIUNTO ALLA FINE DEL FILE
+// ============================================================
 
 const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectMatch, showAlert }) => {
-  // Stato principale
-  const [schedineSalvate, setSchedineSalvate] = useState(() => {
-    try {
-      const saved = localStorage.getItem('ft_schedine');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
-  
-  const [campionatiSelezionati, setCampionatiSelezionati] = useState(() => {
-    try {
-      const saved = localStorage.getItem('ft_campionati_selezionati');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
-  
+  const [campionatoSelezionato, setCampionatoSelezionato] = useState('Tutti');
+  const [partiteSelezionate, setPartiteSelezionate] = useState([]);
+  const [numPartite, setNumPartite] = useState(3);
+  const [filtroOrario, setFiltroOrario] = useState('dopo_ora');
   const [giorniRange, setGiorniRange] = useState(1);
-  const [numPartite, setNumPartite] = useState(5);
-  const [partiteCalcolate, setPartiteCalcolate] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [schedinaDaVisualizzare, setSchedinaDaVisualizzare] = useState(null);
-  const [showSchedinaModal, setShowSchedinaModal] = useState(false);
-  
-  // Salva le schedine in localStorage
-  useEffect(() => {
-    localStorage.setItem('ft_schedine', JSON.stringify(schedineSalvate));
-  }, [schedineSalvate]);
-  
-  // Salva i campionati selezionati
-  useEffect(() => {
-    localStorage.setItem('ft_campionati_selezionati', JSON.stringify(campionatiSelezionati));
-  }, [campionatiSelezionati]);
-  
-  // Toggle selezione campionato
-  const toggleCampionato = (nomeCampionato) => {
-    setCampionatiSelezionati(prev => {
-      if (prev.includes(nomeCampionato)) {
-        return prev.filter(c => c !== nomeCampionato);
-      } else {
-        return [...prev, nomeCampionato];
-      }
+  const [schedinaCreata, setSchedinaCreata] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // Funzione per ottenere le partite "future" con filtro orario (IDENTICA AL PALINSESTO)
+  const getPartiteFutureConFiltro = useCallback(() => {
+    const todayStr = getTodayStr();
+    const maxDateStr = addDaysToDateStr(todayStr, giorniRange);
+    
+    let futureMatches = matches.filter(m => m.stato === 'Futura');
+    
+    if (campionatoSelezionato !== 'Tutti') {
+      futureMatches = futureMatches.filter(m => m.campionato === campionatoSelezionato);
+    }
+    
+    futureMatches = futureMatches.filter(m => {
+      if (!m.data) return false;
+      const normalized = normalizeDate(m.data);
+      if (!normalized) return false;
+      return normalized >= todayStr && normalized <= maxDateStr;
     });
-  };
-  
-  // Seleziona/deseleziona tutti i campionati
-  const selezionaTuttiCampionati = () => {
-    const tutti = championships.map(c => c.name);
-    setCampionatiSelezionati(tutti);
-  };
-  
-  const deselezionaTuttiCampionati = () => {
-    setCampionatiSelezionati([]);
-  };
-  
-  // Ottiene la data di oggi e la data massima in base al range
-  const getDateRange = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const maxDate = new Date(today);
-    maxDate.setDate(maxDate.getDate() + giorniRange);
-    return { today, maxDate };
-  };
-  
-  // Calcola le migliori giocate per una partita
-  const getBestGiocateForMatch = (match) => {
-    const stats = window.computeMatchStats(match, matches);
-    if (stats.error) return [];
+    
+    // FILTRO ORARIO: mostra solo partite non ancora iniziate (IDENTICO AL PALINSESTO)
+    if (filtroOrario === 'dopo_ora') {
+      const now = new Date();
+      const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+      
+      futureMatches = futureMatches.filter(m => {
+        if (!m.ora || m.ora === 'TBD' || m.ora === 'N/D') {
+          return true;
+        }
+        const timeParts = m.ora.split(':');
+        if (timeParts.length < 2) return true;
+        const matchHour = parseInt(timeParts[0], 10);
+        const matchMinutes = parseInt(timeParts[1], 10);
+        if (isNaN(matchHour) || isNaN(matchMinutes)) return true;
+        const matchTotalMinutes = matchHour * 60 + matchMinutes;
+        
+        const matchDate = normalizeDate(m.data);
+        if (matchDate === todayStr) {
+          return matchTotalMinutes > currentTotalMinutes;
+        }
+        return true;
+      });
+    }
+    
+    futureMatches.sort((a, b) => {
+      const dateA = normalizeDate(a.data);
+      const dateB = normalizeDate(b.data);
+      if (!dateA || !dateB) return 0;
+      return dateA.localeCompare(dateB);
+    });
+    
+    return futureMatches;
+  }, [matches, campionatoSelezionato, giorniRange, filtroOrario]);
+
+  // Calcola lo score di una partita (usa le funzioni globali di index.html)
+  const calcolaScorePartita = (match) => {
+    const stats = computeMatchStats(match, matches);
+    if (stats.error) return 0;
     
     stats._allMatches = matches;
     stats._homeTeam = match.casa;
@@ -78,937 +714,265 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const homeMG = stats.homeMG || {};
     const awayMG = stats.awayMG || {};
     const mgTot = stats.mgTot || {};
-    const homeRange = window.getMultigolRange(match.casa, matches);
-    const awayRange = window.getMultigolRange(match.ospiti, matches);
+    const homeRange = getMultigolRange(match.casa, matches);
+    const awayRange = getMultigolRange(match.ospiti, matches);
     
     const giocate = [];
-    
     selectedFamiglie.forEach(familyId => {
-      const family = window.FAMIGLIE_GIOCATE[familyId];
-      if (!family) return;
-      
-      const best = window.getBestBetForFamily(familyId, stats, homeRange, awayRange, homeMG, awayMG, mgTot);
+      const best = getBestBetForFamily(familyId, stats, homeRange, awayRange, homeMG, awayMG, mgTot);
       if (best && best.pct > 0) {
-        giocate.push({
-          familyId,
-          familyLabel: family.label,
-          familyIcon: family.icon,
-          label: best.label,
-          pct: best.pct,
-          isBomb: best.pct >= 90,
-          giocata: best.giocata
-        });
+        giocate.push(best.pct);
       }
     });
     
-    return giocate.sort((a, b) => b.pct - a.pct);
+    if (giocate.length === 0) return 0;
+    return Math.round(giocate.reduce((s, g) => s + g, 0) / giocate.length);
   };
-  
-  // Seleziona una giocata tra quelle con la percentuale più alta (con random in caso di parità)
-  const selectBestGiocata = (giocate) => {
-    if (!giocate || giocate.length === 0) return null;
-    
-    const maxPct = Math.max(...giocate.map(g => g.pct));
-    const topGiocate = giocate.filter(g => g.pct === maxPct);
-    const randomIndex = Math.floor(Math.random() * topGiocate.length);
-    return topGiocate[randomIndex];
+
+  // Ottieni le partite con i loro score
+  const getPartiteConScore = useCallback(() => {
+    const partite = getPartiteFutureConFiltro();
+    return partite.map(m => ({
+      ...m,
+      score: calcolaScorePartita(m)
+    })).filter(m => m.score > 0).sort((a, b) => b.score - a.score);
+  }, [getPartiteFutureConFiltro]);
+
+  const partiteDisponibili = getPartiteConScore();
+
+  // Seleziona automaticamente le migliori N partite
+  const selezionaMigliori = (n) => {
+    const migliori = partiteDisponibili.slice(0, n);
+    setPartiteSelezionate(migliori);
+    showAlert('success', `✅ Selezionate ${migliori.length} migliori partite!`);
   };
-  
-  // ============================================================
-  // CALCOLA SCHEDINA - CON CONTROLLO ORARIO
-  // ============================================================
-  const calcolaSchedina = () => {
-    if (campionatiSelezionati.length === 0) {
-      showAlert('error', '⚠️ Seleziona almeno un campionato!');
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    const { today, maxDate } = getDateRange();
-    const todayStr = today.toISOString().slice(0, 10);
-    const maxDateStr = maxDate.toISOString().slice(0, 10);
-    
-    // ORA ATTUALE per il confronto
-    const now = new Date();
-    console.log(`🕐 Ora attuale: ${now.toLocaleString()}`);
-    
-    let partiteDisponibili = matches.filter(m => {
-      if (m.stato !== 'Futura') return false;
-      if (!campionatiSelezionati.includes(m.campionato)) return false;
-      if (!m.data) return false;
-      
-      const normalized = window.normalizeDate(m.data);
-      if (!normalized) return false;
-      
-      if (normalized < todayStr || normalized > maxDateStr) return false;
-      
-      // ============================================================
-      // CONTROLLO ORARIO - ESCLUDI PARTITE GIÀ PASSATE
-      // ============================================================
-      if (normalized === todayStr) {
-        let oraMatch = m.ora || '';
-        
-        // Se non c'è ora, considerala valida
-        if (!oraMatch || oraMatch === 'TBD' || oraMatch === 'N/D' || oraMatch === '') {
-          return true;
+
+  // Aggiungi/Rimuovi una partita dalla selezione
+  const togglePartita = (match) => {
+    setPartiteSelezionate(prev => {
+      const exists = prev.find(m => m.id === match.id);
+      if (exists) {
+        return prev.filter(m => m.id !== match.id);
+      } else {
+        if (prev.length >= 6) {
+          showAlert('error', '⚠️ Massimo 6 partite per schedina!');
+          return prev;
         }
-        
-        // Pulisci l'ora: "14:30(13:30)" -> "14:30"
-        let oraPulita = oraMatch;
-        if (oraPulita.includes('(')) {
-          oraPulita = oraPulita.substring(0, oraPulita.indexOf('(')).trim();
-        }
-        oraPulita = oraPulita.replace(/[^0-9:]/g, '');
-        
-        if (!oraPulita) return true;
-        
-        let ore = 0, minuti = 0;
-        if (oraPulita.includes(':')) {
-          const parts = oraPulita.split(':');
-          ore = parseInt(parts[0]) || 0;
-          minuti = parseInt(parts[1]) || 0;
-        } else if (oraPulita.length >= 4) {
-          ore = parseInt(oraPulita.substring(0, 2)) || 0;
-          minuti = parseInt(oraPulita.substring(2, 4)) || 0;
-        } else {
-          return true;
-        }
-        
-        const matchDateTime = new Date(`${normalized}T${String(ore).padStart(2, '0')}:${String(minuti).padStart(2, '0')}:00`);
-        
-        console.log(`🔍 ${m.casa} vs ${m.ospiti}: ${matchDateTime.toLocaleString()} | Ora attuale: ${now.toLocaleString()}`);
-        
-        if (matchDateTime < now) {
-          console.log(`❌ ESCLUSA (passata): ${m.casa} vs ${m.ospiti} - ${oraMatch}`);
-          return false;
-        }
-        
-        console.log(`✅ VALIDA: ${m.casa} vs ${m.ospiti} - ${oraMatch}`);
+        return [...prev, match];
       }
-      
-      return true;
     });
-    
-    if (partiteDisponibili.length === 0) {
-      showAlert('warning', '⚠️ Nessuna partita disponibile (escluse quelle già passate).');
-      setIsLoading(false);
-      setPartiteCalcolate([]);
-      return;
-    }
-    
-    // Ordina per data e ora
-    partiteDisponibili.sort((a, b) => {
-      const dateA = window.normalizeDate(a.data);
-      const dateB = window.normalizeDate(b.data);
-      if (dateA !== dateB) return dateA.localeCompare(dateB);
-      const oraA = a.ora || '00:00';
-      const oraB = b.ora || '00:00';
-      return oraA.localeCompare(oraB);
-    });
-    
-    const partiteConGiocate = partiteDisponibili.map(m => {
-      const giocate = getBestGiocateForMatch(m);
-      const migliorGiocata = selectBestGiocata(giocate);
-      return { ...m, giocate, migliorGiocata };
-    });
-    
-    const partiteValide = partiteConGiocate.filter(p => p.migliorGiocata !== null);
-    
-    if (partiteValide.length === 0) {
-      showAlert('warning', '⚠️ Nessuna partita ha giocate valide.');
-      setIsLoading(false);
-      setPartiteCalcolate([]);
-      return;
-    }
-    
-    const numDaPrendere = Math.min(numPartite, partiteValide.length);
-    const partiteSelezionate = partiteValide.slice(0, numDaPrendere);
-    
-    setPartiteCalcolate(partiteSelezionate);
-    setIsLoading(false);
-    
-    showAlert('success', `✅ Trovate ${partiteSelezionate.length} partite valide!`);
   };
-  
-  // Resetta la schedina
+
+  // Crea la schedina
+  const creaSchedina = () => {
+    if (partiteSelezionate.length < 2) {
+      showAlert('error', '⚠️ Seleziona almeno 2 partite!');
+      return;
+    }
+    
+    setLoading(true);
+    
+    const schedina = partiteSelezionate.map(m => {
+      const stats = computeMatchStats(m, matches);
+      if (stats.error) return { ...m, giocate: [], score: 0 };
+      
+      stats._allMatches = matches;
+      stats._homeTeam = m.casa;
+      stats._awayTeam = m.ospiti;
+      
+      const homeMG = stats.homeMG || {};
+      const awayMG = stats.awayMG || {};
+      const mgTot = stats.mgTot || {};
+      const homeRange = getMultigolRange(m.casa, matches);
+      const awayRange = getMultigolRange(m.ospiti, matches);
+      
+      const giocate = [];
+      selectedFamiglie.forEach(familyId => {
+        const best = getBestBetForFamily(familyId, stats, homeRange, awayRange, homeMG, awayMG, mgTot);
+        if (best && best.pct > 0) {
+          giocate.push({
+            familyId,
+            label: best.label,
+            pct: best.pct,
+            isBomb: best.pct >= 90,
+            familyLabel: FAMIGLIE_GIOCATE[familyId]?.label || familyId
+          });
+        }
+      });
+      
+      giocate.sort((a, b) => b.pct - a.pct);
+      const score = giocate.length > 0 ? Math.round(giocate.reduce((s, g) => s + g.pct, 0) / giocate.length) : 0;
+      
+      return { ...m, giocate, score };
+    });
+    
+    const totaleScore = schedina.reduce((s, m) => s + m.score, 0);
+    const mediaScore = Math.round(totaleScore / schedina.length);
+    
+    setSchedinaCreata({
+      partite: schedina,
+      totale: totaleScore,
+      media: mediaScore,
+      numPartite: schedina.length,
+      data: new Date().toISOString()
+    });
+    
+    setLoading(false);
+    showAlert('success', `🎯 Schedina creata! Media score: ${mediaScore}%`);
+  };
+
   const resettaSchedina = () => {
-    setPartiteCalcolate([]);
-    showAlert('info', '🔄 Schedina resettata.');
+    setPartiteSelezionate([]);
+    setSchedinaCreata(null);
+    showAlert('info', '🔄 Schedina resettata');
   };
-  
-  // Rigenera la schedina
-  const rigeneraSchedina = () => {
-    if (partiteCalcolate.length === 0) {
-      showAlert('warning', '⚠️ Prima calcola una schedina!');
-      return;
-    }
-    
-    const partiteRigenerate = partiteCalcolate.map(p => {
-      const giocate = getBestGiocateForMatch(p);
-      const migliorGiocata = selectBestGiocata(giocate);
-      return { ...p, giocate, migliorGiocata };
-    });
-    
-    const partiteValide = partiteRigenerate.filter(p => p.migliorGiocata !== null);
-    
-    if (partiteValide.length === 0) {
-      showAlert('warning', '⚠️ Nessuna partita ha giocate valide dopo la rigenerazione.');
-      setPartiteCalcolate([]);
-      return;
-    }
-    
-    setPartiteCalcolate(partiteValide);
-    showAlert('success', `🔄 Schedina rigenerata con ${partiteValide.length} partite!`);
-  };
-  
-  // Salva la schedina corrente
-  const salvaSchedina = () => {
-    if (partiteCalcolate.length === 0) {
-      showAlert('error', '⚠️ Non ci sono partite da salvare!');
-      return;
-    }
-    
-    const senzaGiocata = partiteCalcolate.filter(p => !p.migliorGiocata);
-    if (senzaGiocata.length > 0) {
-      showAlert('error', `⚠️ ${senzaGiocata.length} partita/e senza giocata selezionata!`);
-      return;
-    }
-    
-    // Verifica che nessuna partita sia già passata (controllo finale)
-    const now = new Date();
-    const partitePassate = partiteCalcolate.filter(p => {
-      const normalized = window.normalizeDate(p.data);
-      if (!normalized) return true;
-      if (normalized !== now.toISOString().slice(0, 10)) return false;
-      
-      let oraMatch = p.ora || '';
-      if (oraMatch.includes('(')) {
-        oraMatch = oraMatch.substring(0, oraMatch.indexOf('(')).trim();
-      }
-      oraMatch = oraMatch.replace(/[^0-9:]/g, '');
-      
-      if (!oraMatch) return false;
-      
-      let ore = 0, minuti = 0;
-      if (oraMatch.includes(':')) {
-        const parts = oraMatch.split(':');
-        ore = parseInt(parts[0]) || 0;
-        minuti = parseInt(parts[1]) || 0;
-      }
-      
-      const matchDateTime = new Date(`${normalized}T${String(ore).padStart(2, '0')}:${String(minuti).padStart(2, '0')}:00`);
-      return matchDateTime < now;
-    });
-    
-    if (partitePassate.length > 0) {
-      showAlert('error', `⚠️ ${partitePassate.length} partita/e sono già passate! Rigenera la schedina.`);
-      return;
-    }
-    
-    const nowDate = new Date();
-    const nome = `Schedina_${String(nowDate.getDate()).padStart(2, '0')}${String(nowDate.getMonth() + 1).padStart(2, '0')}${nowDate.getFullYear()}_${String(nowDate.getHours()).padStart(2, '0')}${String(nowDate.getMinutes()).padStart(2, '0')}`;
-    
-    const nuovaSchedina = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-      nome: nome,
-      dataCreazione: nowDate.toISOString(),
-      campionati: [...campionatiSelezionati],
-      giorniRange: giorniRange,
-      partite: partiteCalcolate.map(p => ({
-        id: p.id,
-        casa: p.casa,
-        ospiti: p.ospiti,
-        campionato: p.campionato,
-        data: p.data,
-        ora: p.ora || 'TBD',
-        giocata: p.migliorGiocata
-      })),
-      numPartite: partiteCalcolate.length
-    };
-    
-    setSchedineSalvate([...schedineSalvate, nuovaSchedina]);
-    showAlert('success', `✅ Schedina "${nome}" salvata! (${partiteCalcolate.length} partite)`);
-  };
-  
-  // Apri una schedina salvata per visualizzarla
-  const apriSchedina = (schedina) => {
-    setSchedinaDaVisualizzare(schedina);
-    setShowSchedinaModal(true);
-  };
-  
-  const chiudiModal = () => {
-    setShowSchedinaModal(false);
-    setSchedinaDaVisualizzare(null);
-  };
-  
-  const eliminaSchedina = (id) => {
-    if (confirm('🗑️ Eliminare questa schedina?')) {
-      setSchedineSalvate(schedineSalvate.filter(s => s.id !== id));
-      showAlert('success', '🗑️ Schedina eliminata.');
-    }
-  };
-  
-  const calcolaScoreMedio = (schedina) => {
-    if (!schedina.partite || schedina.partite.length === 0) return 0;
-    const total = schedina.partite.reduce((sum, p) => sum + (p.giocata?.pct || 0), 0);
-    return Math.round(total / schedina.partite.length);
-  };
-  
-  const contaBombe = (schedina) => {
-    if (!schedina.partite) return 0;
-    return schedina.partite.filter(p => p.giocata?.isBomb).length;
-  };
-  
-  const formatDate = (dateStr) => {
-    if (!dateStr) return 'N/D';
-    try {
-      const d = new Date(dateStr);
-      return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-    } catch { return dateStr; }
-  };
-  
-  const formatDateTime = (dateStr) => {
-    if (!dateStr) return 'N/D';
-    try {
-      const d = new Date(dateStr);
-      return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-    } catch { return dateStr; }
-  };
-  
-  const generaTestoCondivisione = (schedina) => {
-    if (!schedina || !schedina.partite || schedina.partite.length === 0) return '';
-    
-    const lines = [];
-    const now = new Date();
-    const dataOra = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    
-    lines.push(`📋 *SCHEDINA GESSsAI-PRO*`);
-    lines.push(`📅 Generata il: ${dataOra}`);
-    lines.push(`🏆 Campionati: ${schedina.campionati?.join(', ') || 'Tutti'}`);
-    lines.push(`📊 ${schedina.partite.length} partite selezionate`);
-    lines.push(``);
-    
-    const bombe = contaBombe(schedina);
-    if (bombe > 0) {
-      lines.push(`💣 BOMBE: ${bombe}`);
-      lines.push(``);
-    }
-    
-    const scoreMedio = calcolaScoreMedio(schedina);
-    lines.push(`⭐ Score medio: ${scoreMedio}%`);
-    lines.push(``);
-    lines.push(`--- PARTITE ---`);
-    lines.push(``);
-    
-    const partiteOrdinate = [...schedina.partite].sort((a, b) => {
-      const dateA = a.data || '9999-99-99';
-      const dateB = b.data || '9999-99-99';
-      if (dateA !== dateB) return dateA.localeCompare(dateB);
-      const oraA = a.ora || '00:00';
-      const oraB = b.ora || '00:00';
-      return oraA.localeCompare(oraB);
-    });
-    
-    partiteOrdinate.forEach((p, idx) => {
-      const dataFormattata = formatDate(p.data);
-      const ora = p.ora || 'TBD';
-      const giocata = p.giocata;
-      const pct = giocata?.pct || 0;
-      const isBomb = pct >= 90;
-      const emojiBomba = isBomb ? ' 💣' : '';
-      
-      lines.push(`${idx + 1}. ${p.casa} 🆚 ${p.ospiti}`);
-      lines.push(`   🏆 ${p.campionato || 'N/D'} | 📅 ${dataFormattata} ${ora}`);
-      lines.push(`   🎯 ${giocata?.familyIcon || '🎯'} ${giocata?.label || giocata?.giocata || 'N/D'} - ${pct}%${emojiBomba}`);
-      lines.push(``);
-    });
-    
-    lines.push(`---`);
-    lines.push(`📊 *GesssAI-Pro v3.0*`);
-    lines.push(`🔗 Generato da GesssAI-Pro Football Trader`);
-    
-    return lines.join('\n');
-  };
-  
-  // ============================================================
-  // CONDIVISIONE WHATSAPP E TELEGRAM
-  // ============================================================
-  
-  const condividiWhatsApp = (schedina) => {
-    if (!schedina) return;
-    const testo = generaTestoCondivisione(schedina);
-    const testoEncoded = encodeURIComponent(testo);
-    
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    const isAndroid = /Android/i.test(navigator.userAgent);
-    
-    let appUrl, webUrl;
-    
-    if (isIOS) {
-      appUrl = `whatsapp://send?text=${testoEncoded}`;
-      webUrl = `https://api.whatsapp.com/send?text=${testoEncoded}`;
-    } else if (isAndroid) {
-      appUrl = `intent://send?text=${testoEncoded}#Intent;package=com.whatsapp;scheme=whatsapp;end;`;
-      webUrl = `https://api.whatsapp.com/send?text=${testoEncoded}`;
-    } else {
-      appUrl = `whatsapp://send?text=${testoEncoded}`;
-      webUrl = `https://web.whatsapp.com/send?text=${testoEncoded}`;
-    }
-    
-    try {
-      const win = window.open(appUrl, '_blank');
-      if (!win || win.closed) {
-        window.open(webUrl, '_blank');
-      } else {
-        setTimeout(() => {
-          try {
-            if (win && !win.closed) {
-              win.close();
-              window.open(webUrl, '_blank');
-            }
-          } catch (e) {
-            window.open(webUrl, '_blank');
-          }
-        }, 2000);
-      }
-    } catch (e) {
-      window.open(webUrl, '_blank');
-    }
-  };
-  
-  const condividiTelegram = (schedina) => {
-    if (!schedina) return;
-    const testo = generaTestoCondivisione(schedina);
-    const testoEncoded = encodeURIComponent(testo);
-    
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    const isAndroid = /Android/i.test(navigator.userAgent);
-    
-    let appUrl, webUrl;
-    
-    if (isIOS) {
-      appUrl = `tg://msg?text=${testoEncoded}`;
-      webUrl = `https://t.me/share/url?url=&text=${testoEncoded}`;
-    } else if (isAndroid) {
-      appUrl = `intent://share/url?url=&text=${testoEncoded}#Intent;package=org.telegram.messenger;scheme=tg;end;`;
-      webUrl = `https://t.me/share/url?url=&text=${testoEncoded}`;
-    } else {
-      appUrl = `tg://msg?text=${testoEncoded}`;
-      webUrl = `https://web.telegram.org/k/#?tgaddr=tg://msg?text=${testoEncoded}`;
-    }
-    
-    try {
-      const win = window.open(appUrl, '_blank');
-      if (!win || win.closed) {
-        window.open(webUrl, '_blank');
-      } else {
-        setTimeout(() => {
-          try {
-            if (win && !win.closed) {
-              win.close();
-              window.open(webUrl, '_blank');
-            }
-          } catch (e) {
-            window.open(webUrl, '_blank');
-          }
-        }, 2000);
-      }
-    } catch (e) {
-      window.open(webUrl, '_blank');
-    }
-  };
-  
-  // ============================================================
-  // RENDER MODAL
-  // ============================================================
-  
-  const renderModal = () => {
-    if (!showSchedinaModal || !schedinaDaVisualizzare) return null;
-    
-    const s = schedinaDaVisualizzare;
-    const scoreMedio = calcolaScoreMedio(s);
-    const numBombe = contaBombe(s);
-    
-    const partiteOrdinate = [...s.partite].sort((a, b) => {
-      const dateA = a.data || '9999-99-99';
-      const dateB = b.data || '9999-99-99';
-      if (dateA !== dateB) return dateA.localeCompare(dateB);
-      const oraA = a.ora || '00:00';
-      const oraB = b.ora || '00:00';
-      return oraA.localeCompare(oraB);
-    });
-    
-    return (
-      <div className="heatmap-detail-overlay" onClick={chiudiModal}>
-        <div className="heatmap-detail-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '900px' }}>
-          <button className="close-btn" onClick={chiudiModal} style={{
-            position: 'absolute',
-            top: '12px',
-            right: '16px',
-            background: 'none',
-            border: 'none',
-            color: 'var(--text)',
-            fontSize: '28px',
-            cursor: 'pointer',
-            zIndex: 10,
-            padding: '4px 12px',
-            borderRadius: '6px',
-            transition: 'all 0.2s'
-          }}>✖</button>
-          
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
-              <div>
-                <h2 style={{ color: 'var(--accent)', margin: '0 0 4px 0' }}>📋 {s.nome}</h2>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '13px', color: 'var(--text-muted)' }}>
-                  <span>🕒 {formatDateTime(s.dataCreazione)}</span>
-                  <span>🏆 {s.campionati?.join(', ') || 'Tutti'}</span>
-                  <span>📅 Range: {s.giorniRange || 1} giorni</span>
-                  <span>📊 {s.partite?.length || 0} partite</span>
-                  <span>⭐ Score medio: <b style={{ color: scoreMedio >= 70 ? 'var(--win)' : (scoreMedio >= 50 ? 'var(--draw)' : 'var(--lose)') }}>{scoreMedio}%</b></span>
-                  {numBombe > 0 && <span>💣 {numBombe} bombe</span>}
-                </div>
-              </div>
-              
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <button 
-                  onClick={() => condividiWhatsApp(s)}
-                  style={{
-                    background: '#25D366',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'transform 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                >
-                  <span style={{ fontSize: '20px' }}>💬</span> WhatsApp
-                </button>
-                <button 
-                  onClick={() => condividiTelegram(s)}
-                  style={{
-                    background: '#0088cc',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'transform 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                >
-                  <span style={{ fontSize: '20px' }}>✈️</span> Telegram
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <div style={{ maxHeight: '450px', overflowY: 'auto', paddingRight: '4px' }}>
-            {partiteOrdinate.map((p, idx) => {
-              const pct = p.giocata?.pct || 0;
-              const isBomb = pct >= 90;
-              const color = isBomb ? 'var(--accent)' : (pct >= 66.67 ? 'var(--win)' : (pct >= 33.34 ? 'var(--draw)' : 'var(--lose)'));
-              const dataFormattata = formatDate(p.data);
-              const ora = p.ora || 'TBD';
-              
-              return (
-                <div key={idx} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 14px',
-                  marginBottom: '6px',
-                  background: isBomb ? 'rgba(243, 156, 18, 0.12)' : 'var(--surface)',
-                  borderRadius: '8px',
-                  border: isBomb ? '2px solid var(--accent)' : '1px solid var(--border)',
-                  borderLeft: `4px solid ${color}`,
-                  gap: '8px',
-                  flexWrap: 'wrap'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1', minWidth: '200px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-muted)', minWidth: '35px', textAlign: 'center' }}>#{idx + 1}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '20px' }}>⚽</span>
-                      <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text)' }}>{p.casa} 🆚 {p.ospiti}</span>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: 'var(--text-muted)', gap: '1px' }}>
-                      <span>🏆 {p.campionato || 'N/D'}</span>
-                      <span>📅 {dataFormattata} {ora}</span>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                    <span style={{
-                      background: isBomb ? 'var(--accent)' : 'var(--card)',
-                      color: isBomb ? '#000' : 'var(--text)',
-                      padding: '4px 14px',
-                      borderRadius: '6px',
-                      fontSize: '13px',
-                      fontWeight: 'bold',
-                      border: isBomb ? '1px solid var(--accent)' : 'none'
-                    }}>
-                      {p.giocata?.familyIcon} {p.giocata?.label || p.giocata?.giocata || 'N/D'}
-                    </span>
-                    <span style={{
-                      fontWeight: 'bold',
-                      fontSize: '20px',
-                      color: isBomb ? 'var(--accent)' : color,
-                      minWidth: '55px',
-                      textAlign: 'center'
-                    }}>
-                      {pct}% {isBomb && '💣'}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          
-          <div style={{
-            marginTop: '16px',
-            paddingTop: '12px',
-            borderTop: '2px solid var(--border)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '8px'
-          }}>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <button className="btn btn-secondary" onClick={() => {
-                const partiteCaricate = s.partite.map(p => ({
-                  ...p,
-                  giocate: [p.giocata],
-                  migliorGiocata: p.giocata
-                }));
-                setPartiteCalcolate(partiteCaricate);
-                showAlert('success', `📋 Schedina "${s.nome}" caricata!`);
-                chiudiModal();
-              }} style={{ fontSize: '12px', padding: '6px 14px' }}>
-                📂 Carica
-              </button>
-              <button className="btn btn-danger" onClick={() => {
-                if (confirm(`🗑️ Eliminare "${s.nome}"?`)) {
-                  eliminaSchedina(s.id);
-                  chiudiModal();
-                }
-              }} style={{ fontSize: '12px', padding: '6px 14px' }}>
-                🗑️ Elimina
-              </button>
-            </div>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-              {s.partite?.length || 0} partite • {numBombe} 💣 • Score {scoreMedio}%
-            </div>
-          </div>
-          
-          <div style={{
-            marginTop: '12px',
-            padding: '10px 14px',
-            background: 'var(--surface)',
-            borderRadius: '6px',
-            border: '1px solid var(--border)',
-            maxHeight: '100px',
-            overflowY: 'auto',
-            fontSize: '11px',
-            color: 'var(--text-muted)',
-            fontFamily: 'monospace',
-            whiteSpace: 'pre-wrap'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-              <span style={{ fontWeight: 'bold', color: 'var(--text)' }}>📝 Anteprima condivisione</span>
-            </div>
-            {generaTestoCondivisione(s).split('\n').slice(0, 6).map((line, i) => (
-              <div key={i}>{line}</div>
-            ))}
-            {generaTestoCondivisione(s).split('\n').length > 6 && (
-              <div style={{ color: 'var(--text-muted)' }}>... e altre {generaTestoCondivisione(s).split('\n').length - 6} righe</div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-  
-  // ============================================================
-  // RENDER PRINCIPALE
-  // ============================================================
-  
+
+  // RENDER
   return (
     <div className="schedina-container">
-      {/* Sezione selezione campionati */}
-      <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
-          <h4 style={{ margin: 0 }}>🏆 Seleziona Campionati</h4>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <button className="btn btn-secondary" onClick={selezionaTuttiCampionati} style={{ fontSize: '11px', padding: '4px 12px' }}>
-              Seleziona Tutti
-            </button>
-            <button className="btn btn-secondary" onClick={deselezionaTuttiCampionati} style={{ fontSize: '11px', padding: '4px 12px' }}>
-              Deseleziona Tutti
-            </button>
-          </div>
-        </div>
+      <div className="card" style={{marginBottom: '16px'}}>
+        <h3 style={{color: 'var(--accent)', marginBottom: '12px'}}>🎯 Crea Schedina</h3>
         
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-          {championships.map(c => {
-            const isSelected = campionatiSelezionati.includes(c.name);
-            return (
-              <button
-                key={c.name}
-                onClick={() => toggleCampionato(c.name)}
+        {/* FILTRI - IDENTICI AL PALINSESTO */}
+        <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '12px'}}>
+          <div className="form-group" style={{maxWidth: '250px', marginBottom: '0', flex: '1'}}>
+            <label>Campionato</label>
+            <select value={campionatoSelezionato} onChange={e => setCampionatoSelezionato(e.target.value)}>
+              <option value="Tutti">Tutti</option>
+              {championships.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+            </select>
+          </div>
+          
+          <div className="form-group" style={{maxWidth: '180px', marginBottom: '0', flex: '1'}}>
+            <label>Range Giorni</label>
+            <select value={giorniRange} onChange={e => setGiorniRange(parseInt(e.target.value))}>
+              <option value="0">Oggi (0)</option>
+              <option value="1">Oggi - Domani (0-1)</option>
+              <option value="2">Oggi - Dopodomani (0-2)</option>
+              <option value="3">Oggi - +3 (0-3)</option>
+              <option value="5">Oggi - +5 (0-5)</option>
+              <option value="7">Oggi - +7 (0-7)</option>
+            </select>
+          </div>
+          
+          {/* FILTRO ORARIO - IDENTICO AL PALINSESTO */}
+          <div className="form-group" style={{maxWidth: '220px', marginBottom: '0', flex: '1'}}>
+            <label>Filtro Orario</label>
+            <div style={{display: 'flex', background: 'var(--surface)', borderRadius: '8px', padding: '2px', border: '1px solid var(--border)'}}>
+              <button 
+                className={`btn ${filtroOrario === 'dopo_ora' ? '' : 'btn-secondary'}`}
+                onClick={() => setFiltroOrario('dopo_ora')}
                 style={{
-                  padding: '6px 16px',
-                  borderRadius: '8px',
-                  border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border)',
-                  background: isSelected ? 'var(--accent)' : 'var(--surface)',
-                  color: isSelected ? '#000' : 'var(--text)',
+                  flex: 1,
+                  padding: '4px 8px',
+                  fontSize: '11px',
+                  borderRadius: '6px',
+                  border: 'none',
                   cursor: 'pointer',
-                  fontWeight: isSelected ? 'bold' : 'normal',
-                  transition: 'all 0.2s',
-                  fontSize: '13px'
+                  fontWeight: filtroOrario === 'dopo_ora' ? 'bold' : 'normal',
+                  background: filtroOrario === 'dopo_ora' ? 'var(--accent)' : 'transparent',
+                  color: filtroOrario === 'dopo_ora' ? '#000' : 'var(--text-muted)',
+                  transition: 'all 0.2s'
                 }}
               >
-                {c.name} {isSelected && '✅'}
+                ⏰ Dopo ora
               </button>
-            );
-          })}
-          {championships.length === 0 && (
-            <div style={{ color: 'var(--text-muted)', fontSize: '13px', padding: '8px 0' }}>
-              Nessun campionato importato. Vai su Impostazioni → Importa Campionato
-            </div>
-          )}
-        </div>
-        
-        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px' }}>
-          {campionatiSelezionati.length} campionati selezionati
-        </div>
-      </div>
-      
-      {/* Sezione controlli */}
-      <div className="card">
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
-          <div className="form-group" style={{ marginBottom: 0, flex: '1', minWidth: '150px' }}>
-            <label>📅 Giorni Range</label>
-            <select 
-              value={giorniRange} 
-              onChange={e => setGiorniRange(parseInt(e.target.value))}
-              style={{ padding: '6px 10px' }}
-            >
-              {[0, 1, 2, 3, 4, 5, 6, 7].map(n => (
-                <option key={n} value={n}>{n === 0 ? 'Solo oggi' : `${n} giorni`}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="form-group" style={{ marginBottom: 0, flex: '1', minWidth: '120px' }}>
-            <label>📊 Numero Partite</label>
-            <select 
-              value={numPartite} 
-              onChange={e => setNumPartite(parseInt(e.target.value))}
-              style={{ padding: '6px 10px' }}
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'flex-end', paddingBottom: '4px' }}>
-            <button className="btn" onClick={calcolaSchedina} disabled={isLoading}>
-              {isLoading ? '⏳ Calcolo...' : '🔍 Calcola Schedina'}
-            </button>
-            <button className="btn btn-secondary" onClick={resettaSchedina}>
-              🔄 Resetta
-            </button>
-            <button className="btn btn-secondary" onClick={rigeneraSchedina} disabled={partiteCalcolate.length === 0}>
-              🎲 Rigenera Schedina
-            </button>
-            <button className="btn" onClick={salvaSchedina} disabled={partiteCalcolate.length === 0}>
-              💾 Salva Schedina
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      {/* Risultati calcolati */}
-      {partiteCalcolate.length > 0 && (
-        <div className="card" style={{ borderColor: 'var(--accent)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
-            <h4 style={{ margin: 0, color: 'var(--accent)' }}>
-              📋 Schedina Calcolata ({partiteCalcolate.length} partite)
-            </h4>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-              {partiteCalcolate.filter(p => p.migliorGiocata?.isBomb).length} 💣 bombe
-            </div>
-          </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '400px', overflowY: 'auto' }}>
-            {partiteCalcolate.map((p, idx) => {
-              const giocata = p.migliorGiocata;
-              const pct = giocata?.pct || 0;
-              const isBomb = pct >= 90;
-              const color = isBomb ? 'var(--accent)' : (pct >= 66.67 ? 'var(--win)' : (pct >= 33.34 ? 'var(--draw)' : 'var(--lose)'));
-              const dataFormattata = formatDate(p.data);
-              const ora = p.ora || 'TBD';
-              
-              return (
-                <div key={p.id} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '8px 12px',
-                  background: isBomb ? 'rgba(243, 156, 18, 0.12)' : 'var(--surface)',
+              <button 
+                className={`btn ${filtroOrario === 'giorno_intero' ? '' : 'btn-secondary'}`}
+                onClick={() => setFiltroOrario('giorno_intero')}
+                style={{
+                  flex: 1,
+                  padding: '4px 8px',
+                  fontSize: '11px',
                   borderRadius: '6px',
-                  border: isBomb ? '2px solid var(--accent)' : '1px solid var(--border)',
-                  borderLeft: `4px solid ${color}`,
-                  gap: '8px',
-                  flexWrap: 'wrap'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1', minWidth: '180px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', minWidth: '30px' }}>#{idx + 1}</span>
-                    <span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--text)' }}>
-                      {p.casa} 🆚 {p.ospiti}
-                    </span>
-                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{p.campionato}</span>
-                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>📅 {dataFormattata} {ora}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{
-                      background: isBomb ? 'var(--accent)' : 'var(--card)',
-                      color: isBomb ? '#000' : 'var(--text)',
-                      padding: '2px 12px',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      border: isBomb ? '1px solid var(--accent)' : 'none'
-                    }}>
-                      {giocata?.familyIcon} {giocata?.label || giocata?.giocata || 'N/D'}
-                    </span>
-                    <span style={{
-                      fontWeight: 'bold',
-                      fontSize: '18px',
-                      color: isBomb ? 'var(--accent)' : color,
-                      minWidth: '50px',
-                      textAlign: 'center'
-                    }}>
-                      {pct}% {isBomb && '💣'}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: filtroOrario === 'giorno_intero' ? 'bold' : 'normal',
+                  background: filtroOrario === 'giorno_intero' ? 'var(--accent)' : 'transparent',
+                  color: filtroOrario === 'giorno_intero' ? '#000' : 'var(--text-muted)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                📅 Giorno intero
+              </button>
+            </div>
+            <div style={{fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px', textAlign: 'center'}}>
+              {filtroOrario === 'dopo_ora' ? 'Solo partite non ancora iniziate' : 'Tutte le partite del giorno'}
+            </div>
           </div>
         </div>
-      )}
-      
-      {/* Lista schedine salvate */}
-      <div className="card">
-        <h4 style={{ marginBottom: '12px' }}>💾 Schedine Salvate ({schedineSalvate.length})</h4>
         
-        {schedineSalvate.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>
-            Nessuna schedina salvata. Calcola e salva una schedina per iniziare.
+        {/* STATISTICHE */}
+        <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px', padding: '8px 12px', background: 'var(--surface)', borderRadius: '6px'}}>
+          <span>📊 <b>{partiteDisponibili.length}</b> partite disponibili</span>
+          <span>⭐ Media score: <b style={{color: 'var(--accent)'}}>
+            {partiteDisponibili.length > 0 ? Math.round(partiteDisponibili.reduce((s, m) => s + m.score, 0) / partiteDisponibili.length) : 0}%
+          </b></span>
+          <span>🎯 Selezionate: <b style={{color: 'var(--win)'}}>{partiteSelezionate.length}</b></span>
+        </div>
+        
+        {/* PULSANTI */}
+        <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+          <button className="btn" onClick={() => selezionaMigliori(numPartite)}>
+            ⚡ Seleziona Top {numPartite}
+          </button>
+          <button className="btn btn-secondary" onClick={() => selezionaMigliori(partiteDisponibili.length)}>
+            📋 Seleziona Tutte
+          </button>
+          <button className="btn btn-secondary" onClick={resettaSchedina}>
+            🗑️ Resetta
+          </button>
+          <button className="btn" onClick={creaSchedina} disabled={partiteSelezionate.length < 2 || loading} style={{marginLeft: 'auto'}}>
+            {loading ? '⏳ Creazione...' : `🎯 Crea Schedina (${partiteSelezionate.length})`}
+          </button>
+        </div>
+      </div>
+      
+      {/* LISTA PARTITE */}
+      <div className="card" style={{marginTop: '12px'}}>
+        <h4 style={{marginBottom: '8px'}}>📋 Partite Disponibili</h4>
+        {partiteDisponibili.length === 0 ? (
+          <div className="empty-state">
+            {filtroOrario === 'dopo_ora' 
+              ? 'Nessuna partita futura disponibile dopo l\'orario corrente.' 
+              : 'Nessuna partita disponibile per i filtri selezionati.'}
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
-            {schedineSalvate.slice().reverse().map((s, idx) => {
-              const scoreMedio = calcolaScoreMedio(s);
-              const numBombe = contaBombe(s);
-              const isHighScore = scoreMedio >= 70;
-              const hasBombe = numBombe > 0;
-              
+          <div style={{display: 'flex', flexDirection: 'column', gap: '6px'}}>
+            {partiteDisponibili.map(m => {
+              const isSelected = partiteSelezionate.some(p => p.id === m.id);
               return (
                 <div 
-                  key={s.id} 
+                  key={m.id}
+                  onClick={() => togglePartita(m)}
                   style={{
-                    padding: '12px 14px',
-                    background: 'var(--surface)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 12px',
                     borderRadius: '8px',
-                    border: hasBombe ? '2px solid var(--accent)' : '1px solid var(--border)',
+                    border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border)',
+                    background: isSelected ? 'rgba(243, 156, 18, 0.1)' : 'var(--surface)',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
-                    position: 'relative'
+                    gap: '8px',
+                    flexWrap: 'wrap'
                   }}
-                  onClick={() => apriSchedina(s)}
-                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  {hasBombe && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '6px',
-                      right: '6px',
-                      background: 'var(--accent)',
-                      color: '#000',
-                      padding: '1px 8px',
-                      borderRadius: '10px',
-                      fontSize: '10px',
-                      fontWeight: 'bold'
-                    }}>
-                      💣 {numBombe}
-                    </div>
-                  )}
-                  
-                  <div style={{ fontWeight: 'bold', color: 'var(--accent)', fontSize: '14px', marginBottom: '4px' }}>
-                    {s.nome}
-                  </div>
-                  
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
-                    <span>🕒 {formatDateTime(s.dataCreazione)}</span>
-                    <span>•</span>
-                    <span>📊 {s.partite?.length || 0} partite</span>
-                  </div>
-                  
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
-                    {s.partite?.slice(0, 2).map((p, i) => (
-                      <span key={i} style={{
-                        background: 'var(--card)',
-                        padding: '1px 6px',
-                        borderRadius: '3px',
-                        fontSize: '10px',
-                        color: 'var(--text)'
-                      }}>
-                        {p.casa} vs {p.ospiti}
-                      </span>
-                    ))}
-                    {s.partite?.length > 2 && (
-                      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                        +{s.partite.length - 2}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginTop: '6px',
-                    paddingTop: '6px',
-                    borderTop: '1px solid var(--border)',
-                    fontSize: '12px'
-                  }}>
-                    <span style={{ fontWeight: 'bold', color: isHighScore ? 'var(--win)' : (scoreMedio >= 50 ? 'var(--draw)' : 'var(--lose)') }}>
-                      Score: {scoreMedio}%
+                  <div style={{display: 'flex', alignItems: 'center', gap: '8px', flex: '1', minWidth: '180px'}}>
+                    <span style={{fontSize: '11px', color: 'var(--text-muted)', minWidth: '80px'}}>
+                      {formatDateEU(m.data)} {m.ora && m.ora !== 'TBD' ? m.ora : ''}
                     </span>
-                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                      👆 Clicca per visualizzare
+                    <span style={{fontWeight: 'bold', fontSize: '13px', color: 'var(--text)'}}>
+                      {m.casa} vs {m.ospiti}
                     </span>
+                  </div>
+                  
+                  <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    <span className={`giocata-pct ${getPercentualeClasse(m.score)}`}>
+                      {m.score}%
+                    </span>
+                    {isSelected && <span style={{color: 'var(--win)', fontSize: '14px'}}>✅</span>}
                   </div>
                 </div>
               );
@@ -1017,13 +981,70 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         )}
       </div>
       
-      {/* Modal per visualizzare la schedina */}
-      {renderModal()}
+      {/* SCHEDINA CREATA */}
+      {schedinaCreata && (
+        <div className="card" style={{border: '2px solid var(--accent)', marginTop: '16px'}}>
+          <h3 style={{color: 'var(--accent)'}}>🎯 Schedina Generata</h3>
+          <p style={{fontSize: '13px', color: 'var(--text-muted)'}}>
+            {schedinaCreata.numPartite} partite • Media score: <b style={{color: 'var(--accent)'}}>{schedinaCreata.media}%</b>
+          </p>
+          
+          {schedinaCreata.partite.map((m, idx) => (
+            <div key={idx} style={{
+              padding: '8px 12px',
+              marginBottom: '8px',
+              borderRadius: '6px',
+              border: '1px solid var(--border)',
+              background: 'var(--surface)'
+            }}>
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px'}}>
+                <span style={{fontSize: '13px'}}>
+                  <b>#{idx + 1}</b> {m.casa} vs {m.ospiti}
+                  <span style={{fontSize: '10px', color: 'var(--text-muted)', marginLeft: '8px'}}>
+                    {formatDateEU(m.data)} {m.ora}
+                  </span>
+                </span>
+                <span className={`giocata-pct ${getPercentualeClasse(m.score)}`}>
+                  {m.score}%
+                </span>
+              </div>
+              <div style={{display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px'}}>
+                {m.giocate.map((g, gi) => (
+                  <span key={gi} style={{
+                    background: g.isBomb ? 'var(--accent)' : 'var(--card)',
+                    color: g.isBomb ? '#000' : 'var(--text)',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    fontSize: '10px',
+                    border: g.isBomb ? '2px solid var(--accent)' : '1px solid var(--border)'
+                  }}>
+                    {g.label} {g.pct}%{g.isBomb && ' 💣'}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+          
+          <div style={{marginTop: '12px', display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
+            <button className="btn" onClick={() => {
+              const text = schedinaCreata.partite.map((m, idx) => 
+                `#${idx + 1} ${m.casa} vs ${m.ospiti} - Score: ${m.score}% - Giocate: ${m.giocate.map(g => `${g.label} ${g.pct}%`).join(', ')}`
+              ).join('\n');
+              navigator.clipboard?.writeText?.(`🎯 SCHEDINA GesssAI-Pro\n\n${text}\n\nMedia Score: ${schedinaCreata.media}% - ${schedinaCreata.numPartite} partite`);
+              showAlert('success', '📋 Copiato!');
+            }}>
+              📋 Copia
+            </button>
+            <button className="btn btn-secondary" onClick={resettaSchedina}>
+              🗑️ Resetta
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-// Espone il componente globalmente
+// ESPORTA GLOBALMENTE IL COMPONENTE SCHEDINA
 window.SchedinaComponent = SchedinaComponent;
-
-console.log('✅ Modulo Schedina caricato correttamente');
+console.log('✅ SchedinaComponent caricato correttamente!');
