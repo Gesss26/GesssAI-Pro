@@ -3623,9 +3623,6 @@ function App() {
     return saved || 'pc';
   });
   const [selectedFamiglie, setSelectedFamiglie] = useState(initial.selectedFamiglie || ['dc_under','mg_casa_ospite','over']);
-  
-  // NUOVO STATO PER IL FILTRO ORARIO
-  const [filterTime, setFilterTime] = useState('dopo_ora'); // 'dopo_ora' o 'giorno_intero'
 
   // Effetto per caricare il meteo
   useEffect(() => {
@@ -3789,52 +3786,6 @@ function App() {
                     <option value="6">Oggi - +6 giorni (0-6)</option>
                   </select>
                 </div>
-                
-                {/* NUOVO FILTRO ORARIO */}
-                <div className="form-group" style={{maxWidth: '220px', marginBottom: '0', flex: '1'}}>
-                  <label>Filtro Orario</label>
-                  <div style={{display: 'flex', background: 'var(--surface)', borderRadius: '8px', padding: '2px', border: '1px solid var(--border)'}}>
-                    <button 
-                      className={`btn ${filterTime === 'dopo_ora' ? '' : 'btn-secondary'}`}
-                      onClick={() => setFilterTime('dopo_ora')}
-                      style={{
-                        flex: 1,
-                        padding: '4px 8px',
-                        fontSize: '11px',
-                        borderRadius: '6px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontWeight: filterTime === 'dopo_ora' ? 'bold' : 'normal',
-                        background: filterTime === 'dopo_ora' ? 'var(--accent)' : 'transparent',
-                        color: filterTime === 'dopo_ora' ? '#000' : 'var(--text-muted)',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      ⏰ Dopo ora
-                    </button>
-                    <button 
-                      className={`btn ${filterTime === 'giorno_intero' ? '' : 'btn-secondary'}`}
-                      onClick={() => setFilterTime('giorno_intero')}
-                      style={{
-                        flex: 1,
-                        padding: '4px 8px',
-                        fontSize: '11px',
-                        borderRadius: '6px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontWeight: filterTime === 'giorno_intero' ? 'bold' : 'normal',
-                        background: filterTime === 'giorno_intero' ? 'var(--accent)' : 'transparent',
-                        color: filterTime === 'giorno_intero' ? '#000' : 'var(--text-muted)',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      📅 Giorno intero
-                    </button>
-                  </div>
-                  <div style={{fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px', textAlign: 'center'}}>
-                    {filterTime === 'dopo_ora' ? 'Mostra solo partite non ancora iniziate' : 'Mostra tutte le partite del giorno'}
-                  </div>
-                </div>
               </div>
               <h2 style={{marginBottom:'14px'}}>📅 Palinsesto - Prossimi {daysRange + 1} Giorni</h2>
               {(() => {
@@ -3853,33 +3804,6 @@ function App() {
                     });
                   }
                   
-                  // APPLICA FILTRO ORARIO
-                  if (filterTime === 'dopo_ora') {
-                    const now = new Date();
-                    const currentHour = now.getHours();
-                    const currentMinutes = now.getMinutes();
-                    const currentTotalMinutes = currentHour * 60 + currentMinutes;
-                    
-                    futureMatches = futureMatches.filter(m => {
-                      if (!m.ora || m.ora === 'TBD' || m.ora === 'N/D') {
-                        return true;
-                      }
-                      const timeParts = m.ora.split(':');
-                      if (timeParts.length < 2) return true;
-                      const matchHour = parseInt(timeParts[0], 10);
-                      const matchMinutes = parseInt(timeParts[1], 10);
-                      if (isNaN(matchHour) || isNaN(matchMinutes)) return true;
-                      const matchTotalMinutes = matchHour * 60 + matchMinutes;
-                      
-                      const today = getTodayStr();
-                      const matchDate = normalizeDate(m.data);
-                      if (matchDate === today) {
-                        return matchTotalMinutes > currentTotalMinutes;
-                      }
-                      return true;
-                    });
-                  }
-                  
                   futureMatches.sort((a, b) => {
                     const dateA = normalizeDate(a.data);
                     const dateB = normalizeDate(b.data);
@@ -3888,10 +3812,7 @@ function App() {
                   });
                   
                   if (futureMatches.length === 0) {
-                    const message = filterTime === 'dopo_ora' 
-                      ? 'Nessuna partita futura disponibile per questo campionato dopo l\'orario corrente.' 
-                      : 'Nessuna partita disponibile per questo campionato nella giornata selezionata.';
-                    return <div className="empty-state">{message}</div>;
+                    return <div className="empty-state">Nessuna partita disponibile per questo campionato nella giornata più vicina.</div>;
                   }
                   
                   return <div className="matches-grid">{futureMatches.map(m => { 
