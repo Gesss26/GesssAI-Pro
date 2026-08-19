@@ -7,6 +7,7 @@
 // + DATA E ORA SEPARATE DA TRATTINO NELLA CONDIVISIONE
 // + SEZIONI DIVISE PER OGNI OPZIONE + GG/NG IN LISTA GIOCATE
 // + FILTRO RANGE GIORNI ALLINEATO CON PALINSESTO
+// + MOSTRA TUTTE LE PARTITE COME IN PALINSESTO (anche senza giocata)
 // ============================================================
 
 // Assicurati che FAMIGLIE_GIOCATE includa 'gg_ng'
@@ -276,6 +277,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     };
   };
 
+  // MODIFICATO: MOSTRA TUTTE LE PARTITE, NON SOLO QUELLE CON SCORE > 0
   const getPartiteConGiocate = useCallback(() => {
     const partite = getPartiteFutureConFiltro();
     const partiteConGiocate = partite.map(m => {
@@ -287,8 +289,9 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         score: dettagli.score,
         tutteGiocate: dettagli.tutteGiocate || []
       };
-    }).filter(m => m.score > 0);
-    
+    });
+    // NON FILTRARE per score > 0 - mostra TUTTE le partite come nel Palinsesto
+    // Ordina per score (le migliori prime)
     const partiteOrdinate = partiteConGiocate.sort((a, b) => b.score - a.score);
     return partiteOrdinate;
   }, [getPartiteFutureConFiltro, giocateSelezionate]);
@@ -1661,3 +1664,4 @@ console.log('   - Sezioni divise per ogni opzione');
 console.log('   - GG/NG in lista giocate (assicurato staticamente)');
 console.log('   - Rigenera rispetta i filtri impostati');
 console.log('   - Range giorni allineato con Palinsesto (0-7 giorni)');
+console.log('   - MOSTRA TUTTE LE PARTITE come nel Palinsesto');
