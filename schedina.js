@@ -737,14 +737,18 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     showAlert('success', `📂 Schedina caricata! ${schedina.numPartite} partite, media ${schedina.media}%`);
   };
 
-  // Assicurati che GG/NG sia incluso nella lista delle famiglie disponibili
+  // COSTRUISCI LA LISTA DELLE FAMIGLIE DISPONIBILI IN MODO STATICO
+  // per essere SICURO che GG/NG sia sempre presente
   const famiglieDisponibili = [
     { id: 'tutte', label: '⭐ Tutte', icon: '⭐' },
-    ...Object.entries(window.FAMIGLIE_GIOCATE || {}).map(([id, family]) => ({
-      id: id,
-      label: family.label,
-      icon: family.icon
-    }))
+    { id: 'gg_ng', label: 'GG - NG', icon: '⚽' },
+    ...Object.entries(window.FAMIGLIE_GIOCATE || {})
+      .filter(([id]) => id !== 'gg_ng') // Evita duplicati
+      .map(([id, family]) => ({
+        id: id,
+        label: family.label,
+        icon: family.icon
+      }))
   ];
 
   function hexToRgb(hex) {
@@ -1647,5 +1651,5 @@ console.log('   - Casualità >80% sceglie partite CASUALI ma rispetta il numero 
 console.log('   - Data e ora separate da trattino nelle condivisioni');
 console.log('   - Max 10 partite con ordinamento data/ora');
 console.log('   - Sezioni divise per ogni opzione');
-console.log('   - GG/NG in lista giocate');
+console.log('   - GG/NG in lista giocate (assicurato staticamente)');
 console.log('   - Rigenera rispetta i filtri impostati');
