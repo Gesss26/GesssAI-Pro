@@ -1,7 +1,7 @@
 // ============================================================
 // COMPONENTE SCHEDINA - CON CASUALITÀ 🎲 + SELEZIONE MULTIPLA CAMPIONATI
 // MODIFICHE: MASSIMO 10 PARTITE + BOTTONE RIGENERA + CASUALITÀ + MULTI CAMPIONATI
-// + ORDINE CRESCENTE PER DATA/ORA + CONTEggio PARTITE
+// + ORDINE CRESCENTE PER DATA/ORA + CONTEGGIO PARTITE + SELEZIONE NUMERICA
 // ============================================================
 
 const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectMatch, showAlert }) => {
@@ -20,6 +20,9 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       return JSON.parse(localStorage.getItem('ft_schedine_salvate') || '[]');
     } catch { return []; }
   });
+  
+  // NUOVO: Stato per il numero di partite da selezionare
+  const [numeroPartiteDaSelezionare, setNumeroPartiteDaSelezionare] = useState(5);
 
   // All'avvio: seleziona tutti i campionati di default
   useEffect(() => {
@@ -214,6 +217,19 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
 
   const partiteDisponibili = getPartiteConGiocate();
 
+  // NUOVA FUNZIONE: Seleziona un numero personalizzato di partite
+  const selezionaNumeroPartite = (n) => {
+    if (partiteDisponibili.length === 0) {
+      showAlert('info', 'ℹ️ Nessuna partita disponibile.');
+      return;
+    }
+    const massimo = Math.min(n, partiteDisponibili.length, 10);
+    const migliori = partiteDisponibili.slice(0, massimo);
+    const miglioriOrdinate = ordinaPartitePerDataOra(migliori);
+    setPartiteSelezionate(miglioriOrdinate);
+    showAlert('success', `✅ Selezionate ${miglioriOrdinate.length} migliori partite!`);
+  };
+
   // ============================================================
   // FUNZIONE RIGENERA CON CASUALITÀ 🎲
   // ============================================================
@@ -323,15 +339,6 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const selezionateOrdinate = ordinaPartitePerDataOra(selezionate);
     setPartiteSelezionate(selezionateOrdinate);
     showAlert('success', `🎲 ${selezionateOrdinate.length} partite selezionate casualmente!`);
-  };
-
-  const selezionaMiglioriPartite = (n) => {
-    const massimo = Math.min(n, 10);
-    const migliori = partiteDisponibili.slice(0, massimo);
-    // Ordina per data e ora
-    const miglioriOrdinate = ordinaPartitePerDataOra(migliori);
-    setPartiteSelezionate(miglioriOrdinate);
-    showAlert('success', `✅ Selezionate ${miglioriOrdinate.length} migliori partite!`);
   };
 
   const togglePartita = (match) => {
@@ -865,35 +872,65 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
           )}
         </div>
         
-        {/* PULSANTI */}
-        <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
-          <button className="btn" onClick={() => selezionaMiglioriPartite(3)}>
-            ⚡ Top 3
-          </button>
-          <button className="btn" onClick={() => selezionaMiglioriPartite(5)}>
-            ⚡ Top 5
-          </button>
-          <button className="btn" onClick={() => selezionaMiglioriPartite(10)}>
-            ⚡ Top 10
-          </button>
-          <button className="btn" onClick={() => selezionaMiglioriPartite(partiteDisponibili.length)}>
-            📋 Tutte
+        {/* 🔢 PULSANTI CON SELEZIONE NUMERICA */}
+        <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center'}}>
+          {/* Selettore numerico per il numero di partite */}
+          <div style={{display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--surface)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--border)'}}>
+            <span style={{fontSize: '12px', color: 'var(--text-muted)'}}>🔢</span>
+            <input 
+              type="number" 
+              min="1" 
+              max="10" 
+              value={numeroPartiteDaSelezionare} 
+              onChange={e => {
+                const val = parseInt(e.target.value) || 1;
+                setNumeroPartiteDaSelezionare(Math.min(10, Math.max(1, val)));
+              }}
+              style={{
+                width: '36px',
+                padding: '3px 4px',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                textAlign: 'center',
+                background: 'var(--background)',
+                color: 'var(--text)',
+                border: '1px solid var(--border)',
+                borderRadius: '4px',
+                outline: 'none'
+              }}
+            />
+          </div>
+          
+          <button className="btn" onClick={() => selezionaNumeroPartite(numeroPartiteDaSelezionare)} style={{background: 'var(--accent2)', color: '#000'}}>
+            ⚡ Seleziona {numeroPartiteDaSelezionare}
           </button>
           
-          {/* 🎲 PULSANTE CASUALE */}
+          <button className="btn" onClick={() => selezionaNumeroPartite(3)}>
+            Top 3
+          </button>
+          <button className="btn" onClick={() => selezionaNumeroPartite(5)}>
+            Top 5
+          </button>
+          <button className="btn" onClick={() => selezionaNumeroPartite(10)}>
+            Top 10
+          </button>
+          <button className="btn" onClick={() => selezionaNumeroPartite(partiteDisponibili.length)} style={{fontSize: '11px'}}>
+            📋 Tutte ({partiteDisponibili.length})
+          </button>
+          
           <button className="btn" onClick={selezionaCasuale} style={{background: '#8e44ad', color: '#fff'}}>
             🎲 Casuale
           </button>
           
           <button className="btn" onClick={rigeneraSchedina} style={{background: 'var(--accent2)', color: '#000'}}>
-            🔄 Rigenera {casualitaLevel > 50 ? '🎲' : ''}
+            🔄 Rigenera
           </button>
           
           <button className="btn btn-secondary" onClick={resettaSchedina}>
             🗑️ Resetta
           </button>
           <button className="btn" onClick={creaSchedina} disabled={partiteSelezionate.length < 2 || loading} style={{marginLeft: 'auto'}}>
-            {loading ? '⏳ Creazione...' : `🎯 Crea Schedina (${partiteSelezionate.length})`}
+            {loading ? '⏳ Creazione...' : `🎯 Crea (${partiteSelezionate.length})`}
           </button>
         </div>
         
@@ -901,6 +938,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
           💡 Seleziona campionati e giocate in alto. Clicca su una partita per selezionarla/deselezionarla. Max 10 partite.
           {casualitaLevel > 0 && ` 🎲 Livello casualità: ${casualitaLevel}%`}
           <br/>📅 Le partite vengono ordinate automaticamente per data e ora crescente.
+          <br/>🔢 Usa il selettore numerico per scegliere quante partite selezionare (1-10).
         </div>
       </div>
       
