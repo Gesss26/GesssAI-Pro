@@ -1,6 +1,7 @@
 // ============================================================
 // COMPONENTE SCHEDINA - CON CASUALITÀ 🎲 + SELEZIONE MULTIPLA CAMPIONATI
 // MODIFICHE: MASSIMO 10 PARTITE + BOTTONE RIGENERA + CASUALITÀ + MULTI CAMPIONATI
+// + ORDINE CRESCENTE PER DATA/ORA + CONTEggio PARTITE
 // ============================================================
 
 const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectMatch, showAlert }) => {
@@ -35,6 +36,41 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
+  };
+
+  // Funzione per ordinare le partite per data e ora crescente
+  const ordinaPartitePerDataOra = (partite) => {
+    return [...partite].sort((a, b) => {
+      // Prima confronta le date
+      const dateA = normalizeDate(a.data);
+      const dateB = normalizeDate(b.data);
+      
+      if (dateA && dateB && dateA !== dateB) {
+        return dateA.localeCompare(dateB);
+      }
+      
+      // Se stessa data, confronta le ore
+      const oraA = a.ora || '00:00';
+      const oraB = b.ora || '00:00';
+      
+      const parseOra = (ora) => {
+        if (ora === 'TBD' || ora === 'N/D' || !ora) return { h: 99, m: 99 };
+        const parts = ora.split(':');
+        if (parts.length < 2) return { h: 99, m: 99 };
+        return { 
+          h: parseInt(parts[0], 10) || 99, 
+          m: parseInt(parts[1], 10) || 99 
+        };
+      };
+      
+      const oraAParsed = parseOra(oraA);
+      const oraBParsed = parseOra(oraB);
+      
+      if (oraAParsed.h !== oraBParsed.h) {
+        return oraAParsed.h - oraBParsed.h;
+      }
+      return oraAParsed.m - oraBParsed.m;
+    });
   };
 
   // Funzione per ottenere le partite "future" con filtro orario e campionati selezionati
@@ -79,6 +115,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       });
     }
     
+    // Ordina per data prima di restituire
     futureMatches.sort((a, b) => {
       const dateA = normalizeDate(a.data);
       const dateB = normalizeDate(b.data);
@@ -159,7 +196,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
 
   const getPartiteConGiocate = useCallback(() => {
     const partite = getPartiteFutureConFiltro();
-    return partite.map(m => {
+    const partiteConGiocate = partite.map(m => {
       const dettagli = calcolaGiocataPerPartita(m);
       return {
         ...m,
@@ -168,7 +205,11 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         score: dettagli.score,
         tutteGiocate: dettagli.tutteGiocate || []
       };
-    }).filter(m => m.score > 0).sort((a, b) => b.score - a.score);
+    }).filter(m => m.score > 0);
+    
+    // Ordina per score (decrescente) per la visualizzazione
+    const partiteOrdinate = partiteConGiocate.sort((a, b) => b.score - a.score);
+    return partiteOrdinate;
   }, [getPartiteFutureConFiltro, giocateSelezionate]);
 
   const partiteDisponibili = getPartiteConGiocate();
@@ -250,14 +291,16 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       return;
     }
     
-    setPartiteSelezionate(selezionate);
+    // Ordina le partite selezionate per data e ora
+    const selezionateOrdinate = ordinaPartitePerDataOra(selezionate);
+    setPartiteSelezionate(selezionateOrdinate);
     
     // Emoji in base al livello di casualità
     let emojiCasualita = '🎲';
     if (casualitaLevel > 80) emojiCasualita = '🎲🎲🎲';
     else if (casualitaLevel > 50) emojiCasualita = '🎲🎲';
     
-    showAlert('success', `🔄 Schedina rigenerata! ${selezionate.length} partite selezionate. ${emojiCasualita} Livello casualità: ${casualitaLevel}%`);
+    showAlert('success', `🔄 Schedina rigenerata! ${selezionateOrdinate.length} partite selezionate. ${emojiCasualita} Livello casualità: ${casualitaLevel}%`);
   };
 
   // ============================================================
@@ -276,32 +319,42 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const maxPartite = Math.min(10, shuffled.length);
     const selezionate = shuffled.slice(0, maxPartite);
     
-    setPartiteSelezionate(selezionate);
-    showAlert('success', `🎲 ${selezionate.length} partite selezionate casualmente!`);
+    // Ordina per data e ora
+    const selezionateOrdinate = ordinaPartitePerDataOra(selezionate);
+    setPartiteSelezionate(selezionateOrdinate);
+    showAlert('success', `🎲 ${selezionateOrdinate.length} partite selezionate casualmente!`);
   };
 
   const selezionaMiglioriPartite = (n) => {
     const massimo = Math.min(n, 10);
     const migliori = partiteDisponibili.slice(0, massimo);
-    setPartiteSelezionate(migliori);
-    showAlert('success', `✅ Selezionate ${migliori.length} migliori partite!`);
+    // Ordina per data e ora
+    const miglioriOrdinate = ordinaPartitePerDataOra(migliori);
+    setPartiteSelezionate(miglioriOrdinate);
+    showAlert('success', `✅ Selezionate ${miglioriOrdinate.length} migliori partite!`);
   };
 
   const togglePartita = (match) => {
     setPartiteSelezionate(prev => {
       const exists = prev.find(m => m.id === match.id);
+      let nuovePartite;
       if (exists) {
-        return prev.filter(m => m.id !== match.id);
+        nuovePartite = prev.filter(m => m.id !== match.id);
       } else {
         if (prev.length >= 10) {
           showAlert('error', '⚠️ Massimo 10 partite per schedina!');
           return prev;
         }
-        return [...prev, match];
+        nuovePartite = [...prev, match];
       }
+      // Ordina sempre per data e ora
+      return ordinaPartitePerDataOra(nuovePartite);
     });
   };
 
+  // ============================================================
+  // FUNZIONE CREA SCHEDINA MODIFICATA CON ORDINE E CONTEGGIO
+  // ============================================================
   const creaSchedina = () => {
     if (partiteSelezionate.length < 2) {
       showAlert('error', '⚠️ Seleziona almeno 2 partite per creare la schedina!');
@@ -310,7 +363,10 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     
     setLoading(true);
     
-    const schedina = partiteSelezionate.map(m => {
+    // Le partite sono già ordinate per data e ora, ma ordiniamo di nuovo per sicurezza
+    const partiteOrdinate = ordinaPartitePerDataOra(partiteSelezionate);
+    
+    const schedina = partiteOrdinate.map(m => {
       const dettagli = calcolaGiocataPerPartita(m);
       return {
         ...m,
@@ -323,6 +379,11 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     const totaleScore = schedina.reduce((s, m) => s + (m.pct || 0), 0);
     const mediaScore = Math.round(totaleScore / schedina.length);
     
+    // Calcola range date per la schedina
+    const datePartite = schedina.map(m => normalizeDate(m.data)).filter(d => d);
+    const dataInizio = datePartite.length > 0 ? datePartite[0] : 'N/D';
+    const dataFine = datePartite.length > 0 ? datePartite[datePartite.length - 1] : 'N/D';
+    
     const nuovaSchedina = {
       id: Date.now().toString(36),
       partite: schedina,
@@ -333,7 +394,11 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       dataFormattata: new Date().toLocaleString('it-IT'),
       giocateSelezionate: [...giocateSelezionate],
       campionatiSelezionati: [...campionatiSelezionati],
-      timestamp: new Date().toLocaleString('it-IT')
+      timestamp: new Date().toLocaleString('it-IT'),
+      dataInizio: dataInizio,
+      dataFine: dataFine,
+      rangeGiorni: giorniRange,
+      filtroOrario: filtroOrario
     };
     
     setSchedinaCreata(nuovaSchedina);
@@ -345,7 +410,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     setSchedineSalvate(salvate);
     
     setLoading(false);
-    showAlert('success', `🎯 Schedina creata! Media score: ${mediaScore}%`);
+    showAlert('success', `🎯 Schedina creata! ${schedina.length} partite dal ${formatDateEU(dataInizio)} al ${formatDateEU(dataFine)} - Media score: ${mediaScore}%`);
     
     // Apri il modal
     setShowSchedinaModal(true);
@@ -410,12 +475,25 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     }, 0);
   };
 
-  // Formatta la schedina per la condivisione
+  // ============================================================
+  // FORMATTAZIONE SCHEDINA PER CONDIVISIONE CON CONTEGGIO E ORDINE
+  // ============================================================
   const formatSchedinaText = (schedina) => {
     const lines = [];
     lines.push('🎯 *SCHEDINA GesssAI-Pro*');
     lines.push(`📅 ${schedina.dataFormattata || new Date().toLocaleString('it-IT')}`);
     lines.push(`📊 ${schedina.numPartite} partite • Media: ${schedina.media}%`);
+    
+    // Mostra range date
+    if (schedina.dataInizio && schedina.dataFine) {
+      const inizio = formatDateEU(schedina.dataInizio);
+      const fine = formatDateEU(schedina.dataFine);
+      if (inizio === fine) {
+        lines.push(`📆 Data: ${inizio}`);
+      } else {
+        lines.push(`📆 Dal ${inizio} al ${fine}`);
+      }
+    }
     
     // Mostra campionati selezionati
     if (schedina.campionatiSelezionati && schedina.campionatiSelezionati.length > 0) {
@@ -436,6 +514,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     lines.push('───────────────────');
     lines.push('');
     
+    // Le partite sono già ordinate per data e ora crescente
     schedina.partite.forEach((m, idx) => {
       const dataOra = `${formatDateEU(m.data)} ${m.ora && m.ora !== 'TBD' ? m.ora : ''}`;
       lines.push(`📅 ${dataOra}`);
@@ -451,6 +530,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     lines.push('');
     lines.push('───────────────────');
     lines.push(`⭐ Media Score: ${schedina.media}%`);
+    lines.push(`📊 Numero partite: ${schedina.numPartite}`);
     lines.push('💣 GesssAI-Pro v3.0');
     lines.push('⚠️ Le scommesse comportano rischi finanziari. Gioca responsabilmente.');
     
@@ -507,7 +587,9 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
   // Carica una schedina salvata
   const caricaSchedinaSalvata = (schedina) => {
     setSchedinaCreata(schedina);
-    setPartiteSelezionate(schedina.partite);
+    // Ordina le partite quando carichi
+    const partiteOrdinate = ordinaPartitePerDataOra(schedina.partite);
+    setPartiteSelezionate(partiteOrdinate);
     if (schedina.campionatiSelezionati) {
       setCampionatiSelezionati(schedina.campionatiSelezionati);
     }
@@ -769,13 +851,18 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
           </div>
         </div>
         
-        {/* STATISTICHE */}
+        {/* STATISTICHE CON CONTEGGIO */}
         <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px', padding: '8px 12px', background: 'var(--surface)', borderRadius: '6px'}}>
           <span>📊 <b>{partiteDisponibili.length}</b> partite disponibili</span>
           <span>⭐ Media score: <b style={{color: 'var(--accent)'}}>
             {partiteDisponibili.length > 0 ? Math.round(partiteDisponibili.reduce((s, m) => s + m.score, 0) / partiteDisponibili.length) : 0}%
           </b></span>
           <span>🎯 Selezionate: <b style={{color: 'var(--win)'}}>{partiteSelezionate.length}</b> / 10</span>
+          {partiteSelezionate.length > 0 && (
+            <span style={{fontSize: '11px', color: 'var(--text-muted)'}}>
+              📅 {partiteSelezionate.length > 0 ? `${formatDateEU(partiteSelezionate[0].data)} → ${formatDateEU(partiteSelezionate[partiteSelezionate.length-1].data)}` : ''}
+            </span>
+          )}
         </div>
         
         {/* PULSANTI */}
@@ -813,12 +900,20 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         <div style={{marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)'}}>
           💡 Seleziona campionati e giocate in alto. Clicca su una partita per selezionarla/deselezionarla. Max 10 partite.
           {casualitaLevel > 0 && ` 🎲 Livello casualità: ${casualitaLevel}%`}
+          <br/>📅 Le partite vengono ordinate automaticamente per data e ora crescente.
         </div>
       </div>
       
-      {/* LISTA PARTITE - stessi del codice originale */}
+      {/* LISTA PARTITE CON ORDINE VISIVO */}
       <div className="card" style={{marginTop: '12px'}}>
-        <h4 style={{marginBottom: '8px'}}>📋 Partite Disponibili</h4>
+        <h4 style={{marginBottom: '8px'}}>
+          📋 Partite Disponibili 
+          {partiteSelezionate.length > 0 && (
+            <span style={{fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px'}}>
+              • Ordinate per data/ora ✅
+            </span>
+          )}
+        </h4>
         {partiteDisponibili.length === 0 ? (
           <div className="empty-state">
             {filtroOrario === 'dopo_ora' 
@@ -896,7 +991,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         )}
       </div>
 
-      {/* SCHEDINE SALVATE - stesse del codice originale */}
+      {/* SCHEDINE SALVATE */}
       {schedineSalvate.length > 0 && (
         <div className="card" style={{marginTop: '16px', border: '2px solid var(--accent)'}}>
           <h4 style={{color: 'var(--accent)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px'}}>
@@ -975,7 +1070,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         </div>
       )}
 
-      {/* MODAL SCHEDINA - stesse del codice originale */}
+      {/* MODAL SCHEDINA - CON ORDINE E CONTEGGIO */}
       {showSchedinaModal && schedinaCreata && (
         <div className="heatmap-detail-overlay" onClick={() => setShowSchedinaModal(false)}>
           <div className="heatmap-detail-modal" onClick={e => e.stopPropagation()} style={{maxWidth: '800px'}}>
@@ -987,10 +1082,20 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
                 📅 {schedinaCreata.dataFormattata || new Date().toLocaleString('it-IT')} • {schedinaCreata.numPartite} partite • Media: <b style={{color: 'var(--accent)'}}>{schedinaCreata.media}%</b>
               </p>
               
-              {/* Riassunto filtri */}
+              {/* Riassunto filtri con range date */}
               <div style={{textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '12px'}}>
+                {schedinaCreata.dataInizio && schedinaCreata.dataFine && (
+                  <span>
+                    📆 {schedinaCreata.dataInizio === schedinaCreata.dataFine 
+                      ? `Partite del ${formatDateEU(schedinaCreata.dataInizio)}` 
+                      : `Dal ${formatDateEU(schedinaCreata.dataInizio)} al ${formatDateEU(schedinaCreata.dataFine)}`
+                    }
+                  </span>
+                )}
                 {schedinaCreata.campionatiSelezionati && (
-                  <span>🏆 {schedinaCreata.campionatiSelezionati.length === championships.length ? 'Tutti i campionati' : schedinaCreata.campionatiSelezionati.join(', ')}</span>
+                  <span style={{marginLeft: '12px'}}>
+                    🏆 {schedinaCreata.campionatiSelezionati.length === championships.length ? 'Tutti i campionati' : schedinaCreata.campionatiSelezionati.join(', ')}
+                  </span>
                 )}
                 {schedinaCreata.giocateSelezionate && (
                   <span style={{marginLeft: '12px'}}>
@@ -1000,6 +1105,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
               </div>
               
               <div style={{borderTop: '2px solid var(--accent)', paddingTop: '12px'}}>
+                {/* Le partite sono già ordinate per data e ora crescente */}
                 {schedinaCreata.partite.map((m, idx) => (
                   <div key={idx} style={{
                     padding: '8px 12px',
@@ -1010,7 +1116,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
                   }}>
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px'}}>
                       <span style={{fontSize: '12px', color: 'var(--text-muted)'}}>
-                        📅 {formatDateEU(m.data)} {m.ora && m.ora !== 'TBD' ? m.ora : ''}
+                        #{idx + 1} 📅 {formatDateEU(m.data)} {m.ora && m.ora !== 'TBD' ? m.ora : ''}
                       </span>
                       <span style={{fontSize: '11px', color: 'var(--text-muted)'}}>
                         🏆 {m.campionato}
@@ -1018,7 +1124,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
                     </div>
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px', marginTop: '2px'}}>
                       <span style={{fontSize: '14px', fontWeight: 'bold'}}>
-                        #{idx + 1} {m.casa} vs {m.ospiti}
+                        ⚽ {m.casa} vs {m.ospiti}
                       </span>
                     </div>
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px', marginTop: '2px'}}>
@@ -1048,6 +1154,9 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
               <div style={{borderTop: '2px solid var(--accent)', marginTop: '12px', paddingTop: '12px', textAlign: 'center'}}>
                 <div style={{fontSize: '16px', fontWeight: 'bold', color: 'var(--accent)'}}>
                   ⭐ Media Score: {schedinaCreata.media}%
+                </div>
+                <div style={{fontSize: '13px', color: 'var(--text)'}}>
+                  📊 {schedinaCreata.numPartite} partite
                 </div>
                 <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px'}}>
                   💣 GesssAI-Pro v3.0 • ⚠️ Le scommesse comportano rischi finanziari. Gioca responsabilmente.
