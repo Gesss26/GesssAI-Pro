@@ -3,9 +3,10 @@
 // MODIFICHE: MASSIMO 10 PARTITE + BOTTONE RIGENERA + CASUALITÀ + MULTI CAMPIONATI
 // + ORDINE CRESCENTE PER DATA/ORA + CONTEGGIO PARTITE + SELEZIONE NUMERICA
 // + RIGENERA USA IL NUMERO DI PARTITE SCELTO + AGGIUNTA GG/NG
-// + CASUALITÀ > 80% SCEGLIE NUMERO PARTITE A CASO (MA RISPETTA IL NUMERO SCELTO)
+// + CASUALITÀ > 80% SCEGLIE PARTITE CASUALI MA RISPETTA IL NUMERO SCELTO
 // + DATA E ORA SEPARATE DA TRATTINO NELLA CONDIVISIONE
 // + SEZIONI DIVISE PER OGNI OPZIONE + GG/NG IN LISTA GIOCATE
+// + FILTRO RANGE GIORNI ALLINEATO CON PALINSESTO
 // ============================================================
 
 // Assicurati che FAMIGLIE_GIOCATE includa 'gg_ng'
@@ -132,6 +133,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
   };
 
   // Funzione per ottenere le partite "future" con filtro orario e campionati selezionati
+  // ALLINEATA CON IL PALINSESTO DI INDEX.HTML
   const getPartiteFutureConFiltro = useCallback(() => {
     const todayStr = getTodayStr();
     const maxDateStr = addDaysToDateStr(todayStr, giorniRange);
@@ -142,6 +144,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       futureMatches = futureMatches.filter(m => campionatiSelezionati.includes(m.campionato));
     }
     
+    // FILTRO PER DATA: includi solo partite da oggi a oggi+giorniRange
     futureMatches = futureMatches.filter(m => {
       if (!m.data) return false;
       const normalized = normalizeDate(m.data);
@@ -149,6 +152,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       return normalized >= todayStr && normalized <= maxDateStr;
     });
     
+    // FILTRO ORARIO: se "dopo ora", escludi partite già iniziate oggi
     if (filtroOrario === 'dopo_ora') {
       const now = new Date();
       const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
@@ -172,6 +176,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       });
     }
     
+    // Ordina per data
     futureMatches.sort((a, b) => {
       const dateA = normalizeDate(a.data);
       const dateB = normalizeDate(b.data);
@@ -959,7 +964,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         </div>
 
         {/* ============================================================ */}
-        {/* SEZIONE 3: FILTRI DATA/ORA */}
+        {/* SEZIONE 3: FILTRI DATA/ORA (ALLINEATO CON PALINSESTO) */}
         {/* ============================================================ */}
         <div style={{
           marginBottom: '20px', 
@@ -1000,7 +1005,9 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
                 <option value="1">Oggi - Domani (0-1)</option>
                 <option value="2">Oggi - Dopodomani (0-2)</option>
                 <option value="3">Oggi - +3 (0-3)</option>
+                <option value="4">Oggi - +4 (0-4)</option>
                 <option value="5">Oggi - +5 (0-5)</option>
+                <option value="6">Oggi - +6 (0-6)</option>
                 <option value="7">Oggi - +7 (0-7)</option>
               </select>
             </div>
@@ -1653,3 +1660,4 @@ console.log('   - Max 10 partite con ordinamento data/ora');
 console.log('   - Sezioni divise per ogni opzione');
 console.log('   - GG/NG in lista giocate (assicurato staticamente)');
 console.log('   - Rigenera rispetta i filtri impostati');
+console.log('   - Range giorni allineato con Palinsesto (0-7 giorni)');
