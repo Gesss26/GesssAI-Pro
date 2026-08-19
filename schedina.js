@@ -1,6 +1,5 @@
 // ============================================================
-// COMPONENTE SCHEDINA - VERSIONE SEMPLIFICATA
-// MOSTRA LE STESSE PARTITE DEL PALINSESTO
+// COMPONENTE SCHEDINA - MOSTRA LE STESSE PARTITE DEL PALINSESTO
 // ============================================================
 
 const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectMatch, showAlert }) => {
@@ -18,6 +17,8 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     } catch { return []; }
   });
   const [numeroPartiteDaSelezionare, setNumeroPartiteDaSelezionare] = useState(5);
+  const [giorniRange, setGiorniRange] = useState(1);
+  const [filtroOrario, setFiltroOrario] = useState('dopo_ora');
 
   // All'avvio: seleziona tutti i campionati di default
   useEffect(() => {
@@ -70,10 +71,13 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
   };
 
   // ============================================================
-  // OTTIENI LE PARTITE - STESSA LOGICA DEL PALINSESTO
+  // OTTIENI LE PARTITE - STESSA IDENTICA LOGICA DEL PALINSESTO
   // ============================================================
   const getPartiteDisponibili = useCallback(() => {
-    // Prendi TUTTE le partite Future (come nel Palinsesto)
+    const todayStr = getTodayStr();
+    const maxDateStr = addDaysToDateStr(todayStr, giorniRange);
+    
+    // Prendi le partite Future (come nel Palinsesto)
     let partite = matches.filter(m => m.stato === 'Futura');
     
     // Filtra per campionati selezionati
@@ -81,7 +85,39 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       partite = partite.filter(m => campionatiSelezionati.includes(m.campionato));
     }
     
-    // Ordina per data
+    // FILTRO DATA: da oggi a oggi+giorniRange (IDENTICO AL PALINSESTO)
+    partite = partite.filter(m => {
+      if (!m.data) return false;
+      const normalized = normalizeDate(m.data);
+      if (!normalized) return false;
+      return normalized >= todayStr && normalized <= maxDateStr;
+    });
+    
+    // FILTRO ORARIO: "dopo ora" - IDENTICO AL PALINSESTO
+    if (filtroOrario === 'dopo_ora') {
+      const now = new Date();
+      const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+      
+      partite = partite.filter(m => {
+        if (!m.ora || m.ora === 'TBD' || m.ora === 'N/D') {
+          return true;
+        }
+        const timeParts = m.ora.split(':');
+        if (timeParts.length < 2) return true;
+        const matchHour = parseInt(timeParts[0], 10);
+        const matchMinutes = parseInt(timeParts[1], 10);
+        if (isNaN(matchHour) || isNaN(matchMinutes)) return true;
+        const matchTotalMinutes = matchHour * 60 + matchMinutes;
+        
+        const matchDate = normalizeDate(m.data);
+        if (matchDate === todayStr) {
+          return matchTotalMinutes > currentTotalMinutes;
+        }
+        return true;
+      });
+    }
+    
+    // Ordina per data (come nel Palinsesto)
     partite.sort((a, b) => {
       const dateA = normalizeDate(a.data);
       const dateB = normalizeDate(b.data);
@@ -90,7 +126,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     });
     
     return partite;
-  }, [matches, campionatiSelezionati]);
+  }, [matches, campionatiSelezionati, giorniRange, filtroOrario]);
 
   // Calcola la giocata per una partita (con GG/NG)
   const calcolaGiocataPerPartita = (match) => {
@@ -844,7 +880,101 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
           </div>
         </div>
 
-        {/* SEZIONE 3: CASUALITÀ */}
+        {/* SEZIONE 3: FILTRI DATA/ORA (COME NEL PALINSESTO) */}
+        <div style={{
+          marginBottom: '20px', 
+          padding: '14px 16px', 
+          background: 'var(--background)', 
+          borderRadius: '10px', 
+          border: '2px solid var(--border)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+        }}>
+          <div style={{
+            borderBottom: '1px solid var(--border)',
+            paddingBottom: '8px',
+            marginBottom: '10px'
+          }}>
+            <span style={{fontSize: '15px', fontWeight: 'bold', color: 'var(--text)'}}>
+              📅 Filtri Data e Orario
+            </span>
+          </div>
+          <div style={{display: 'flex', flexWrap: 'wrap', gap: '20px', alignItems: 'center'}}>
+            <div style={{flex: '1', minWidth: '160px'}}>
+              <label style={{fontSize: '12px', fontWeight: 'bold', color: 'var(--text)', display: 'block', marginBottom: '4px'}}>
+                📆 Range Giorni
+              </label>
+              <select 
+                value={giorniRange} 
+                onChange={e => setGiorniRange(parseInt(e.target.value))}
+                style={{
+                  width: '100%',
+                  padding: '7px 12px',
+                  background: 'var(--surface)',
+                  color: 'var(--text)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '6px',
+                  fontSize: '12px'
+                }}
+              >
+                <option value="0">Oggi (0)</option>
+                <option value="1">Oggi - Domani (0-1)</option>
+                <option value="2">Oggi - Dopodomani (0-2)</option>
+                <option value="3">Oggi - +3 (0-3)</option>
+                <option value="4">Oggi - +4 (0-4)</option>
+                <option value="5">Oggi - +5 (0-5)</option>
+                <option value="6">Oggi - +6 (0-6)</option>
+                <option value="7">Oggi - +7 (0-7)</option>
+              </select>
+            </div>
+            
+            <div style={{flex: '1', minWidth: '160px'}}>
+              <label style={{fontSize: '12px', fontWeight: 'bold', color: 'var(--text)', display: 'block', marginBottom: '4px'}}>
+                ⏰ Filtro Orario
+              </label>
+              <div style={{display: 'flex', background: 'var(--surface)', borderRadius: '6px', padding: '3px', border: '1px solid var(--border)'}}>
+                <button 
+                  onClick={() => setFiltroOrario('dopo_ora')}
+                  style={{
+                    flex: 1,
+                    padding: '6px 10px',
+                    fontSize: '11px',
+                    borderRadius: '4px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontWeight: filtroOrario === 'dopo_ora' ? 'bold' : 'normal',
+                    background: filtroOrario === 'dopo_ora' ? 'var(--accent)' : 'transparent',
+                    color: filtroOrario === 'dopo_ora' ? '#000' : 'var(--text-muted)',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  ⏰ Dopo ora
+                </button>
+                <button 
+                  onClick={() => setFiltroOrario('giorno_intero')}
+                  style={{
+                    flex: 1,
+                    padding: '6px 10px',
+                    fontSize: '11px',
+                    borderRadius: '4px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontWeight: filtroOrario === 'giorno_intero' ? 'bold' : 'normal',
+                    background: filtroOrario === 'giorno_intero' ? 'var(--accent)' : 'transparent',
+                    color: filtroOrario === 'giorno_intero' ? '#000' : 'var(--text-muted)',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  📅 Giorno intero
+                </button>
+              </div>
+              <div style={{fontSize: '9px', color: 'var(--text-muted)', marginTop: '3px', textAlign: 'center'}}>
+                {filtroOrario === 'dopo_ora' ? 'Solo partite non ancora iniziate' : 'Tutte le partite del giorno'}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* SEZIONE 4: CASUALITÀ */}
         <div style={{
           marginBottom: '20px', 
           padding: '14px 16px', 
@@ -914,7 +1044,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
           )}
         </div>
 
-        {/* SEZIONE 4: STATISTICHE */}
+        {/* SEZIONE 5: STATISTICHE */}
         <div style={{
           marginBottom: '16px', 
           padding: '10px 16px', 
@@ -939,7 +1069,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
           </div>
         </div>
 
-        {/* SEZIONE 5: SELEZIONE NUMERO PARTITE */}
+        {/* SEZIONE 6: SELEZIONE NUMERO PARTITE */}
         <div style={{
           marginBottom: '16px', 
           padding: '14px 16px', 
@@ -1029,7 +1159,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
           )}
         </div>
 
-        {/* SEZIONE 6: PULSANTI AZIONE */}
+        {/* SEZIONE 7: PULSANTI AZIONE */}
         <div style={{
           marginBottom: '12px',
           padding: '12px 16px',
@@ -1102,7 +1232,9 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         </h4>
         {partiteDisponibili.length === 0 ? (
           <div className="empty-state" style={{padding: '30px', textAlign: 'center', color: 'var(--text-muted)'}}>
-            Nessuna partita disponibile per i campionati selezionati.
+            {filtroOrario === 'dopo_ora' 
+              ? 'Nessuna partita futura disponibile dopo l\'orario corrente per i campionati selezionati.' 
+              : 'Nessuna partita disponibile per i filtri selezionati.'}
           </div>
         ) : (
           <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
@@ -1424,4 +1556,4 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
 };
 
 window.SchedinaComponent = SchedinaComponent;
-console.log('✅ SchedinaComponent caricato - mostra le stesse partite del Palinsesto');
+console.log('✅ SchedinaComponent caricato - mostra le stesse partite del Palinsesto con filtri data/ora');
