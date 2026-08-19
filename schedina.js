@@ -1,5 +1,6 @@
 // ============================================================
 // COMPONENTE SCHEDINA - MOSTRA LE STESSE PARTITE DEL PALINSESTO
+// + ESCLUSIONE PARTITE GIÀ INIZIATE
 // ============================================================
 
 const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectMatch, showAlert }) => {
@@ -71,7 +72,40 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
   };
 
   // ============================================================
+  // FUNZIONE PER VERIFICARE SE UNA PARTITA È GIÀ INIZIATA
+  // ============================================================
+  const isMatchAlreadyStarted = (match) => {
+    if (!match.data || !match.ora || match.ora === 'TBD' || match.ora === 'N/D') {
+      return false;
+    }
+    
+    const now = new Date();
+    const todayStr = getTodayStr();
+    const matchDate = normalizeDate(match.data);
+    
+    // Se la partita non è oggi, non la escludiamo
+    if (matchDate !== todayStr) {
+      return false;
+    }
+    
+    // Se la partita è oggi, controlliamo l'orario
+    const timeParts = match.ora.split(':');
+    if (timeParts.length < 2) return false;
+    
+    const matchHour = parseInt(timeParts[0], 10);
+    const matchMinutes = parseInt(timeParts[1], 10);
+    if (isNaN(matchHour) || isNaN(matchMinutes)) return false;
+    
+    const matchTotalMinutes = matchHour * 60 + matchMinutes;
+    const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+    
+    // Se l'orario della partita è già passato, la escludiamo
+    return matchTotalMinutes <= currentTotalMinutes;
+  };
+
+  // ============================================================
   // OTTIENI LE PARTITE - STESSA IDENTICA LOGICA DEL PALINSESTO
+  // + ESCLUSIONE PARTITE GIÀ INIZIATE
   // ============================================================
   const getPartiteDisponibili = useCallback(() => {
     const todayStr = getTodayStr();
@@ -91,6 +125,37 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       const normalized = normalizeDate(m.data);
       if (!normalized) return false;
       return normalized >= todayStr && normalized <= maxDateStr;
+    });
+    
+    // ⭐ ESCLUSIONE PARTITE GIÀ INIZIATE (ORARIO PASSATO)
+    partite = partite.filter(m => {
+      // Se la partita non ha orario, la teniamo (non possiamo verificare)
+      if (!m.ora || m.ora === 'TBD' || m.ora === 'N/D') {
+        return true;
+      }
+      
+      const matchDate = normalizeDate(m.data);
+      const now = new Date();
+      const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+      const todayStr = getTodayStr();
+      
+      // Se la partita non è oggi, la teniamo (è futura)
+      if (matchDate !== todayStr) {
+        return true;
+      }
+      
+      // Se la partita è oggi, controlliamo l'orario
+      const timeParts = m.ora.split(':');
+      if (timeParts.length < 2) return true;
+      
+      const matchHour = parseInt(timeParts[0], 10);
+      const matchMinutes = parseInt(timeParts[1], 10);
+      if (isNaN(matchHour) || isNaN(matchMinutes)) return true;
+      
+      const matchTotalMinutes = matchHour * 60 + matchMinutes;
+      
+      // TENIAMO solo le partite con orario FUTURO (non ancora iniziate)
+      return matchTotalMinutes > currentTotalMinutes;
     });
     
     // FILTRO ORARIO: "dopo ora" - IDENTICO AL PALINSESTO
@@ -427,7 +492,8 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       timestamp: new Date().toLocaleString('it-IT'),
       dataInizio: dataInizio,
       dataFine: dataFine,
-      casualitaLevel: casualitaLevel
+      casualitaLevel: casualitaLevel,
+      giorniRange: giorniRange
     };
     
     setSchedinaCreata(nuovaSchedina);
@@ -496,6 +562,50 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
   };
 
   // ============================================================
+  // FUNZIONE CALCOLA GG - NG
+  // ============================================================
+  const calcolaGG_NG = (stats) => {
+    if (stats.error) return null;
+    
+    const { homeGames, awayGames } = stats;
+    const allGames = [...homeGames, ...awayGames];
+    const uniqueGames = Array.from(new Map(allGames.map(g => [g.id, g])).values());
+    
+    if (uniqueGames.length === 0) return null;
+    
+    let gg = 0;
+    let ng = 0;
+    
+    uniqueGames.forEach(g => {
+      if (g.golCasa > 0 && g.golOspite > 0) {
+        gg++;
+      } else {
+        ng++;
+      }
+    });
+    
+    const total = uniqueGames.length;
+    const pctGG = Math.round((gg / total) * 100);
+    const pctNG = Math.round((ng / total) * 100);
+    
+    // Scegli la migliore tra GG e NG
+    const migliore = pctGG > pctNG ? 'GG' : 'NG';
+    const pctMigliore = Math.max(pctGG, pctNG);
+    
+    return {
+      giocata: migliore,
+      label: migliore === 'GG' ? 'Goal-Goal' : 'No Goal',
+      pct: pctMigliore,
+      isBomb: pctMigliore >= 90,
+      familyId: 'gg_ng',
+      familyLabel: 'GG - NG',
+      familyIcon: '⚽',
+      gg: pctGG,
+      ng: pctNG
+    };
+  };
+
+  // ============================================================
   // FORMATTAZIONE SCHEDINA PER CONDIVISIONE
   // ============================================================
   const formatSchedinaText = (schedina) => {
@@ -523,6 +633,10 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       } else {
         lines.push(`📆 Dal ${inizio} al ${fine}`);
       }
+    }
+    
+    if (schedina.giorniRange !== undefined) {
+      lines.push(`📅 Range giorni: ${schedina.giorniRange} giorno/i`);
     }
     
     if (schedina.campionatiSelezionati && schedina.campionatiSelezionati.length > 0) {
@@ -660,6 +774,9 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     }
     if (schedina.giocateSelezionate) {
       setGiocateSelezionate(schedina.giocateSelezionate);
+    }
+    if (schedina.giorniRange !== undefined) {
+      setGiorniRange(schedina.giorniRange);
     }
     setShowSchedinaModal(true);
     showAlert('success', `📂 Schedina caricata! ${schedina.numPartite} partite, media ${schedina.media}%`);
@@ -972,6 +1089,9 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
               </div>
             </div>
           </div>
+          <div style={{fontSize: '10px', color: 'var(--text-muted)', marginTop: '6px', padding: '4px 8px', background: 'rgba(231, 76, 60, 0.05)', borderRadius: '4px', border: '1px solid rgba(231, 76, 60, 0.1)'}}>
+            ⏰ <b>Escluse automaticamente</b> le partite con orario già passato (solo per partite di oggi)
+          </div>
         </div>
 
         {/* SEZIONE 4: CASUALITÀ */}
@@ -1054,6 +1174,8 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         }}>
           <div style={{display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '13px'}}>
             <span>📊 <b>{partiteDisponibili.length}</b> partite disponibili</span>
+            <span>📅 Range: <b>{giorniRange} giorno/i</b></span>
+            <span>⏰ Solo partite <b>non ancora iniziate</b></span>
             <span>⭐ Media score: <b style={{color: 'var(--accent)'}}>
               {partiteDisponibili.length > 0 ? Math.round(partiteDisponibili.reduce((s, m) => s + m.score, 0) / partiteDisponibili.length) : 0}%
             </b></span>
@@ -1215,6 +1337,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
             <span>📅 Ordinate automaticamente per data/ora</span>
             <span>🔢 Max 10 partite per schedina</span>
             <span style={{color: '#e74c3c'}}>⚽ <b>NOVITÀ:</b> GG - NG (Goal-Goal / No Goal)</span>
+            <span style={{color: '#eb5757'}}>⏰ Escluse automaticamente le partite già iniziate</span>
             {casualitaLevel > 80 && <span style={{color: '#8e44ad', fontWeight: 'bold'}}>🎲🎲🎲 CASUALITÀ ESTREMA: scelta casuale delle partite!</span>}
           </div>
         </div>
@@ -1232,9 +1355,9 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
         </h4>
         {partiteDisponibili.length === 0 ? (
           <div className="empty-state" style={{padding: '30px', textAlign: 'center', color: 'var(--text-muted)'}}>
-            {filtroOrario === 'dopo_ora' 
-              ? 'Nessuna partita futura disponibile dopo l\'orario corrente per i campionati selezionati.' 
-              : 'Nessuna partita disponibile per i filtri selezionati.'}
+            <div style={{fontSize: '24px', marginBottom: '8px'}}>⏰</div>
+            <p>Nessuna partita disponibile per i filtri selezionati.</p>
+            <p style={{fontSize: '12px'}}>Verifica che ci siano partite future nei campionati selezionati e che non siano già iniziate.</p>
           </div>
         ) : (
           <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
@@ -1427,6 +1550,11 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
                     🎯 {schedinaCreata.giocateSelezionate.includes('tutte') ? 'Tutte le giocate' : schedinaCreata.giocateSelezionate.map(id => window.FAMIGLIE_GIOCATE[id]?.label || id).join(', ')}
                   </span>
                 )}
+                {schedinaCreata.giorniRange !== undefined && (
+                  <span>
+                    📅 Range: {schedinaCreata.giorniRange} giorno/i
+                  </span>
+                )}
               </div>
               
               <div style={{borderTop: '2px solid var(--accent)', paddingTop: '12px'}}>
@@ -1556,4 +1684,4 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
 };
 
 window.SchedinaComponent = SchedinaComponent;
-console.log('✅ SchedinaComponent caricato - mostra le stesse partite del Palinsesto con filtri data/ora');
+console.log('✅ SchedinaComponent caricato - mostra le stesse partite del Palinsesto con filtri data/ora e esclusione partite già iniziate');
