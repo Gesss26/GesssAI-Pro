@@ -3939,22 +3939,22 @@ function App() {
             </div>
           )}
 
-          {{tab === 'Schedina' && (
-  <div>
-    {window.SchedinaComponent ? (
-      <window.SchedinaComponent 
-        matches={matches} 
-        championships={championships}
-        selectedFamiglie={selectedFamiglie}
-        onSelectMatch={selectMatch}
-        showAlert={showAlert}
-        palinsestoGiorniRange={daysRange}  // ← PASSA IL VALORE DEL PALINSESTO
-      />
-    ) : (
-      <div className="alert alert-info">⏳ Caricamento modulo Schedina... Assicurati che il file <b>schedina.js</b> sia presente nella stessa cartella.</div>
-    )}
-  </div>
-)}
+                    {tab === 'Schedina' && (
+            <div>
+              {window.SchedinaComponent ? (
+                <window.SchedinaComponent 
+                  matches={matches} 
+                  championships={championships}
+                  selectedFamiglie={selectedFamiglie}
+                  onSelectMatch={selectMatch}
+                  showAlert={showAlert}
+                  palinsestoGiorniRange={daysRange}
+                />
+              ) : (
+                <div className="alert alert-info">⏳ Caricamento modulo Schedina... Assicurati che il file <b>schedina.js</b> sia presente nella stessa cartella.</div>
+              )}
+            </div>
+          )}
 
           {tab === 'Impostazioni' && (
             <div>
