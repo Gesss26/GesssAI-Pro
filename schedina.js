@@ -3,7 +3,7 @@
 // MODIFICHE: MASSIMO 10 PARTITE + BOTTONE RIGENERA + CASUALITÀ + MULTI CAMPIONATI
 // + ORDINE CRESCENTE PER DATA/ORA + CONTEGGIO PARTITE + SELEZIONE NUMERICA
 // + RIGENERA USA IL NUMERO DI PARTITE SCELTO + AGGIUNTA GG/NG
-// + CASUALITÀ > 80% SCEGLIE NUMERO PARTITE A CASO
+// + CASUALITÀ > 80% SCEGLIE NUMERO PARTITE A CASO (MA RISPETTA IL NUMERO SCELTO)
 // + DATA E ORA SEPARATE DA TRATTINO NELLA CONDIVISIONE
 // + SEZIONI DIVISE PER OGNI OPZIONE + GG/NG IN LISTA GIOCATE
 // ============================================================
@@ -292,12 +292,10 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
 
   // Funzione per determinare il numero di partite da prendere (con casualità estrema)
   const getNumeroPartiteDaPrendere = (limiteMax = 10) => {
-    // Se la casualità è > 80%, scegli un numero CASUALE di partite (da 2 a 10)
+    // Se la casualità è > 80%, usa il numero scelto dall'utente ma scegli partite CASUALI
     if (casualitaLevel > 80) {
-      const maxPartite = Math.min(limiteMax, partiteDisponibili.length, 10);
-      if (maxPartite < 2) return maxPartite;
-      const numero = Math.floor(Math.random() * (maxPartite - 1)) + 2;
-      return Math.min(10, Math.max(2, numero));
+      // RISPETTA il numero scelto dall'utente
+      return Math.min(numeroPartiteDaSelezionare, limiteMax, partiteDisponibili.length, 10);
     } else {
       // Usa il numero scelto dall'utente
       return Math.min(numeroPartiteDaSelezionare, limiteMax, partiteDisponibili.length, 10);
@@ -311,23 +309,16 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       return;
     }
     
-    // Se la casualità è > 80%, scegli a caso il numero di partite
-    let numeroDaPrendere;
+    // Determina quante partite prendere (rispetta n anche se casualità > 80%)
+    const numeroDaPrendere = Math.min(n, partiteDisponibili.length, 10);
     let messaggioExtra = '';
-    if (casualitaLevel > 80) {
-      const maxPartite = Math.min(10, partiteDisponibili.length);
-      numeroDaPrendere = Math.floor(Math.random() * (maxPartite - 1)) + 2;
-      numeroDaPrendere = Math.min(10, Math.max(2, numeroDaPrendere));
-      messaggioExtra = ` 🎲🎲🎲 (ignorato ${n} scelto)`;
-    } else {
-      numeroDaPrendere = Math.min(n, partiteDisponibili.length, 10);
-    }
     
     // Se la casualità è > 80%, scegli partite CASUALI dalla lista
     let migliori;
     if (casualitaLevel > 80) {
       const shuffled = shuffleArray(partiteDisponibili);
       migliori = shuffled.slice(0, numeroDaPrendere);
+      messaggioExtra = ` 🎲🎲🎲 (scelte casualmente!)`;
     } else {
       migliori = partiteDisponibili.slice(0, numeroDaPrendere);
     }
@@ -337,28 +328,27 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     showAlert('success', `✅ Selezionate ${miglioriOrdinate.length} partite!${messaggioExtra}`);
   };
 
-  // RIGENERA - con casualità estrema (>80%) che sceglie numero a caso E partite casuali
+  // RIGENERA - rispetta i filtri e il numero di partite scelto
   const rigeneraSchedina = () => {
     if (partiteDisponibili.length === 0) {
       showAlert('info', 'ℹ️ Nessuna partita disponibile per rigenerare la schedina.');
       return;
     }
 
-    // Se la casualità è > 80%, scegli un numero CASUALE di partite e CASUALI
+    // RISPETTA il numero di partite scelto dall'utente
+    const numeroPartiteDesiderato = Math.min(numeroPartiteDaSelezionare, partiteDisponibili.length, 10);
+    
+    // Se casualità > 80%, scegli partite CASUALI
     if (casualitaLevel > 80) {
-      const maxPartite = Math.min(10, partiteDisponibili.length);
-      const numeroDaPrendere = Math.floor(Math.random() * (maxPartite - 1)) + 2;
       const shuffled = shuffleArray(partiteDisponibili);
-      const selezionate = shuffled.slice(0, Math.min(numeroDaPrendere, 10));
+      const selezionate = shuffled.slice(0, numeroPartiteDesiderato);
       const selezionateOrdinate = ordinaPartitePerDataOra(selezionate);
       setPartiteSelezionate(selezionateOrdinate);
-      showAlert('success', `🎲🎲🎲 CASUALITÀ ESTREMA! ${selezionateOrdinate.length} partite selezionate a caso!`);
+      showAlert('success', `🎲🎲🎲 CASUALITÀ ESTREMA! ${selezionateOrdinate.length} partite selezionate a caso! (rispettato il numero scelto: ${numeroPartiteDesiderato})`);
       return;
     }
 
     // Altrimenti usa il metodo standard con i punteggi
-    const numeroPartiteDesiderato = getNumeroPartiteDaPrendere(10);
-    
     const partitePerScore = {};
     partiteDisponibili.forEach(m => {
       const score = m.score;
@@ -379,12 +369,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       let shuffled = shuffleArray(partiteGruppo);
       
       let daPrendereCount;
-      if (casualitaLevel > 80) {
-        // 🎲🎲🎲 CASUALITÀ ESTREMA: prendi un numero CASUALE di partite da questo gruppo
-        const maxDaPrendere = Math.min(partiteGruppo.length, postiDisponibili);
-        daPrendereCount = Math.floor(Math.random() * maxDaPrendere) + 1;
-        daPrendereCount = Math.min(maxDaPrendere, Math.max(1, daPrendereCount));
-      } else if (casualitaLevel > 50) {
+      if (casualitaLevel > 50) {
         const percentuale = 0.5 + (casualitaLevel - 50) / 100;
         daPrendereCount = Math.min(
           Math.ceil(partiteGruppo.length * percentuale),
@@ -410,8 +395,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     
     if (selezionate.length < 2) {
       const shuffledAll = shuffleArray(partiteDisponibili);
-      const maxDaPrendere = Math.min(10, partiteDisponibili.length);
-      const daPrendereCount = Math.min(maxDaPrendere, Math.max(2, Math.floor(Math.random() * (maxDaPrendere - 1)) + 2));
+      const daPrendereCount = Math.min(numeroPartiteDesiderato, partiteDisponibili.length);
       selezionate = shuffledAll.slice(0, daPrendereCount);
     }
     
@@ -425,9 +409,9 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       messaggioCasualita = `🎲🎲🎲 CASUALITÀ ESTREMA! ${selezionateOrdinate.length} partite selezionate a caso!`;
     } else if (casualitaLevel > 50) {
       emojiCasualita = '🎲🎲';
-      messaggioCasualita = `${selezionateOrdinate.length} partite selezionate`;
+      messaggioCasualita = `${selezionateOrdinate.length} partite selezionate con mix casuale`;
     } else {
-      messaggioCasualita = `${selezionateOrdinate.length} partite selezionate`;
+      messaggioCasualita = `${selezionateOrdinate.length} partite selezionate (poche variazioni)`;
     }
     
     showAlert('success', `🔄 Schedina rigenerata! ${messaggioCasualita} ${emojiCasualita} Livello: ${casualitaLevel}%`);
@@ -440,7 +424,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       return;
     }
     
-    const numeroPartiteDesiderato = getNumeroPartiteDaPrendere(10);
+    const numeroPartiteDesiderato = Math.min(numeroPartiteDaSelezionare, partiteDisponibili.length, 10);
     const shuffled = shuffleArray(partiteDisponibili);
     const selezionate = shuffled.slice(0, numeroPartiteDesiderato);
     const selezionateOrdinate = ordinaPartitePerDataOra(selezionate);
@@ -753,6 +737,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     showAlert('success', `📂 Schedina caricata! ${schedina.numPartite} partite, media ${schedina.media}%`);
   };
 
+  // Assicurati che GG/NG sia incluso nella lista delle famiglie disponibili
   const famiglieDisponibili = [
     { id: 'tutte', label: '⭐ Tutte', icon: '⭐' },
     ...Object.entries(window.FAMIGLIE_GIOCATE || {}).map(([id, family]) => ({
@@ -1130,7 +1115,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
               borderRadius: '6px',
               border: '1px solid rgba(231, 76, 60, 0.2)'
             }}>
-              ⚠️ CASUALITÀ ESTREMA! Numero e scelta delle partite saranno completamente casuali!
+              ⚠️ CASUALITÀ ESTREMA! Le partite vengono scelte CASUALMENTE (ma viene rispettato il numero scelto)
             </div>
           )}
         </div>
@@ -1210,7 +1195,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
               <span style={{fontSize: '11px', color: 'var(--text-muted)'}}>(1-10)</span>
               {casualitaLevel > 80 && (
                 <span style={{fontSize: '10px', color: '#e74c3c', fontWeight: 'bold', background: 'rgba(231,76,60,0.1)', padding: '2px 10px', borderRadius: '4px'}}>
-                  🎲 IGNORATO!
+                  🎲 RISPETTATO!
                 </span>
               )}
             </div>
@@ -1241,6 +1226,17 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
               </button>
             </div>
           </div>
+          {casualitaLevel > 80 && (
+            <div style={{
+              marginTop: '6px',
+              fontSize: '10px',
+              color: '#8e44ad',
+              fontStyle: 'italic',
+              textAlign: 'center'
+            }}>
+              🎲 Con casualità estrema, le partite vengono scelte CASUALMENTE dalla lista, ma il numero scelto viene rispettato
+            </div>
+          )}
         </div>
 
         {/* ============================================================ */}
@@ -1301,7 +1297,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
             <span>📅 Ordinate automaticamente per data/ora</span>
             <span>🔢 Max 10 partite per schedina</span>
             <span style={{color: '#e74c3c'}}>⚽ <b>NOVITÀ:</b> GG - NG (Goal-Goal / No Goal)</span>
-            {casualitaLevel > 80 && <span style={{color: '#e74c3c', fontWeight: 'bold'}}>🎲🎲🎲 CASUALITÀ ESTREMA ATTIVA!</span>}
+            {casualitaLevel > 80 && <span style={{color: '#8e44ad', fontWeight: 'bold'}}>🎲🎲🎲 CASUALITÀ ESTREMA: scelta casuale delle partite!</span>}
           </div>
         </div>
       </div>
@@ -1647,8 +1643,9 @@ console.log('✅ SchedinaComponent caricato con TUTTE le funzionalità:');
 console.log('   - Selezione multipla campionati');
 console.log('   - Selezione multipla giocate (incluso GG/NG)');
 console.log('   - Casuale e Rigenera con livello di casualità');
-console.log('   - Casualità >80% sceglie numero partite a caso E partite casuali');
+console.log('   - Casualità >80% sceglie partite CASUALI ma rispetta il numero scelto');
 console.log('   - Data e ora separate da trattino nelle condivisioni');
 console.log('   - Max 10 partite con ordinamento data/ora');
 console.log('   - Sezioni divise per ogni opzione');
 console.log('   - GG/NG in lista giocate');
+console.log('   - Rigenera rispetta i filtri impostati');
