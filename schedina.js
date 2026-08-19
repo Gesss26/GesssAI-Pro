@@ -1,9 +1,17 @@
 // ============================================================
 // COMPONENTE SCHEDINA - MOSTRA LE STESSE PARTITE DEL PALINSESTO
 // + ESCLUSIONE PARTITE GIÀ INIZIATE
+// + SINCRONIZZATO CON IL RANGE GIORNI DEL PALINSESTO
 // ============================================================
 
-const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectMatch, showAlert }) => {
+const SchedinaComponent = ({ 
+  matches, 
+  championships, 
+  selectedFamiglie, 
+  onSelectMatch, 
+  showAlert,
+  palinsestoGiorniRange = 1  // Valore dal Palinsesto (default 1)
+}) => {
   // Stato per i campionati selezionati (array di nomi)
   const [campionatiSelezionati, setCampionatiSelezionati] = useState([]);
   const [partiteSelezionate, setPartiteSelezionate] = useState([]);
@@ -18,8 +26,14 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
     } catch { return []; }
   });
   const [numeroPartiteDaSelezionare, setNumeroPartiteDaSelezionare] = useState(5);
-  const [giorniRange, setGiorniRange] = useState(1);
+  // INIZIALIZZA CON IL VALORE DEL PALINSESTO
+  const [giorniRange, setGiorniRange] = useState(palinsestoGiorniRange);
   const [filtroOrario, setFiltroOrario] = useState('dopo_ora');
+
+  // SINCRONIZZA IL RANGE GIORNI CON IL PALINSESTO
+  useEffect(() => {
+    setGiorniRange(palinsestoGiorniRange);
+  }, [palinsestoGiorniRange]);
 
   // All'avvio: seleziona tutti i campionati di default
   useEffect(() => {
@@ -807,6 +821,9 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
       <div className="card" style={{marginBottom: '20px'}}>
         <h3 style={{color: 'var(--accent)', marginBottom: '16px', fontSize: '20px'}}>
           🎯 Crea Schedina {casualitaLevel > 50 ? '🎲' : ''}
+          <span style={{fontSize: '12px', color: 'var(--text-muted)', marginLeft: '12px', fontWeight: 'normal'}}>
+            📅 Sincronizzato con Palinsesto ({giorniRange} giorno/i)
+          </span>
         </h3>
         
         {/* SEZIONE 1: CAMPIONATI */}
@@ -1013,6 +1030,9 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
           }}>
             <span style={{fontSize: '15px', fontWeight: 'bold', color: 'var(--text)'}}>
               📅 Filtri Data e Orario
+              <span style={{fontSize: '11px', color: 'var(--text-muted)', marginLeft: '8px', fontWeight: 'normal'}}>
+                (sincronizzato con Palinsesto)
+              </span>
             </span>
           </div>
           <div style={{display: 'flex', flexWrap: 'wrap', gap: '20px', alignItems: 'center'}}>
@@ -1042,6 +1062,9 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
                 <option value="6">Oggi - +6 (0-6)</option>
                 <option value="7">Oggi - +7 (0-7)</option>
               </select>
+              <div style={{fontSize: '9px', color: 'var(--text-muted)', marginTop: '3px'}}>
+                🔄 Sincronizzato con il Palinsesto
+              </div>
             </div>
             
             <div style={{flex: '1', minWidth: '160px'}}>
@@ -1338,6 +1361,7 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
             <span>🔢 Max 10 partite per schedina</span>
             <span style={{color: '#e74c3c'}}>⚽ <b>NOVITÀ:</b> GG - NG (Goal-Goal / No Goal)</span>
             <span style={{color: '#eb5757'}}>⏰ Escluse automaticamente le partite già iniziate</span>
+            <span style={{color: 'var(--accent)'}}>🔄 Sincronizzato con il Palinsesto</span>
             {casualitaLevel > 80 && <span style={{color: '#8e44ad', fontWeight: 'bold'}}>🎲🎲🎲 CASUALITÀ ESTREMA: scelta casuale delle partite!</span>}
           </div>
         </div>
@@ -1684,4 +1708,4 @@ const SchedinaComponent = ({ matches, championships, selectedFamiglie, onSelectM
 };
 
 window.SchedinaComponent = SchedinaComponent;
-console.log('✅ SchedinaComponent caricato - mostra le stesse partite del Palinsesto con filtri data/ora e esclusione partite già iniziate');
+console.log('✅ SchedinaComponent caricato - sincronizzato con il Palinsesto (range giorni) + esclusione partite già iniziate');
